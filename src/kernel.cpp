@@ -206,6 +206,8 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64& nStakeMo
     return true;
 }
 
+CBigNum MAX_HASH(1);
+
 // ppcoin kernel protocol
 // coinstake must meet hash target according to the protocol:
 // kernel (input 0) must meet the formula
@@ -231,6 +233,13 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64& nStakeMo
 //
 bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake)
 {
+  //TODO tim put this in a proper place
+  if(MAX_HASH == (CBigNum(1)))
+    {
+      for(int i = 0; i < 256; i++)
+	MAX_HASH *= (CBigNum(2));
+    }
+  
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
         return error("CheckStakeKernelHash() : nTime violation");
     unsigned int nTimeBlockFrom = blockFrom.GetBlockTime();
@@ -275,7 +284,11 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
                nStakeModifier,
                nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx,
                hashProofOfStake.ToString().c_str());
+	int odds = (MAX_HASH / (bnCoinDayWeight * bnTargetPerCoinDay)).getint();
+	printf("CheckStakeKernelHash(): odds approximately %d to 1 MAX_HASH %s TARGET %s\n", odds, MAX_HASH.GetHex().c_str(),  (bnCoinDayWeight * bnTargetPerCoinDay).GetHex().c_str());
     }
+
+    
 
     // Now check if proof-of-stake hash meets target protocol
     if (CBigNum(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay)

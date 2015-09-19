@@ -78,6 +78,8 @@ bool fNoListen = false;
 bool fLogTimestamps = false;
 CMedianFilter<int64> vTimeOffsets(200,0);
 
+int64 manualTimeOffsetSec = 0;
+
 // Init openssl library multithreading support
 static boost::interprocess::interprocess_mutex** ppmutexOpenSSL;
 void locking_callback(int mode, int i, const char* file, int line)
@@ -1028,7 +1030,7 @@ timestamp_t GetTime()
 {
     if (nMockTime) return nMockTime;
 
-    return time(NULL);
+    return time(NULL) + manualTimeOffsetSec;
 }
 
 void SetMockTime(timestamp_t nMockTimeIn)
@@ -1040,7 +1042,7 @@ static timestamp_t nTimeOffset = 0;
 
 timestamp_t GetAdjustedTime()
 {
-    return GetTime() + nTimeOffset;
+    return GetTime() + manualTimeOffsetSec + nTimeOffset;
 }
 
 void AddTimeData(const CNetAddr& ip, timestamp_t nTime)

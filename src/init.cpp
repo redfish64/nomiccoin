@@ -313,6 +313,11 @@ bool AppInit2(int argc, char* argv[])
         if (!IsSwitchChar(argv[i][0]) && !(strlen(argv[i]) >= 7 && strncasecmp(argv[i], COIN_SCHEME ":", sizeof(COIN_SCHEME)) == 0))
             fCommandLine = true;
 
+    manualTimeOffsetSec = GetArg("manualTimeOffsetSec",0);
+
+    if(manualTimeOffsetSec)
+      fprintf(stderr, "Setting manual timeoffset to %d secs",manualTimeOffsetSec);
+
     if (fCommandLine)
     {
         int ret = CommandLineRPC(argc, argv);

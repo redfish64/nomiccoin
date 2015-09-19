@@ -434,10 +434,12 @@ inline int64 GetPerformanceCounter()
     return nCounter;
 }
 
+extern int64 manualTimeOffsetSec;
+
 inline int64 GetTimeMillis()
 {
     return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time()) -
-            boost::posix_time::ptime(boost::gregorian::date(1970,1,1))).total_milliseconds();
+            boost::posix_time::ptime(boost::gregorian::date(1970,1,1))).total_milliseconds() + manualTimeOffsetSec * 1000;
 }
 
 inline std::string DateTimeStrFormat(const char* pszFormat, int64 nTime)
