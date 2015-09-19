@@ -308,15 +308,14 @@ bool AppInit2(int argc, char* argv[])
     fPrintToDebugger = GetBoolArg("-printtodebugger");
     fLogTimestamps = GetBoolArg("-logtimestamps", true);
 
+    manualTimeOffsetSec = GetArg("-manualTimeOffsetSec",0);
+
+    fprintf(stderr, "Setting manual timeoffset to %lld secs\n",manualTimeOffsetSec);
+
 #ifndef QT_GUI
     for (int i = 1; i < argc; i++)
         if (!IsSwitchChar(argv[i][0]) && !(strlen(argv[i]) >= 7 && strncasecmp(argv[i], COIN_SCHEME ":", sizeof(COIN_SCHEME)) == 0))
             fCommandLine = true;
-
-    manualTimeOffsetSec = GetArg("manualTimeOffsetSec",0);
-
-    if(manualTimeOffsetSec)
-      fprintf(stderr, "Setting manual timeoffset to %d secs",manualTimeOffsetSec);
 
     if (fCommandLine)
     {
