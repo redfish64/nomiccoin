@@ -1900,7 +1900,11 @@ bool CBlock::CheckBlock() const
 
     // Check timestamp
     if (GetBlockTime() > GetAdjustedTime() + MAX_CLOCK_DRIFT)
-        return error("CheckBlock() : block timestamp too far in the future");
+      return error("CheckBlock() : block timestamp too far in the future, diff is %lld, diff from GetTime() is %lld, manualTimeOffsetSec is %lld",
+		   GetBlockTime() - GetAdjustedTime() + MAX_CLOCK_DRIFT,
+		   GetBlockTime() - GetTime(),
+		   manualTimeOffsetSec
+		   );
 
     // First transaction must be coinbase, the rest must not be
     if (vtx.empty() || !vtx[0].IsCoinBase())
