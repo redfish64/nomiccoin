@@ -7,7 +7,7 @@ QT_MID_SUFFIX = 5
 
 include Makefile.default
 
-CXXFLAGS += -fPIE
+CXXFLAGS += -fPIE -I/usr/include/db4.8 
 
 ifneq ($(NO_QT),1)
   CXXFLAGS += $(shell pkg-config Qt5Core Qt5Gui Qt5Widgets --cflags)

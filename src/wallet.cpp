@@ -412,10 +412,24 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn)
 // If fUpdate is true, existing transactions will be updated.
 bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate, bool fFindBlock)
 {
-    uint256 hash = tx.GetHash();
-    {
+  uint256 hash = tx.GetHash();
+  {
         LOCK(cs_wallet);
+	bool isMineForMinting = IsMineForMintingOnly(tx);
+	if(fDebug)
+	  {
+	    printf("AddToWalletIfInvolvingMe time %d ", pblock->nTime);
+	  }
+  
         bool fExisted = mapWallet.count(hash);
+	if(fDebug)
+	  {
+	    printf("isMineForMinting %d fExisted %d fUpdate %d\n", isMineForMinting ? 1 :0
+		   , fExisted ? 1:0,
+		   fUpdate ? 1:0);
+	    
+	  }
+  
         if (fExisted && !fUpdate) return false;
         if (fExisted || IsMine(tx) || IsFromMe(tx) || IsMineForMintingOnly(tx))
         {
@@ -1348,7 +1362,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             continue;
         static int nMaxStakeSearchInterval = 60;
         if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
-            continue; // only count coins meeting min age requirement
+	  {
+	    if (fDebug && GetBoolArg("-printcoinstake"))
+	      printf("CreateCoinStake : not passed min stake age, %d left\n",
+		     block.GetBlockTime() + STAKE_MIN_AGE - txNew.nTime - nMaxStakeSearchInterval);
+	    continue; // only count coins meeting min age requirement
+	  }
 
         bool fKernelFound = false;
         for (unsigned int n=0; n<min(nSearchInterval,(int64)nMaxStakeSearchInterval) && !fKernelFound && !fShutdown; n++)

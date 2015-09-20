@@ -15,6 +15,7 @@ using namespace boost;
 #include "key.h"
 #include "main.h"
 #include "util.h"
+#include "base58.h"
 
 bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
@@ -1696,6 +1697,10 @@ bool IsMineForMintingOnly(const CKeyStore & keystore, const CScript& scriptPubKe
     {
         CKeyID mintingKeyID = CKeyID(uint160(vSolutions[0]));
         CKeyID spendingKeyID = CKeyID(uint160(vSolutions[1]));
+	if(fDebug)
+	  printf("IsMineForMintingOnly : mintingkeyid %s spendingkeyid %s\n",
+		 CBitcoinAddress(mintingKeyID).ToString().c_str(),
+		 CBitcoinAddress(spendingKeyID).ToString().c_str());
 
         return keystore.HaveKey(mintingKeyID) && !keystore.HaveKey(spendingKeyID);
     }
