@@ -416,11 +416,6 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
   {
         LOCK(cs_wallet);
 	bool isMineForMinting = IsMineForMintingOnly(tx);
-	if(fDebug)
-	  {
-	    printf("AddToWalletIfInvolvingMe time %d ", pblock->nTime);
-	  }
-  
         bool fExisted = mapWallet.count(hash);
 	if(fDebug)
 	  {
