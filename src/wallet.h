@@ -65,6 +65,42 @@ public:
     )
 };
 
+
+enum CoinStakeStatusState
+{
+  INIT,
+  NO_CONFIRMED_COINS_TO_STAKE,
+  NO_CONFIRMED_MINTING_COINS_TO_STAKE,
+  SET_COINS_EMPTY,
+  OK
+};
+
+/**
+ * statistics from each individual minting attempt per second
+ */
+class CoinStakeStatus
+{
+ public:
+  CoinStakeStatusState state; //the state of staking
+  int64 timeForAllCoinsToStake; //the remaining time for every UTXO's owned by the
+  //wallet to pass the min stake age
+  int64 coinsStaked; //the number of coins being minted
+  CBigNum totalTarget; //the target of each active stake added together
+
+  CoinStakeStatus () {
+    state = INIT;
+    timeForAllCoinsToStake = 0;
+    totalTarget = 0;
+  }
+  
+  /**
+   * Returns the odds that the coin will be staked for each try
+   */
+  double getOdds ();
+};
+
+
+
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -165,7 +201,7 @@ public:
     int64 GetNewMint() const;
     bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
-    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew);
+    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CoinStakeStatus *coinStakeStatusOut = NULL);
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
@@ -817,4 +853,8 @@ public:
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
+extern CCriticalSection cs_lastCoinStakeStatus;
+extern CoinStakeStatus lastCoinStakeStatus;  
+
+CoinStakeStatus getLastCoinStakeStatus();
 #endif

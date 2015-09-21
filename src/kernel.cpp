@@ -231,7 +231,7 @@ CBigNum MAX_HASH(1);
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 //
-bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake)
+bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, CBigNum * targetHash, int64 * coinsStaked)
 {
   //TODO tim put this in a proper place
   if(MAX_HASH == (CBigNum(1)))
@@ -239,7 +239,7 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
       for(int i = 0; i < 256; i++)
 	MAX_HASH *= (CBigNum(2));
     }
-  
+
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
         return error("CheckStakeKernelHash() : nTime violation");
     unsigned int nTimeBlockFrom = blockFrom.GetBlockTime();
@@ -250,6 +250,9 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
     bnTargetPerCoinDay.SetCompact(nBits);
 
     int64 nValueIn = txPrev.vout[prevout.n].nValue;
+
+    if(coinsStaked)
+      *coinsStaked = nValueIn;
 
     int64 nTimeWeight = min((int64)nTimeTx - txPrev.nTime, (int64)STAKE_MAX_AGE) - STAKE_MIN_AGE;
 
@@ -272,6 +275,10 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
        << nTimeTx;
 
     hashProofOfStake = Hash(ss.begin(), ss.end());
+
+    if(targetHash)
+      *targetHash = bnCoinDayWeight * bnTargetPerCoinDay;
+
     if (fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
@@ -288,7 +295,6 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
 	printf("CheckStakeKernelHash(): odds approximately %d to 1 MAX_HASH %s TARGET %s\n", odds, MAX_HASH.GetHex().c_str(),  (bnCoinDayWeight * bnTargetPerCoinDay).GetHex().c_str());
     }
 
-    
 
     // Now check if proof-of-stake hash meets target protocol
     if (CBigNum(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay)

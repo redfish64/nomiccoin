@@ -1293,8 +1293,10 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
 }
 
+static CoinStakeStatus coinStakeStatusTemp;
+
 // ppcoin: create coin stake transaction
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CoinStakeStatus *coinStakeStatus)
 {
     CBlockIndex const * pLastBlockIndex = DYN_POW_TAIL;
 
@@ -1323,24 +1325,39 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     vector<const CWalletTx*> vwtxPrev;
     int64 nValueIn = 0;
 
+    //if status isn't asked for we just dump the data into a temp structure rather then
+    //checking for NULL in a gazillion places
+    if(coinStakeStatus == NULL)
+      {
+	coinStakeStatus = &coinStakeStatusTemp;
+      }
+
     if (nBalance > nReserveBalance)
     {
-        if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
-        {
-            return false;
+      if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
+	{
+	  coinStakeStatus->state = NO_CONFIRMED_COINS_TO_STAKE;
+	  return false;
         }
     }
 
     if (nMintingOnlyBalance > 0)
-    {
+      {
         int64 nMintingOnlyValueIn = 0;
         if (!SelectMintingOnlyCoins(txNew.nTime, setCoins, nMintingOnlyValueIn))
+	  {
+	    coinStakeStatus->state = NO_CONFIRMED_MINTING_COINS_TO_STAKE;
             return false;
+	  }
         nValueIn += nMintingOnlyValueIn;
     }
 
     if (setCoins.empty())
-        return false;
+      {
+	coinStakeStatus->state = SET_COINS_EMPTY;
+	return false;
+      }
+
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;
     bool fMintingOnly = false;
@@ -1356,11 +1373,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
             continue;
         static int nMaxStakeSearchInterval = 60;
+
         if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
 	  {
+	    int stakeTimeRemaining = block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval);
+	    
+	    coinStakeStatus->timeForAllCoinsToStake =
+	      (coinStakeStatus->timeForAllCoinsToStake < stakeTimeRemaining) ? stakeTimeRemaining :
+	      coinStakeStatus->timeForAllCoinsToStake;
+	    
 	    if (fDebug && GetBoolArg("-printcoinstake"))
 	      printf("CreateCoinStake : not passed min stake age, %d left\n",
-		     block.GetBlockTime() + STAKE_MIN_AGE - txNew.nTime - nMaxStakeSearchInterval);
+		     block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval));
 	    continue; // only count coins meeting min age requirement
 	  }
 
@@ -1372,9 +1396,15 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             uint256 hashProofOfStake = 0;
             COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
 
+	
 	    if (fDebug && GetBoolArg("-printcoinstake"))
 	      printf("CreateCoinStake : looking for kernel\n");
-            if (CheckStakeKernelHash(pindexBest, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, fDebug && GetBoolArg("-printcoinstake")))
+	    CBigNum targetHash;
+	    
+	    int64 coinsIn;
+
+            if (CheckStakeKernelHash(pindexBest, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, fDebug && GetBoolArg("-printcoinstake"),
+				     &targetHash, &coinsIn))
 	      {
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
@@ -1383,7 +1413,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txnouttype whichType;
                 CScript scriptPubKeyOut;
                 scriptPubKeyKernel = pcoin.first->vout[pcoin.second].scriptPubKey;
-
+	      
                 if (!Solver(scriptPubKeyKernel, whichType, vSolutions))
                 {
                     if (fDebug && GetBoolArg("-printcoinstake"))
@@ -1449,15 +1479,20 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;
                 break;
-            }
-	      else {
-		if (fDebug && GetBoolArg("-printcoinstake"))
-		  printf("CreateCoinStake : didn't 'find' kernel\n");
 	      }
-        }
-        if (fKernelFound || fShutdown)
-            break; // if kernel is found stop searching
+	    else {
+	      if (fDebug && GetBoolArg("-printcoinstake"))
+		printf("CreateCoinStake : didn't 'find' kernel\n");
+	    }
+
+	    coinStakeStatus->coinsStaked += coinsIn;
+	    coinStakeStatus->totalTarget += targetHash;
+	}
+	if (fKernelFound || fShutdown)
+	  break; // if kernel is found stop searching
     }
+    
+    coinStakeStatus->state=OK;
 
     if (nCredit == 0 || (nCredit > nBalance - nReserveBalance && !fMintingOnly))
         return false;
@@ -2028,4 +2063,33 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress)
             throw runtime_error("GetAllReserveKeyHashes() : unknown key in key pool");
         setAddress.insert(keyID);
     }
+}
+
+#define TOTAL_HASH_BITS 256
+#define COIN_STAKE_STATUS_ODDS_PRECISION 30
+
+/**
+ * Returns the odds that the coin will be staked for each try
+ */
+double CoinStakeStatus::getOdds()
+{
+  CBigNum th = totalTarget;
+  th >>= TOTAL_HASH_BITS - COIN_STAKE_STATUS_ODDS_PRECISION;
+  return ((double)th.getuint64()) / ((double) (1 << COIN_STAKE_STATUS_ODDS_PRECISION));
+}
+
+CCriticalSection cs_lastCoinStakeStatus;
+
+CoinStakeStatus lastCoinStakeStatus;
+
+CoinStakeStatus getLastCoinStakeStatus()
+{
+  CoinStakeStatus localCoinStakeStatus;
+  
+  {
+    LOCK(cs_lastCoinStakeStatus);
+    localCoinStakeStatus = lastCoinStakeStatus;
+  }
+  
+  return localCoinStakeStatus;
 }

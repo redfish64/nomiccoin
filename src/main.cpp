@@ -2632,8 +2632,8 @@ string GetWarnings(string strFor)
     // ppcoin: if sync-checkpoint is too old do not enter safe mode
     if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 10))
     {
-        nPriority = 100;
-        strStatusBar = "Warning: No sync-checkpoint received for quite a long time.";
+      nPriority = 100;
+      strStatusBar = "Warning: No sync-checkpoint received for quite a long time.";
     }
 
     // ppcoin: if detected invalid checkpoint enter safe mode
@@ -3785,7 +3785,9 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
         int64 nSearchTime = txCoinStake.nTime; // search to current time
         if (nSearchTime > nLastCoinStakeSearchTime)
         {
-            if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake))
+	  CoinStakeStatus css;
+
+	  if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake,&css))
             {
                 if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - MAX_CLOCK_DRIFT))
                 {   // make sure coinstake would meet timestamp protocol
@@ -3797,9 +3799,15 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             }
             nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
             nLastCoinStakeSearchTime = nSearchTime;
+	    {
+	      LOCK(cs_lastCoinStakeStatus);
+	      
+	      lastCoinStakeStatus = css;
+	    }
         }
     }
 
+    
     pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
 
     // Collect memory pool transactions into the block
@@ -4124,6 +4132,7 @@ bool BitcoinMiner(CWallet *pwallet, bool fProofOfStake, uint256 * minedBlock, ui
 
         if (fProofOfStake)
         {
+	  strMintWarning = "we'll report on minting here";
             // ppcoin: if proof-of-stake block found then process block
             if (pblock->IsProofOfStake())
             {

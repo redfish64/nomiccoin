@@ -5,14 +5,16 @@
 #include "transactiontablemodel.h"
 
 #include "main.h"
+#include "wallet.h"
 
 #include <QDateTime>
+#include <cmath>
 
 #include "./clientmodel.moc"
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), optionsModel(optionsModel),
-    cachedNumConnections(0), cachedNumBlocks(0)
+  QObject(parent), optionsModel(optionsModel),
+  cachedNumConnections(0), cachedNumBlocks(0)
 {
     numBlocksAtStartup = -1;
 }
@@ -41,6 +43,37 @@ int ClientModel::getNumBlocksAtStartup()
 QDateTime ClientModel::getLastBlockDate() const
 {
     return QDateTime::fromTime_t(pindexBest->GetBlockTime());
+}
+
+
+int hack = 0;
+
+QString getStakingStatus()
+{
+  CoinStakeStatus css = getLastCoinStakeStatus();
+
+  if(css.coinsStaked > 0 && css.totalTarget != CBigNum(0))
+  {
+
+    //double stakeDays = log(.5)/ log(1-css.getOdds()) /3600./24.;
+    double stakeDays = 1/css.getOdds() /3600./24.;
+
+     return QString("Avg days to next stake %1. %2").arg(stakeDays, 0, 'f', 2)
+       .arg(hack++, 0, 'f', 2);
+  }
+
+  if(css.state == OK)
+    {
+      if(css.timeForAllCoinsToStake > 0)
+	{
+	  double daysForCoinsToStake = css.timeForAllCoinsToStake / 3600.;
+	  
+	  return QString("Staking hasn't reached min age. Hours left: %1.").arg(daysForCoinsToStake, 0, 'f', 2);
+	}
+      return QString("Not minting.");
+    }
+  
+  return QString("Not minting. State %1").arg(css.state, 0, 'f', 2);
 }
 
 void ClientModel::update()
@@ -84,7 +117,7 @@ int ClientModel::getNumBlocksOfPeers() const
 
 QString ClientModel::getStatusBarWarnings() const
 {
-    return QString::fromStdString(GetWarnings("statusbar"));
+  return (QString::fromStdString(GetWarnings("statusbar"))).append(" ").append(getStakingStatus());
 }
 
 OptionsModel *ClientModel::getOptionsModel()
