@@ -1378,9 +1378,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 	  {
 	    int stakeTimeRemaining = block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval);
 	    
-	    coinStakeStatus->timeForAllCoinsToStake =
-	      (coinStakeStatus->timeForAllCoinsToStake < stakeTimeRemaining) ? stakeTimeRemaining :
-	      coinStakeStatus->timeForAllCoinsToStake;
+	    coinStakeStatus->timeForAllCoinsToStartMinting =
+	      (coinStakeStatus->timeForAllCoinsToStartMinting < stakeTimeRemaining) ? stakeTimeRemaining :
+	      coinStakeStatus->timeForAllCoinsToStartMinting;
 	    
 	    if (fDebug && GetBoolArg("-printcoinstake"))
 	      printf("CreateCoinStake : not passed min stake age, %d left\n",
@@ -1485,7 +1485,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 		printf("CreateCoinStake : didn't 'find' kernel\n");
 	    }
 
-	    coinStakeStatus->coinsStaked += coinsIn;
+	    coinStakeStatus->coinsMinting += coinsIn;
 	    coinStakeStatus->totalTarget += targetHash;
 	}
 	if (fKernelFound || fShutdown)

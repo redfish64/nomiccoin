@@ -19,7 +19,7 @@ class ClientModel : public QObject
 public:
     explicit ClientModel(OptionsModel *optionsModel, QObject *parent = 0);
 
-    OptionsModel *getOptionsModel();
+    OptionsModel *getOptionsModel() const;
 
     int getNumConnections() const;
 
@@ -52,6 +52,7 @@ private:
     QString cachedStatusBar;
 
     int numBlocksAtStartup;
+    QString getStakingStatus() const;
 
 signals:
     void numConnectionsChanged(int count);

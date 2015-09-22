@@ -3,6 +3,7 @@
 #include "optionsmodel.h"
 #include "addresstablemodel.h"
 #include "transactiontablemodel.h"
+#include "bitcoinunits.h"
 
 #include "main.h"
 #include "wallet.h"
@@ -11,6 +12,8 @@
 #include <cmath>
 
 #include "./clientmodel.moc"
+
+#include "GetProofOfStakeReward.h"
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
   QObject(parent), optionsModel(optionsModel),
@@ -48,32 +51,52 @@ QDateTime ClientModel::getLastBlockDate() const
 
 int hack = 0;
 
-QString getStakingStatus()
+#define ONE_YEAR_ONE_COIN_AGE ( 365 * 33 + 8) / 33
+
+/**
+ We want to gather:
+
+ Coins minting
+ Time before all coins begin minting
+ Current interest rate
+ Expected next coinstake
+*/
+QString ClientModel::getStakingStatus() const
 {
   CoinStakeStatus css = getLastCoinStakeStatus();
 
-  if(css.coinsStaked > 0 && css.totalTarget != CBigNum(0))
-  {
+  int unit = getOptionsModel()->getDisplayUnit();
+  QString coinsMinting = BitcoinUnits::formatWithUnit(unit, css.coinsMinting);
+  double hoursForCoinsToStartMinting = css.timeForAllCoinsToStartMinting / 3600.;
 
-    //double stakeDays = log(.5)/ log(1-css.getOdds()) /3600./24.;
-    double stakeDays = 1/css.getOdds() /3600./24.;
+  double currentInterestRate = GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, getNumBlocks()) * .0001;
 
-     return QString("Avg days to next stake %1. %2").arg(stakeDays, 0, 'f', 2)
-       .arg(hack++, 0, 'f', 2);
-  }
+  double stakeDays;
 
-  if(css.state == OK)
-    {
-      if(css.timeForAllCoinsToStake > 0)
-	{
-	  double daysForCoinsToStake = css.timeForAllCoinsToStake / 3600.;
-	  
-	  return QString("Staking hasn't reached min age. Hours left: %1.").arg(daysForCoinsToStake, 0, 'f', 2);
-	}
-      return QString("Not minting.");
-    }
-  
-  return QString("Not minting. State %1").arg(css.state, 0, 'f', 2);
+  if(css.coinsMinting > 0 && css.totalTarget != CBigNum(0))
+    stakeDays = 1/css.getOdds() /3600./24.;
+  else
+    stakeDays = 0.;
+
+
+  QString timeUntilAllCoinsMintStr;
+
+  if(hoursForCoinsToStartMinting != 0)
+    timeUntilAllCoinsMintStr = QString("Hours before all coins mint: %1. ").arg(hoursForCoinsToStartMinting, 0, 'f', 2);
+  else
+    timeUntilAllCoinsMintStr = QString("");
+
+  QString stakeDaysStr;
+
+  if(stakeDays != 0.)
+    stakeDaysStr = QString("Avg days to next reward %1. ").arg(stakeDays, 0, 'f', 2);
+  else
+    stakeDaysStr = "";
+
+  QString out = QString("Minting: "+coinsMinting+". "+timeUntilAllCoinsMintStr+stakeDaysStr+
+			QString("Curr APY %1%").arg(currentInterestRate,0, 'f', 1));
+
+  return out;
 }
 
 void ClientModel::update()
@@ -120,7 +143,7 @@ QString ClientModel::getStatusBarWarnings() const
   return (QString::fromStdString(GetWarnings("statusbar"))).append(" ").append(getStakingStatus());
 }
 
-OptionsModel *ClientModel::getOptionsModel()
+OptionsModel *ClientModel::getOptionsModel() const
 {
     return optionsModel;
 }

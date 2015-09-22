@@ -82,14 +82,15 @@ class CoinStakeStatus
 {
  public:
   CoinStakeStatusState state; //the state of staking
-  int64 timeForAllCoinsToStake; //the remaining time for every UTXO's owned by the
+  int64 timeForAllCoinsToStartMinting; //the remaining time for every UTXO's owned by the
   //wallet to pass the min stake age
-  int64 coinsStaked; //the number of coins being minted
+  int64 coinsMinting; //the number of coins being minted
   CBigNum totalTarget; //the target of each active stake added together
-
+  
   CoinStakeStatus () {
     state = INIT;
-    timeForAllCoinsToStake = 0;
+    timeForAllCoinsToStartMinting = 0;
+    coinsMinting = 0;
     totalTarget = 0;
   }
   
