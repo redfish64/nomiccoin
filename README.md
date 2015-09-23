@@ -19,9 +19,9 @@ Why are UTXO's so important (and what are they)?
 
 A UTXO in the context of minting is basically a transaction to an address in your wallet. So, for example, if you got paid 3 times in March, one for 100 NEU, another for 200 NEU, and a third for 150 NEU, all to the same address, they'd all be different UTXO's. Wallets contain addresses and addresses contain UTXO's.
 
-Minting is done at the (very granular) UTXO level. So consider if you had 100,000 NEU in a single UTXO. Let's say at this level, you'd normally mint on average every 10 days. Let's say that changed, and you now had 5 UTXO's of 20,000 each. Each UTXO would then mint on average every 50 days. On average, though, you'd still mint every 10 days. So why does this matter?
+Minting is done at the (very granular) UTXO level. So consider if you had 100,000 NEU in a single UTXO. Let's say at this level, you'd normally mint on average every 10 days. Now compare that to a case, where you still had 10,000 NEU in an address, but it was made with 5 payments of 20,000 each. Each UTXO corresponding to the payments would then mint on average every 50 days. On average, though, you'd still mint every 10 days. So why does this matter?
 
-*Because you only get interest for the UTXO that coinstaked*. The others are left untouched (except in very unusual cases). So what happens is that a majority of your reward is left unclaimed (around 4/5ths of it in this case), and its difficult to move the coins without destroying the unclaimed reward of all the UTXO's that didn't mint. You can specify an address to send from in a transfer, but I never heard of anyone being able to specify a specific UTXO!
+*Because you only get interest for the UTXO that coinstaked*. The others are left untouched (except in very unusual cases). So what happens is that a majority of your reward is left unclaimed (around 4/5ths of it in this case), and its difficult to move the coins without destroying the unclaimed reward of all the UTXO's that didn't mint. You can specify an address to send from in a transfer, but you cannot specify a specific UTXO!
 
 Not only that, but this ties directly to how much compound interest you receive. After all, if you are only enjoying 1/5th of the reward you would with a single UTXO, then you are also only getting 1/5th of the interest due to the compounding.
 
