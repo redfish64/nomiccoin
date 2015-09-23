@@ -31,6 +31,13 @@ Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3
 
 Thanks!
 
+Questions / Suggestions can be sent to engler@gmail.com , or create an Issue in the far right menu on github.
+
+I'll try to respond if I'm not too busy
+
+(The original readme is below)
+
+---
 
 
 ![](http://i.imgur.com/5P9mGCc.png)
