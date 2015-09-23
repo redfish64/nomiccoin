@@ -25,7 +25,11 @@ Minting is done at the (very granular) UTXO level. So consider if you had 100,00
 
 Not only that, but this ties directly to how much compound interest you receive. After all, if you are only enjoying 1/5th of the reward you would with a single UTXO, then you are also only getting 1/5th of the interest due to the compounding.
 
+---
 
+Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3
+
+Thanks!
 
 
 
