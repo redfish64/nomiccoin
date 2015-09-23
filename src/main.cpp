@@ -1733,7 +1733,6 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
-
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
@@ -1741,7 +1740,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
-bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
+bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge) const
 {
     CBigNum bnCentSecond = 0;  // coin age in the unit of cent-seconds
     nCoinAge = 0;
@@ -1763,7 +1762,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
         CBlock block;
         if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
             return false; // unable to read block of previous transaction
-        if (block.GetBlockTime() + STAKE_MIN_AGE > nTime)
+        if (block.GetBlockTime() + STAKE_MIN_AGE > nTime && !ignoreStakeAge)
             continue; // only count coins meeting min age requirement
 
         int64 nValueIn = txPrev.vout[txin.prevout.n].nValue;
@@ -4132,13 +4131,13 @@ bool BitcoinMiner(CWallet *pwallet, bool fProofOfStake, uint256 * minedBlock, ui
 
         if (fProofOfStake)
         {
-	  strMintWarning = "we'll report on minting here";
             // ppcoin: if proof-of-stake block found then process block
             if (pblock->IsProofOfStake())
             {
                 if (!pblock->SignBlock(*pwalletMain))
                 {
                     strMintWarning = strMintMessage;
+		    printf("CPUMiner : WARN unable to sign proof of stake block!\n");
                     continue;
                 }
 
@@ -4149,6 +4148,9 @@ bool BitcoinMiner(CWallet *pwallet, bool fProofOfStake, uint256 * minedBlock, ui
                 bool fSucceeded = CheckWork(pblock.get(), *pwalletMain, reservekey);
                 SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
+		if(!fSucceeded)
+		  printf("CPUMiner : WARN CheckWork failed on proof-of-stake block!\n");
+		
                 if (fSucceeded && minedBlock)
                 {
                     *minedBlock = pblock->GetHash();

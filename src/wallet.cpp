@@ -1352,11 +1352,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         nValueIn += nMintingOnlyValueIn;
     }
 
+    coinStakeStatus->numUTXO = setCoins.size();
+      
     if (setCoins.empty())
       {
 	coinStakeStatus->state = SET_COINS_EMPTY;
 	return false;
       }
+
 
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;
@@ -1495,7 +1498,30 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     coinStakeStatus->state=OK;
 
     if (nCredit == 0 || (nCredit > nBalance - nReserveBalance && !fMintingOnly))
+      {
+	//calculate total reward for coin stake status
+
+	//here we pretend to create a transaction containing all the inputs, so we can calculate
+	//the coinage from it
+	BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+	  {
+            txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
+	  }
+	
+        uint64 nCoinAge;
+        CTxDB txdb("r");
+        if (!txNew.GetCoinAge(txdb, nCoinAge, true))
+	  return error("CreateCoinStake : failed to calculate coin age");
+        coinStakeStatus->currReward = GetProofOfStakeReward(nCoinAge, DYN_POS_HEIGHT);
+
+	
+	if (fDebug && GetBoolArg("-printcoinstake"))
+	  printf("CreateCoinStake : total unclaimed reward %lf, num utxo %d\n",((double)coinStakeStatus->currReward/(double)COIN), coinStakeStatus->numUTXO);
+	
         return false;
+      }
+    
+
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {

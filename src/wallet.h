@@ -86,12 +86,16 @@ class CoinStakeStatus
   //wallet to pass the min stake age
   int64 coinsMinting; //the number of coins being minted
   CBigNum totalTarget; //the target of each active stake added together
+  int64 currReward; // the current reward that would be received if staked right now
+  int numUTXO; //total number of utxo's across the entire wallet
   
   CoinStakeStatus () {
     state = INIT;
     timeForAllCoinsToStartMinting = 0;
     coinsMinting = 0;
     totalTarget = 0;
+    currReward = 0;
+    numUTXO = 0;
   }
   
   /**

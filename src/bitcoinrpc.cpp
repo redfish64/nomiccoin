@@ -16,6 +16,7 @@
 #include "bitcoinrpc.h"
 
 #include "IsValidAmount.h"
+#include "GetProofOfStakeReward.h"
 
 #undef printf
 #include <boost/asio.hpp>
@@ -3242,6 +3243,35 @@ Value addcoldmintingaddress(const Array& params, bool fHelp)
     return CBitcoinAddress(scriptID).ToString();
 }
 
+Value getmintingstatus(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 0)
+    throw runtime_error(
+			"getmintingstatus\n"
+			"Returns the current minting status.\n");
+
+  CoinStakeStatus css = getLastCoinStakeStatus();
+
+  Object obj;
+  
+  obj.push_back(Pair("blocks",           (int)nBestHeight));
+  obj.push_back(Pair("minting", css.coinsMinting/(double)COIN));
+  obj.push_back(Pair("currUnclaimedReward",   css.currReward/(double)COIN));
+  obj.push_back(Pair("hoursForAllCoinsToStartMinting",   css.timeForAllCoinsToStartMinting/3600.));
+  obj.push_back(Pair("currAPY",   GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, nBestHeight) * .0001));
+  if(css.coinsMinting > 0 && css.totalTarget != CBigNum(0))
+    obj.push_back(Pair("expStakeDays",   1/css.getOdds() /3600./24.));
+
+  obj.push_back(Pair("numUTXO",  css.numUTXO));
+  
+  return obj;
+}
+
+  
+  
+
+
+
 #ifdef TESTING
 static Value generateblock(const Array& params, bool fHelp, bool fProofOfStake)
 {
@@ -3370,6 +3400,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendrawtransaction",     &sendrawtransaction,     false},
     { "getrawmempool",          &getrawmempool,          true },
     { "addcoldmintingaddress",  &addcoldmintingaddress,  false},
+    { "getmintingstatus",          &getmintingstatus,    false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },
@@ -4132,3 +4163,4 @@ int main(int argc, char *argv[])
 #endif
 
 const CRPCTable tableRPC;
+

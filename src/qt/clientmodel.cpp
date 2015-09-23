@@ -51,7 +51,6 @@ QDateTime ClientModel::getLastBlockDate() const
 
 int hack = 0;
 
-#define ONE_YEAR_ONE_COIN_AGE ( 365 * 33 + 8) / 33
 
 /**
  We want to gather:
@@ -67,6 +66,7 @@ QString ClientModel::getStakingStatus() const
 
   int unit = getOptionsModel()->getDisplayUnit();
   QString coinsMinting = BitcoinUnits::formatWithUnit(unit, css.coinsMinting);
+  QString currReward = BitcoinUnits::formatWithUnit(unit, (css.currReward+CENT/2)/CENT*CENT);
   double hoursForCoinsToStartMinting = css.timeForAllCoinsToStartMinting / 3600.;
 
   double currentInterestRate = GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, getNumBlocks()) * .0001;
@@ -82,19 +82,21 @@ QString ClientModel::getStakingStatus() const
   QString timeUntilAllCoinsMintStr;
 
   if(hoursForCoinsToStartMinting != 0)
-    timeUntilAllCoinsMintStr = QString("Hours before all coins mint: %1. ").arg(hoursForCoinsToStartMinting, 0, 'f', 2);
+    timeUntilAllCoinsMintStr = QString("hoursForCoinsToStartMinting: %1. ").arg(hoursForCoinsToStartMinting, 0, 'f', 2);
   else
     timeUntilAllCoinsMintStr = QString("");
 
   QString stakeDaysStr;
 
   if(stakeDays != 0.)
-    stakeDaysStr = QString("Avg days to next reward %1. ").arg(stakeDays, 0, 'f', 2);
+    stakeDaysStr = QString("expStakeDays %1. ").arg(stakeDays, 0, 'f', 2);
   else
     stakeDaysStr = "";
 
-  QString out = QString("Minting: "+coinsMinting+". "+timeUntilAllCoinsMintStr+stakeDaysStr+
-			QString("Curr APY %1%").arg(currentInterestRate,0, 'f', 1));
+  QString out = QString("minting: "+coinsMinting+". "+timeUntilAllCoinsMintStr+stakeDaysStr
+			+QString("currAPY %1%").arg(currentInterestRate,0, 'f', 1)
+			+QString(". numUTXO %1").arg((double)css.numUTXO,0,'f',0)
+			+". currUnclaimedReward "+currReward);
 
   return out;
 }
