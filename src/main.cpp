@@ -1769,7 +1769,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge
         bnCentSecond += CBigNum(nValueIn) * (nTime-txPrev.nTime) / CENT;
 
         if (fDebug && GetBoolArg("-printcoinage"))
-            printf("coin age nValueIn=%-12I64d nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString().c_str());
+	  printf("coin age nValueIn=%ld nTimeDiff=%d bnCentSecond=%s\n", (long)nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString().c_str());
     }
 
     CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
