@@ -7,10 +7,15 @@ This is a neucoin fork with a few additional features:
 The following information is displayed in the progress bar as well as from the getmintingstatus call
 
 minting: this is the total number of coins currently minting. Coins may not be minting for any number of reasons, but in general its because they haven't reached the minimum 1.6 day stake age
+
 currUnclaimedReward: this is the interest earned if all the UTXO's staked immediately. This corresponds to how much you'll lose if you transfer your coins to another address (even if you send them to another address in your own wallet)
+
 hoursForAllCoinsToStartMinting: In the case that the minimum stake age hasn't been reached, this is the number of hours before it will be reached
+
 currAPY: The current interest rate per year. This will slowly reduce from 100% down to 6% at the end of 10 years.
+
 expStakeDays: The average time in days until the next stake. This depends on the number of coins you own and the amount of minting that is being done by others in the network
+
 numUTXO: the total number of Unspent Transaction Outputs you have in your wallet. This is very important and should be minimized, ideally one per address, and only one address minting (see below)
 
 ---
