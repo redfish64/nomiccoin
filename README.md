@@ -18,6 +18,7 @@ expStakeDays: The average time in days until the next stake. This depends on the
 
 numUTXO: the total number of Unspent Transaction Outputs you have in your wallet. This is very important and should be minimized, ideally one per address, and only one address minting (see below)
 
+![](http://imgur.com/zM6rdx6)
 ---
 
 Why are UTXO's so important (and what are they)?
