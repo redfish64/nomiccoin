@@ -1042,7 +1042,7 @@ static timestamp_t nTimeOffset = 0;
 
 timestamp_t GetAdjustedTime()
 {
-    return GetTime() + manualTimeOffsetSec + nTimeOffset;
+    return GetTime() + nTimeOffset;
 }
 
 void AddTimeData(const CNetAddr& ip, timestamp_t nTime)
