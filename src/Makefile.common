@@ -90,10 +90,10 @@ generated_files: force \
 endif
 
 clean: force
-	$(FIND) -name '*.o' -delete
-	$(FIND) -name '*.d' -delete
-	$(FIND) -name '*.qrc.cpp' -delete
-	$(FIND) -name '*.qt.cpp' -delete
+	$(FIND) . -name '*.o' -delete
+	$(FIND) . -name '*.d' -delete
+	$(FIND) . -name '*.qrc.cpp' -delete
+	$(FIND) . -name '*.qt.cpp' -delete
 	$(FIND) qt -name '*.moc' -delete
 	$(FIND) qt -name 'ui_*.h' -delete
 
