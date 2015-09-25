@@ -561,6 +561,23 @@ Value setgenerate(const Array& params, bool fHelp)
 }
 
 
+Value setnosplitmaxcombine(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "setnosplitmaxcombine <bool>\n"
+            "Turns off stake splitting on mint, and combines UTXO's maximally\n"
+			    );
+
+    bool b = true;
+    if (params.size() > 0)
+        b = params[0].get_bool();
+
+    mapArgs["-nosplitmaxcombine"] = (b ? "1" : "0");
+
+    return Value::null;
+}
+
 Value gethashespersec(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -3261,8 +3278,8 @@ Value getmintingstatus(const Array& params, bool fHelp)
   obj.push_back(Pair("currAPY",   GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, nBestHeight) * .0001));
   if(css.coinsMinting > 0 && css.totalTarget != CBigNum(0))
     obj.push_back(Pair("expStakeDays",   1/css.getOdds() /3600./24.));
-
   obj.push_back(Pair("numUTXO",  css.numUTXO));
+  obj.push_back(Pair("noSplitMaximumCombineFlag", GetBoolArg("-nosplitmaxcombine", false) ? "1" : "0"));
   
   return obj;
 }
@@ -3401,6 +3418,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",          &getrawmempool,          true },
     { "addcoldmintingaddress",  &addcoldmintingaddress,  false},
     { "getmintingstatus",          &getmintingstatus,    false },
+    { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false }
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },
@@ -3995,6 +4013,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     //
     // Special case non-string parameter types
     //
+    if (strMethod == "setnosplitmaxcombine"   && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);

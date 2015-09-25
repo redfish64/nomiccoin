@@ -1358,6 +1358,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 	return false;
       }
 
+    bool nsmc = GetBoolArg("-nosplitmaxcombine", false);
+
 
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;
@@ -1474,7 +1476,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
-                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime)
+                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
@@ -1520,7 +1522,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
       }
     
 
-
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         // Attempt to add more inputs
@@ -1531,15 +1532,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Stop adding more inputs if already too many inputs
             if (txNew.vin.size() >= 100)
                 break;
-            // Stop adding more inputs if value is already pretty significant
-            if (nCredit > nCombineThreshold)
-                break;
-            // Stop adding inputs if reached reserve limit
-            if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
-                break;
-            // Do not add additional significant input
-            if (pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
-                continue;
+	    // Stop adding inputs if reached reserve limit
+	    if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
+	      break;
+	    if(!nsmc)
+	      {
+		// Stop adding more inputs if value is already pretty significant
+		if (nCredit > nCombineThreshold)
+		  break;
+		// Do not add additional significant input
+		if (pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
+		  continue;
+	      }
             // Do not add input that is still too young
             if (pcoin.first->nTime + STAKE_MAX_AGE > txNew.nTime)
                 continue;

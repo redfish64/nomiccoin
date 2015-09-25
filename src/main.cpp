@@ -1440,6 +1440,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     int64 nValueIn = 0;
     int64 nValueOut = 0;
     unsigned int nSigOps = 0;
+    pindex->nCoinBlaValueIn = 0;
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
         nSigOps += tx.GetLegacySigOpCount();
@@ -1470,6 +1471,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
             int64 nTxValueIn = tx.GetValueIn(mapInputs);
             int64 nTxValueOut = tx.GetValueOut();
+
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
             if (!tx.IsCoinStake())
@@ -2526,6 +2528,8 @@ void PrintBlockTree()
     vector<pair<int, CBlockIndex*> > vStack;
     vStack.push_back(make_pair(0, pindexGenesisBlock));
 
+    printf("Height,File-BlockPos,type,inAmt,outSize,out1Amt,out2Amt,out3Amt,blockHash,blockBits,DateTime,mint,blockSize\n");
+    
     int nPrevCol = 0;
     while (!vStack.empty())
     {
@@ -2555,11 +2559,59 @@ void PrintBlockTree()
         // print item
         CBlock block;
         block.ReadFromDisk(pindex);
-        printf("%d (%u,%u) %s  %08lx  %s  mint %7s  tx %d",
+
+	char *type;
+	int outSize = 0;
+	double inTotal=0;
+
+	double out1=0,out2=0,out3=0;
+
+	CTransaction coinBla; //either coinbase for PoW or coinstake for PoS
+
+	const char * address;
+
+	if(block.IsProofOfStake())
+	  {
+	    coinBla = block.vtx[1];
+	    address = coinBla.vout[1].scriptPubKey.GetID().GetHex().c_str();
+	    if(coinBla.vout[1].scriptPubKey.GetID() != coinBla.vout[2].scriptPubKey.GetID())
+	      printf("FREEKOUT\n");
+	    type = "STK";
+	  }
+	else if(block.IsProofOfWork())
+	  {
+	    coinBla = block.vtx[0];
+	    address = coinBla.vout[0].scriptPubKey.GetID().GetHex().c_str();
+	    type = "WRK";
+	  }
+	else {
+	    coinBla = block.vtx[0];
+	    address = "";
+	  type = "???";
+	}
+
+	inTotal = pindex->nCoinBlaValueIn / (double)COIN;
+	
+	outSize = coinBla.vout.size();
+	if(outSize > 0)
+	  out1 = coinBla.vout[0].nValue / (double)COIN;
+	if(outSize > 1)
+	  out2 = coinBla.vout[1].nValue / (double)COIN;
+	if(outSize > 2)
+	  out3 = coinBla.vout[2].nValue / (double)COIN;
+	
+	
+        printf("%d,(%u %u),%s,%12.3lf,%d,%12.3lf,%12.3lf,%12.3lf,%s,%08lx,%s,%7s,%d\n",
             pindex->nHeight,
             pindex->nFile,
             pindex->nBlockPos,
-            block.GetHash().ToString().c_str(),
+	       type,
+	       inTotal,
+	       outSize,
+	       out1,
+	       out2,
+	       out3,
+	       address,
             block.nBits,
             DateTimeStrFormat(block.GetBlockTime()).c_str(),
             FormatMoney(pindex->nMint).c_str(),

@@ -1149,6 +1149,7 @@ public:
     unsigned int nBlockPos;
     CBigNum bnChainTrust; // ppcoin: trust score of block chain
     int nHeight;
+    int64 nCoinBlaValueIn; // coinbase for PoW, coinstake for PoS
     int64 nMint;
     int64 nMoneySupply;
 
