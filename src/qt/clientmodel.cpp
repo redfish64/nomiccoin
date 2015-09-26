@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "./clientmodel.moc"
+#include "bitcoinrpc.h"
 
 #include "GetProofOfStakeReward.h"
 
@@ -62,41 +63,36 @@ int hack = 0;
 */
 QString ClientModel::getStakingStatus() const
 {
-  CoinStakeStatus css = getLastCoinStakeStatus();
+  json_spirit::Value v = getmintingstatus(json_spirit::Array(), false);
 
-  int unit = getOptionsModel()->getDisplayUnit();
-  QString coinsMinting = BitcoinUnits::formatWithUnit(unit, css.coinsMinting);
-  QString currReward = BitcoinUnits::formatWithUnit(unit, (css.currReward+CENT/2)/CENT*CENT);
-  double hoursForCoinsToStartMinting = css.timeForAllCoinsToStartMinting / 3600.;
+  json_spirit::Object o = v.get_obj();
+  
+  QString out = "";
 
-  double currentInterestRate = GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, getNumBlocks()) * .0001;
+  for(std::vector<json_spirit::Pair>::iterator it = o.begin(); it != o.end(); ++it) {
+    out += (*it).name_.c_str() + QString(" ");
 
-  double stakeDays;
+    json_spirit::Value v = (*it).value_;
 
-  if(css.coinsMinting > 0 && css.totalTarget != CBigNum(0))
-    stakeDays = 1/css.getOdds() /3600./24.;
-  else
-    stakeDays = 0.;
-
-
-  QString timeUntilAllCoinsMintStr;
-
-  if(hoursForCoinsToStartMinting != 0)
-    timeUntilAllCoinsMintStr = QString("hoursForCoinsToStartMinting: %1. ").arg(hoursForCoinsToStartMinting, 0, 'f', 2);
-  else
-    timeUntilAllCoinsMintStr = QString("");
-
-  QString stakeDaysStr;
-
-  if(stakeDays != 0.)
-    stakeDaysStr = QString("expStakeDays %1. ").arg(stakeDays, 0, 'f', 2);
-  else
-    stakeDaysStr = "";
-
-  QString out = QString("minting: "+coinsMinting+". "+timeUntilAllCoinsMintStr+stakeDaysStr
-			+QString("currAPY %1%").arg(currentInterestRate,0, 'f', 1)
-			+QString(". numUTXO %1").arg((double)css.numUTXO,0,'f',0)
-			+". currUnclaimedReward "+currReward);
+    switch (v.type())
+      {
+      case json_spirit::str_type :
+	out += v.get_str().c_str();
+	break;
+      case  json_spirit::bool_type:
+      	out += v.get_bool() ? "1" : "0";
+      	break;
+      case  json_spirit::int_type:
+      	out += QString::number(v.get_int());
+      	break;
+      case  json_spirit::real_type:
+      	out += QString("%1").arg(v.get_real(),0,'f',2);
+      	break;
+      default:
+	out += QString("??");
+      }
+    out += ". ";
+  }
 
   return out;
 }

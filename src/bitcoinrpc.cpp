@@ -17,6 +17,7 @@
 
 #include "IsValidAmount.h"
 #include "GetProofOfStakeReward.h"
+#include "GetNextTargetRequired.h"
 
 #undef printf
 #include <boost/asio.hpp>
@@ -3260,6 +3261,124 @@ Value addcoldmintingaddress(const Array& params, bool fHelp)
     return CBitcoinAddress(scriptID).ToString();
 }
 
+VirtualCoinStakeStatus getVirtualCoinStakeStatus()
+{
+  VirtualCoinStakeStatus vcss;
+
+  vcss.timeForAllCoinsToStartMinting = 0;
+  vcss.numUTXO = 0;
+
+  vcss.totalTargetHash = 0;
+  vcss.totalCurrReward = 0;
+
+  std::set<std::pair<const CWalletTx*, unsigned int> > setCoins;
+
+  CTransaction txNew; //initialized automatically with time, used to gather statistics from functions that require it
+  
+  //derived from CWallet::AvailableCoins and CWallet::CreateCoinStake
+  {
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    
+
+    //we just add all mintable coins here
+    //derived from CWallet::AvailableCoins
+    for (map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+      {
+
+	const CWalletTx* pcoin = &(*it).second;
+
+	for (size_t i = 0; i < pcoin->vout.size(); i++)
+	  {
+	    if (!(pcoin->IsSpent(i)) &&
+		(IsMineForMintingOnly(*pwalletMain,pcoin->vout[i].scriptPubKey) || IsMine(*pwalletMain,pcoin->vout[i].scriptPubKey)) &&
+		pcoin->vout[i].nValue > 0)
+	      {
+		const COutput output = COutput(pcoin, i, pcoin->GetDepthInMainChain());
+		
+		//derived from CWallet::SelectMintingOnlyCoins
+		const CWalletTx * pcoin = output.tx;
+		
+		int oi = output.i;
+		int64 n = pcoin->vout[oi].nValue;
+		
+		std::pair<int64, std::pair<const CWalletTx*, unsigned int> > coin = std::make_pair(n, std::make_pair(pcoin, oi));
+		
+		setCoins.insert(coin.second);
+		vcss.coins += coin.first;
+	      }
+	  }
+      }
+    
+    vcss.numUTXO = setCoins.size();
+    
+    //derived from CWallet::CreateCoinStake
+    BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+      {
+        CTxDB txdb("r");
+        CTxIndex txindex;
+        if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+            continue;
+
+	// Read block header
+        CBlock block;
+        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+	  continue;
+        static int nMaxStakeSearchInterval = 60;
+
+	//derived from CreateNewBlock
+	CBlockIndex* pindexPrev = pindexBest;
+        unsigned int nBits = GetNextTargetRequired(pindexPrev, true);
+	
+	//check stake age of each coin and find max stake age
+	if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
+	  {
+	    int stakeTimeRemaining = block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval);
+	    
+	    vcss.timeForAllCoinsToStartMinting =
+	      (vcss.timeForAllCoinsToStartMinting < stakeTimeRemaining) ? stakeTimeRemaining :
+	      vcss.timeForAllCoinsToStartMinting;
+	  }
+
+	const CWalletTx* txPrevPtr = pcoin.first;
+	COutPoint prevout = COutPoint(pcoin.first->GetHash(), pcoin.second);
+	
+	//derived from CheckStakeKernelHash
+	int64 nValueIn = txPrevPtr->vout[prevout.n].nValue;
+
+	//nTimeWeight is always STAKE_AGE_STEP for neucoin
+	//CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / STAKE_COIN_STEP / STAKE_AGE_STEP;
+	CBigNum bnCoinDayWeight = CBigNum(nValueIn) / STAKE_COIN_STEP;
+	
+	CBigNum bnTargetPerCoinDay;
+	bnTargetPerCoinDay.SetCompact(nBits);
+	
+	CBigNum targetHash = bnCoinDayWeight * bnTargetPerCoinDay;
+
+	vcss.totalTargetHash += targetHash;
+
+      } //for each pcoin
+	
+    //here we add all the inputs to our pretend transaction, so we can calculate
+    //the coinage from it
+    BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+      {
+	txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
+      }
+    
+    uint64 nCoinAge;
+    CTxDB txdb("r");
+    if (!txNew.GetCoinAge(txdb, nCoinAge, true))
+      {
+	//TODO 4 report this issue?
+      }
+    else
+      vcss.totalCurrReward = GetProofOfStakeReward(nCoinAge, pindexBest->nHeight);
+  }
+
+  return vcss;
+}
+  
 Value getmintingstatus(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 0)
@@ -3269,16 +3388,24 @@ Value getmintingstatus(const Array& params, bool fHelp)
 
   CoinStakeStatus css = getLastCoinStakeStatus();
 
-  Object obj;
+  VirtualCoinStakeStatus vcss = getVirtualCoinStakeStatus();
   
-  obj.push_back(Pair("blocks",           (int)nBestHeight));
+  Object obj;
+
+  obj.push_back(Pair("mintingStatus",
+		     ( css.state == NOT_MINTING ) ? "NOT MINTING" : 
+		     ( css.state == OK ) ? "OK" :
+		     "INIT"));
   obj.push_back(Pair("minting", css.coinsMinting/(double)COIN));
-  obj.push_back(Pair("currUnclaimedReward",   css.currReward/(double)COIN));
-  obj.push_back(Pair("hoursForAllCoinsToStartMinting",   css.timeForAllCoinsToStartMinting/3600.));
+  obj.push_back(Pair("currUnclaimedReward",   vcss.totalCurrReward/(double)COIN));
+  obj.push_back(Pair("mintingExpStakeDays",  getExpectedStakeDaysForTarget(css.totalTargetHash)));
+  obj.push_back(Pair("totalExpStakeDays",  getExpectedStakeDaysForTarget(vcss.totalTargetHash)));
+  obj.push_back(Pair("hoursForAllCoinsToStartMinting",   vcss.timeForAllCoinsToStartMinting/3600.));
   obj.push_back(Pair("currAPY",   GetProofOfStakeReward(ONE_YEAR_ONE_COIN_AGE, nBestHeight) * .0001));
-  if(css.coinsMinting > 0 && css.totalTarget != CBigNum(0))
-    obj.push_back(Pair("expStakeDays",   1/css.getOdds() /3600./24.));
-  obj.push_back(Pair("numUTXO",  css.numUTXO));
+  obj.push_back(Pair("blocks",           (int)nBestHeight));
+  obj.push_back(Pair("mintingNumUTXO",  css.numUTXO));
+  obj.push_back(Pair("totalNumUTXO",  vcss.numUTXO));
+  obj.push_back(Pair("eligibleBalance", vcss.coins/(double)COIN));
   obj.push_back(Pair("noSplitMaximumCombineFlag", GetBoolArg("-nosplitmaxcombine", false) ? "1" : "0"));
   
   return obj;
@@ -3286,6 +3413,7 @@ Value getmintingstatus(const Array& params, bool fHelp)
 
   
   
+
 
 
 
