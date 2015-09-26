@@ -4,6 +4,8 @@ This is a neucoin fork with a few additional features:
 * Provides the new rpc call, "getmintingstatus" which displays several items of interest related to minting
 * Provides a new command line option/neucoin.conf file parameter, manualTimeOffsetSec=<value> which manually adjusts the clock of the neucoind. This is useful if you are cold minting on another person's machine with a incorrect clock
 
+![](http://imgur.com/zM6rdx6.png)
+
 The following information is displayed in the progress bar as well as from the getmintingstatus call
 
 minting: this is the total number of coins currently minting. Coins may not be minting for any number of reasons, but in general its because they haven't reached the minimum 1.6 day stake age
@@ -18,7 +20,6 @@ expStakeDays: The average time in days until the next stake. This depends on the
 
 numUTXO: the total number of Unspent Transaction Outputs you have in your wallet. This is very important and should be minimized, ideally one per address, and only one address minting (see below)
 
-![](http://imgur.com/zM6rdx6)
 ---
 
 Why are UTXO's so important (and what are they)?
