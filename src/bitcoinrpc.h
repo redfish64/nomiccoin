@@ -56,4 +56,6 @@ public:
 extern const CRPCTable tableRPC;
 extern CReserveKey* pMiningKey;
 
+json_spirit::Value getmintingstatus(const json_spirit::Array& params, bool fHelp);
+
 #endif

@@ -263,7 +263,8 @@ bool AppInit2(int argc, char* argv[])
             "  -keypool=<n>     \t  "   + _("Set key pool size to <n> (default: 100)") + "\n" +
             "  -rescan          \t  "   + _("Rescan the block chain for missing wallet transactions") + "\n" +
             "  -checkblocks=<n> \t\t  " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n" +
-            "  -checklevel=<n>  \t\t  " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
+            "  -checklevel=<n>  \t\t  " + _("How thorough the block verification is (0-6, default: 1)") + "\n"+
+            "  -nosplitmaxcombine=<1|0>  \t\t  " + _("Turns off stake splitting on mint, and combines UTXO's maximally") + "\n";
 
         strUsage += string() +
             _("\nSSL options: (see the Bitcoin Wiki for SSL setup instructions)") + "\n" +
@@ -309,8 +310,6 @@ bool AppInit2(int argc, char* argv[])
     fLogTimestamps = GetBoolArg("-logtimestamps", true);
 
     manualTimeOffsetSec = GetArg("-manualTimeOffsetSec",0);
-
-    fprintf(stderr, "Setting manual timeoffset to %lld secs\n",manualTimeOffsetSec);
 
 #ifndef QT_GUI
     for (int i = 1; i < argc; i++)

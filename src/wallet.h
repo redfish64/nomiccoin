@@ -72,7 +72,30 @@ enum CoinStakeStatusState
   NO_CONFIRMED_COINS_TO_STAKE,
   NO_CONFIRMED_MINTING_COINS_TO_STAKE,
   SET_COINS_EMPTY,
+  NOT_MINTING,
   OK
+};
+
+class VirtualCoinStakeStatus
+{
+ public:
+  int64 timeForAllCoinsToStartMinting; //the remaining time for every UTXO's owned by the
+  //wallet to pass the min stake age
+  int numUTXO; //total number of utxo's across the entire wallet
+
+  CBigNum totalTargetHash; //target if all coins were staking now
+  int64 totalCurrReward; //total reward if all coins staked right now
+  int64 coins; //the number of coins eligible for minting
+
+
+  VirtualCoinStakeStatus () {
+    timeForAllCoinsToStartMinting = 0;
+    numUTXO = 0;
+    totalTargetHash = 0;
+    totalCurrReward = 0;
+    coins =0;
+  }
+  
 };
 
 /**
@@ -81,30 +104,34 @@ enum CoinStakeStatusState
 class CoinStakeStatus
 {
  public:
+  //actual minting
   CoinStakeStatusState state; //the state of staking
-  int64 timeForAllCoinsToStartMinting; //the remaining time for every UTXO's owned by the
-  //wallet to pass the min stake age
   int64 coinsMinting; //the number of coins being minted
-  CBigNum totalTarget; //the target of each active stake added together
-  int64 currReward; // the current reward that would be received if staked right now
-  int numUTXO; //total number of utxo's across the entire wallet
+  CBigNum totalTargetHash; //total target of currently minting coins
+  int numUTXO; //num utxo minting
   
   CoinStakeStatus () {
+    init();
+  }
+
+  void init() {
     state = INIT;
-    timeForAllCoinsToStartMinting = 0;
     coinsMinting = 0;
-    totalTarget = 0;
-    currReward = 0;
+    totalTargetHash = 0;
     numUTXO = 0;
   }
   
-  /**
-   * Returns the odds that the coin will be staked for each try
-   */
-  double getOdds ();
 };
 
+/**
+ * Returns the odds that the coin will be staked for each try
+ */
+double getMintingOdds(CBigNum targetHash);
 
+/**
+ * Returns the expected number of stake days for the given target hash, or zero if practically impossible
+ */
+double getExpectedStakeDaysForTarget(CBigNum targetHash);
 
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.

@@ -11,6 +11,7 @@
 #include "ui_interface.h"
 #include "kernel.h"
 #include "main.h"
+#include "base58.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -1470,6 +1471,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
             int64 nTxValueIn = tx.GetValueIn(mapInputs);
             int64 nTxValueOut = tx.GetValueOut();
+
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
             if (!tx.IsCoinStake())
@@ -2512,6 +2514,8 @@ bool LoadBlockIndex(bool fAllowNew)
 
 void PrintBlockTree()
 {
+  FILE *out = stderr;
+  
     // precompute tree structure
     map<CBlockIndex*, vector<CBlockIndex*> > mapNext;
     for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
@@ -2526,6 +2530,8 @@ void PrintBlockTree()
     vector<pair<int, CBlockIndex*> > vStack;
     vStack.push_back(make_pair(0, pindexGenesisBlock));
 
+    fprintf(out,"Height,File-BlockPos,type,inAmt,outSize,out1Amt,out2Amt,out3Amt,neucoin address,blockBits,DateTime,mint,blockSize\n");
+    
     int nPrevCol = 0;
     while (!vStack.empty())
     {
@@ -2537,34 +2543,89 @@ void PrintBlockTree()
         if (nCol > nPrevCol)
         {
             for (int i = 0; i < nCol-1; i++)
-                printf("| ");
-            printf("|\\\n");
+	      fprintf(out,"| ");
+            fprintf(out,"|\\\n");
         }
         else if (nCol < nPrevCol)
         {
             for (int i = 0; i < nCol; i++)
-                printf("| ");
-            printf("|\n");
+	      fprintf(out,"| ");
+            fprintf(out,"|\n");
        }
         nPrevCol = nCol;
 
         // print columns
         for (int i = 0; i < nCol; i++)
-            printf("| ");
+	  fprintf(out,"| ");
 
         // print item
         CBlock block;
         block.ReadFromDisk(pindex);
-        printf("%d (%u,%u) %s  %08lx  %s  mint %7s  tx %d",
+
+	const char *type;
+	int outSize = 0;
+	double inTotal=0;
+
+	double out1=0,out2=0,out3=0;
+
+	CTransaction coinBla; //either coinbase for PoW or coinstake for PoS
+
+	CTxDestination tx;
+
+	if(block.IsProofOfStake())
+	  {
+	    coinBla = block.vtx[1];
+	    //	    address = coinBla.vout[1].scriptPubKey.GetID().GetHex().c_str();
+	    ExtractDestination(coinBla.vout[1].scriptPubKey, tx);
+
+	    if(coinBla.vout.size() == 3 && coinBla.vout[1].scriptPubKey.GetID() != coinBla.vout[2].scriptPubKey.GetID())
+	      fprintf(out,"FREEKOUT\n");
+	    type = "STK";
+	  }
+	else if(block.IsProofOfWork())
+	  {
+	    coinBla = block.vtx[0];
+	    //address = coinBla.vout[0].scriptPubKey.GetID().GetHex().c_str();
+	    ExtractDestination(coinBla.vout[0].scriptPubKey, tx);
+	    type = "WRK";
+	  }
+	else {
+	    coinBla = block.vtx[0];
+	    ExtractDestination(coinBla.vout[0].scriptPubKey, tx);
+	    type = "???";
+	}
+
+	const char *address = CBitcoinAddress(tx).ToString().c_str();
+	
+	
+	outSize = coinBla.vout.size();
+	if(outSize > 0)
+	  out1 = coinBla.vout[0].nValue / (double)COIN;
+	if(outSize > 1)
+	  out2 = coinBla.vout[1].nValue / (double)COIN;
+	if(outSize > 2)
+	  out3 = coinBla.vout[2].nValue / (double)COIN;
+
+	//warning, doesn't consider fees
+	inTotal = out1+out2+out3-pindex->nMint/(double)COIN;
+	
+        fprintf(out,"%d,(%u %u),%s,%12.3lf,%d,%12.3lf,%12.3lf,%12.3lf,%s,%08lx,%s,%7s,%d\n",
             pindex->nHeight,
             pindex->nFile,
             pindex->nBlockPos,
-            block.GetHash().ToString().c_str(),
-            block.nBits,
+	       type,
+	       inTotal,
+	       outSize,
+	       out1,
+	       out2,
+	       out3,
+	       address,
+		(long unsigned int)block.nBits,
             DateTimeStrFormat(block.GetBlockTime()).c_str(),
             FormatMoney(pindex->nMint).c_str(),
-            block.vtx.size());
+		(int)block.vtx.size());
 
+	//TODO, prints to stdout, we want stderr
         PrintWallets(block);
 
         // put the main timechain first
@@ -4323,4 +4384,13 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
             Sleep(10);
         }
     }
+    else
+      {
+	{
+	  LOCK(cs_lastCoinStakeStatus);
+	  lastCoinStakeStatus.init();
+	  lastCoinStakeStatus.state = NOT_MINTING;
+	}
+	
+      }
 }

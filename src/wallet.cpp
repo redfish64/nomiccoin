@@ -1330,6 +1330,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 	coinStakeStatus = &coinStakeStatusTemp;
       }
 
+    coinStakeStatus->init();
+    
     if (nBalance > nReserveBalance)
     {
       if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
@@ -1350,13 +1352,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         nValueIn += nMintingOnlyValueIn;
     }
 
-    coinStakeStatus->numUTXO = setCoins.size();
       
     if (setCoins.empty())
       {
 	coinStakeStatus->state = SET_COINS_EMPTY;
 	return false;
       }
+
+    bool nsmc = GetBoolArg("-nosplitmaxcombine", false);
 
 
     int64 nCredit = 0;
@@ -1377,18 +1380,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
 	  {
-	    int stakeTimeRemaining = block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval);
-	    
-	    coinStakeStatus->timeForAllCoinsToStartMinting =
-	      (coinStakeStatus->timeForAllCoinsToStartMinting < stakeTimeRemaining) ? stakeTimeRemaining :
-	      coinStakeStatus->timeForAllCoinsToStartMinting;
-	    
 	    if (fDebug && GetBoolArg("-printcoinstake"))
 	      printf("CreateCoinStake : not passed min stake age, %d left\n",
 		     block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval));
 	    continue; // only count coins meeting min age requirement
 	  }
 
+	coinStakeStatus->numUTXO++;
+	
         bool fKernelFound = false;
         for (unsigned int n=0; n<min(nSearchInterval,(int64)nMaxStakeSearchInterval) && !fKernelFound && !fShutdown; n++)
         {
@@ -1474,7 +1473,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
-                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime)
+                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
@@ -1486,8 +1485,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 		printf("CreateCoinStake : didn't 'find' kernel\n");
 	    }
 
-	    coinStakeStatus->coinsMinting += coinsIn;
-	    coinStakeStatus->totalTarget += targetHash;
+	    //this innerloop will keep running for all the possible stakes within a given
+	    //timeframe. Since we only want stats from one iteration, we check that
+	    //we are at the first iteration here:
+	    if(n==0)
+	      {
+		coinStakeStatus->coinsMinting += coinsIn;
+		coinStakeStatus->totalTargetHash += targetHash;
+	      }
 	}
 	if (fKernelFound || fShutdown)
 	  break; // if kernel is found stop searching
@@ -1497,29 +1502,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     if (nCredit == 0 || (nCredit > nBalance - nReserveBalance && !fMintingOnly))
       {
-	//calculate total reward for coin stake status
-
-	//here we pretend to create a transaction containing all the inputs, so we can calculate
-	//the coinage from it
-	BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
-	  {
-            txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
-	  }
-	
-        uint64 nCoinAge;
-        CTxDB txdb("r");
-        if (!txNew.GetCoinAge(txdb, nCoinAge, true))
-	  return error("CreateCoinStake : failed to calculate coin age");
-        coinStakeStatus->currReward = GetProofOfStakeReward(nCoinAge, pindexBest->nHeight);
-
-	
 	if (fDebug && GetBoolArg("-printcoinstake"))
-	  printf("CreateCoinStake : total unclaimed reward %lf, num utxo %d\n",((double)coinStakeStatus->currReward/(double)COIN), coinStakeStatus->numUTXO);
+	  printf("CreateCoinStake : no credit to stake, nCredit %lf, nReserveBalance %lf\n",nCredit, nReserveBalance);
 	
         return false;
       }
     
-
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
@@ -1531,15 +1519,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Stop adding more inputs if already too many inputs
             if (txNew.vin.size() >= 100)
                 break;
-            // Stop adding more inputs if value is already pretty significant
-            if (nCredit > nCombineThreshold)
-                break;
-            // Stop adding inputs if reached reserve limit
-            if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
-                break;
-            // Do not add additional significant input
-            if (pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
-                continue;
+	    // Stop adding inputs if reached reserve limit
+	    if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
+	      break;
+	    if(!nsmc)
+	      {
+		// Stop adding more inputs if value is already pretty significant
+		if (nCredit > nCombineThreshold)
+		  break;
+		// Do not add additional significant input
+		if (pcoin.first->vout[pcoin.second].nValue > nCombineThreshold)
+		  continue;
+	      }
             // Do not add input that is still too young
             if (pcoin.first->nTime + STAKE_MAX_AGE > txNew.nTime)
                 continue;
@@ -2095,11 +2086,22 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress)
 /**
  * Returns the odds that the coin will be staked for each try
  */
-double CoinStakeStatus::getOdds()
+double getMintingOdds(CBigNum targetHash)
 {
-  CBigNum th = totalTarget;
-  th >>= TOTAL_HASH_BITS - COIN_STAKE_STATUS_ODDS_PRECISION;
-  return ((double)th.getuint64()) / ((double) (1 << COIN_STAKE_STATUS_ODDS_PRECISION));
+  targetHash >>= TOTAL_HASH_BITS - COIN_STAKE_STATUS_ODDS_PRECISION;
+  return ((double)targetHash.getuint64()) / ((double) (1 << COIN_STAKE_STATUS_ODDS_PRECISION));
+}
+
+/**
+ * Returns the expected number of stake days for the given target hash, or zero if practically impossible
+ */
+double getExpectedStakeDaysForTarget(CBigNum targetHash)
+{
+  //WARNING assumes neucoin's 1 second per target
+  double mintingOdds = getMintingOdds(targetHash);
+  if(mintingOdds != 0)
+    return 1/ mintingOdds /3600./24.;
+  return 0;
 }
 
 CCriticalSection cs_lastCoinStakeStatus;
