@@ -53,7 +53,7 @@ noSplitMaximumCombineFlag: status of this flag. See below for more info
 
 ---
 
-Why are UTXO's so important (and what are they)?
+<h3>Why are UTXO's so important (and what are they)?</h3>
 
 A UTXO in the context of minting is basically a transaction to an address in your wallet. So, for example, if you got paid 3 times in March, one for 100 NEU, another for 200 NEU, and a third for 150 NEU, all to the same address, they'd all be different UTXO's. Wallets contain addresses and addresses contain UTXO's.
 
@@ -65,7 +65,7 @@ Not only that, but this ties directly to how much compound interest you receive.
 
 See the discussion here http://forum.neucoin.org/t/interesting-tidbits-learned-from-reading-neucoins-source-code/1640 for more info.
 
-What is the noSplitMaximumCombineFlag?
+<h3>What is the noSplitMaximumCombineFlag?</h3>
 
 This flag changes the way that neucoin handles rewards, to make minting more efficient. If you enable this flag, you don't need to worry about UTXO's anymore. The program will take care of minimizing them for you.
 
@@ -75,7 +75,7 @@ The other thing this flag does is combine all the UTXO's in your address into a 
 
 ** If any one can shed some more light onto why Peercoin was programmed this way (as Neucoin inherits from Peercoin), please let me know!!! **
 
-The information at the bottom of the window gets cut off. How do I see all the data?
+<h3>The information at the bottom of the window gets cut off. How do I see all the data?</h3>
 
 The same information displayed at the bottom of the screen can be accessed in the debug console with the command "getmintingstatus". 
 
