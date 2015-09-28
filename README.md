@@ -2,23 +2,54 @@ This is a neucoin fork with a few additional features:
 
 * Displays minting status at the progress bar at the bottom of the qt client
 * Provides the new rpc call, "getmintingstatus" which displays several items of interest related to minting
-* Provides a new command line option/neucoin.conf file parameter, manualTimeOffsetSec=<value> which manually adjusts the clock of the neucoind. This is useful if you are cold minting on another person's machine with a incorrect clock
+* Provides a new command line option/neucoin.conf file parameter, noSplitMaxCombine=(1 or 0), which makes minting more efficient. Specifically, it prevents coins from splitting into multiple UTXO's, and automatically combines separated UTXO's during mint. See below for more information on this.
+* Provides a new command line option/neucoin.conf file parameter, manualTimeOffsetSec=(value) which manually adjusts the clock of the neucoind. This is useful if you are cold minting on another person's machine with a incorrect clock
 
-![](http://imgur.com/zM6rdx6.png)
+Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3 Thanks!
 
-The following information is displayed in the progress bar as well as from the getmintingstatus call
 
-minting: this is the total number of coins currently minting. Coins may not be minting for any number of reasons, but in general its because they haven't reached the minimum 1.6 day stake age
+![](http://i.imgur.com/D94pm7Y.png)
+
+![](http://i.imgur.com/RZHXNQd.png)
+
+RUNNING:
+
+This is a drop in replacement of neucoin-qt.exe, and will read your wallet directly.
+
+1. Backup your wallet!!!
+2. Shutdown neucoin-qt.exe
+3. Run redfish-neucoin-qt.exe
+
+---
+
+The information displayed in the bottom status bar is the same as from the "getmintingstatus" call. Here is a description of each element.
+
+mintingStatus: 
+  * "OK" - minting
+  * "NOT MINTING" - wallet is locked or coins or not configured to mint
+  * "INIT" - initialization before minting starts, should take a few seconds to leave this state.
+
+minting: the coins that have passed their stake age and are currently minting. Coins may not be minting for any number of reasons, but in general its because they haven't reached the minimum 1.6 day stake age
 
 currUnclaimedReward: this is the interest earned if all the UTXO's staked immediately. This corresponds to how much you'll lose if you transfer your coins to another address (even if you send them to another address in your own wallet)
+
+mintingExpStakeDays: The average time in days until you'll earn your reward for the coins that are CURRENTLY minting. This depends on the number of coins you own and the amount of minting that is being done by others in the network
+
+totalExpStakeDays: The average time in days until you'll earn your reward for ALL your coins. This lets you know what to expect after the 1.6 staking period has finished and you can mint your coins.
 
 hoursForAllCoinsToStartMinting: In the case that the minimum stake age hasn't been reached, this is the number of hours before it will be reached
 
 currAPY: The current interest rate per year. This will slowly reduce from 100% down to 6% at the end of 10 years.
 
-expStakeDays: The average time in days until the next stake. This depends on the number of coins you own and the amount of minting that is being done by others in the network
+blocks: the total block height of the blockchain. 
 
-numUTXO: the total number of Unspent Transaction Outputs you have in your wallet. This is very important and should be minimized, ideally one per address, and only one address minting (see below)
+mintingNumUTXO: the total number of Unspent Transaction Outputs you are minting with. This is very important and should be minimized, ideally one per address, and only one address minting (see below)
+
+totalNumUTXO: the total number of Unspent Transaction Outputs you have in your wallet. 
+
+eligibleBalance: the total coins eligible for minting. This lets you know how many coins are minting including cold minting addresses.
+
+noSplitMaximumCombineFlag: status of this flag. See below for more info
 
 ---
 
@@ -32,9 +63,25 @@ Minting is done at the (very granular) UTXO level. So consider if you had 100,00
 
 Not only that, but this ties directly to how much compound interest you receive. After all, if you are only enjoying 1/5th of the reward you would with a single UTXO, then you are also only getting 1/5th of the interest due to the compounding.
 
----
+See the discussion here http://forum.neucoin.org/t/interesting-tidbits-learned-from-reading-neucoins-source-code/1640 for more info.
 
-Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3
+What is the noSplitMaximumCombineFlag?
+
+This flag changes the way that neucoin handles rewards, to make minting more efficient. If you enable this flag, you don't need to worry about UTXO's anymore. The program will take care of minimizing them for you.
+
+In the original code, neucoin will automatically split up the coins at the minting address into two UTXO's every time a reward is received. This will continue over and over again, until your address ends up with UTXO's that only mint once every 90 days, and at the point, it will stop doing this. This code wasn't added by the neucoin team, and was part of the original peercoin code. I'm not sure the reason for this, and it really harms your profits after a long enough period of time, hence I created this flag.
+
+The other thing this flag does is combine all the UTXO's in your address into a single one at the time you mint. So it won't matter if you send neu in several payments to your address, or in one payment all at once. Without this flag, it would be more efficient to send them all at once.
+
+** If any one can shed some more light onto why Peercoin was programmed this way (as Neucoin inherits from Peercoin), please let me know!!! **
+
+The information at the bottom of the window gets cut off. How do I see all the data?
+
+The same information displayed at the bottom of the screen can be accessed in the debug console with the command "getmintingstatus". 
+
+To reach the debug console, go to Help/Debug Window and click the "Console" tab. Then type "getmintingstatus" to see the full information.
+
+---
 
 Thanks!
 
