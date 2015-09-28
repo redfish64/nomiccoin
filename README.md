@@ -89,6 +89,8 @@ Questions / Suggestions can be sent to engler@gmail.com , or create an Issue in 
 
 I'll try to respond if I'm not too busy
 
+Tim Engler, Rareventure LLC
+
 (The original readme is below)
 
 ---
