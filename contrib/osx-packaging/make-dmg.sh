@@ -10,7 +10,7 @@ fi
 
 cat > "$DIRECTORY"/appdmg.json <<HEREDOC
 {
-    "title" : "Neucoin",
+    "title" : "Nomiccoin",
     "icon" : "Icon.icns",
     "background" : "Background.png",
     "icon-size" : 80,

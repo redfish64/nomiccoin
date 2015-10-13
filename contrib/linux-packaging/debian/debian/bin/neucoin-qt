@@ -4,13 +4,13 @@ set -e
 
 umask 077
 
-basedir=~/.neucoin
+basedir=~/.nomiccoin
 dbfile="$basedir/DB_CONFIG"
-cfgfile="$basedir/neucoin.conf"
+cfgfile="$basedir/nomiccoin.conf"
 
 [ -e "$basedir" ] || mkdir "$basedir"
 
-# NeuCoin does not clean up DB log files by default
+# NomicCoin does not clean up DB log files by default
 [ -e "$dbfile" ] || echo 'set_flags DB_LOG_AUTOREMOVE' > "$dbfile"
 
-exec /usr/lib/neucoin/neucoin-qt "$@"
+exec /usr/lib/nomiccoin/nomiccoin-qt "$@"

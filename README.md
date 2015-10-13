@@ -1,9 +1,9 @@
-This is a neucoin fork with a few additional features:
+This is a nomiccoin fork with a few additional features:
 
 * Displays minting status at the progress bar at the bottom of the qt client
 * Provides the new rpc call, "getmintingstatus" which displays several items of interest related to minting
-* Provides a new command line option/neucoin.conf file parameter, noSplitMaxCombine=(1 or 0), which makes minting more efficient. Specifically, it prevents coins from splitting into multiple UTXO's, and automatically combines separated UTXO's during mint. See below for more information on this.
-* Provides a new command line option/neucoin.conf file parameter, manualTimeOffsetSec=(value) which manually adjusts the clock of the neucoind. This is useful if you are cold minting on another person's machine with a incorrect clock
+* Provides a new command line option/nomiccoin.conf file parameter, noSplitMaxCombine=(1 or 0), which makes minting more efficient. Specifically, it prevents coins from splitting into multiple UTXO's, and automatically combines separated UTXO's during mint. See below for more information on this.
+* Provides a new command line option/nomiccoin.conf file parameter, manualTimeOffsetSec=(value) which manually adjusts the clock of the nomiccoind. This is useful if you are cold minting on another person's machine with a incorrect clock
 
 Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3 Thanks!
 
@@ -14,11 +14,11 @@ Tips can be sent here: Na64nCSDrxJtsPxs3rf5KbpTgYeaBYn2s3 Thanks!
 
 RUNNING:
 
-This is a drop in replacement of neucoin-qt.exe, and will read your wallet directly.
+This is a drop in replacement of nomiccoin-qt.exe, and will read your wallet directly.
 
 1. Backup your wallet!!!
-2. Shutdown neucoin-qt.exe
-3. Run redfish-neucoin-qt.exe
+2. Shutdown nomiccoin-qt.exe
+3. Run redfish-nomiccoin-qt.exe
 
 ---
 
@@ -63,17 +63,17 @@ Minting is done at the (very granular) UTXO level. So consider if you had 100,00
 
 Not only that, but this ties directly to how much compound interest you receive. After all, if you are only enjoying 1/5th of the reward you would with a single UTXO, then you are also only getting 1/5th of the interest due to the compounding.
 
-See the discussion here http://forum.neucoin.org/t/interesting-tidbits-learned-from-reading-neucoins-source-code/1640 for more info.
+See the discussion here http://forum.nomiccoin.org/t/interesting-tidbits-learned-from-reading-nomiccoins-source-code/1640 for more info.
 
 <h3>What is the noSplitMaximumCombineFlag?</h3>
 
-This flag changes the way that neucoin handles rewards, to make minting more efficient. If you enable this flag, you don't need to worry about UTXO's anymore. The program will take care of minimizing them for you.
+This flag changes the way that nomiccoin handles rewards, to make minting more efficient. If you enable this flag, you don't need to worry about UTXO's anymore. The program will take care of minimizing them for you.
 
-In the original code, neucoin will automatically split up the coins at the minting address into two UTXO's every time a reward is received. This will continue over and over again, until your address ends up with UTXO's that only mint once every 90 days, and at the point, it will stop doing this. This code wasn't added by the neucoin team, and was part of the original peercoin code. I'm not sure the reason for this, and it really harms your profits after a long enough period of time, hence I created this flag.
+In the original code, nomiccoin will automatically split up the coins at the minting address into two UTXO's every time a reward is received. This will continue over and over again, until your address ends up with UTXO's that only mint once every 90 days, and at the point, it will stop doing this. This code wasn't added by the nomiccoin team, and was part of the original peercoin code. I'm not sure the reason for this, and it really harms your profits after a long enough period of time, hence I created this flag.
 
 The other thing this flag does is combine all the UTXO's in your address into a single one at the time you mint. So it won't matter if you send neu in several payments to your address, or in one payment all at once. Without this flag, it would be more efficient to send them all at once.
 
-** If any one can shed some more light onto why Peercoin was programmed this way (as Neucoin inherits from Peercoin), please let me know!!! **
+** If any one can shed some more light onto why Peercoin was programmed this way (as Nomiccoin inherits from Peercoin), please let me know!!! **
 
 <h3>The information at the bottom of the window gets cut off. How do I see all the data?</h3>
 
@@ -85,11 +85,11 @@ To reach the debug console, go to Help/Debug Window and click the "Console" tab.
 
 Thanks!
 
-Questions / Suggestions can be sent to engler@gmail.com , or create an Issue in the far right menu on github.
+Questions / Suggestions can be sent to nomic@gmail.com , or create an Issue in the far right menu on github.
 
 I'll try to respond if I'm not too busy
 
-Tim Engler, Rareventure LLC
+Tim Nomic, Rareventure LLC
 
 (The original readme is below)
 
@@ -98,23 +98,23 @@ Tim Engler, Rareventure LLC
 
 ![](http://i.imgur.com/5P9mGCc.png)
 
-[Neucoin](http://neucoin.org/) (abbreviated NEU) aims to be the leading [cryptocurrency](https://en.wikipedia.org/wiki/Cryptocurrency) focused on using a [proof-of-stake consensus](http://en.wikipedia.org/wiki/Proof-of-stake) (first introduced by [Peercoin](https://github.com/ppcoin/ppcoin)) as a security model, with a combined [proof-of-stake](http://en.wikipedia.org/wiki/Proof-of-stake)/[proof-of-work](https://en.wikipedia.org/wiki/Proof-of-work_system) minting system. Neucoin is based on [Peercoin](http://peercoin.net/), itself based on [Bitcoin](http://bitcoin.org/en/), while introducing many important innovations to cryptocurrency field including new security model, energy efficiency, better minting model and more adaptive response to rapid change in network computation power.
+[Nomiccoin](http://nomiccoin.org/) (abbreviated NEU) aims to be the leading [cryptocurrency](https://en.wikipedia.org/wiki/Cryptocurrency) focused on using a [proof-of-stake consensus](http://en.wikipedia.org/wiki/Proof-of-stake) (first introduced by [Peercoin](https://github.com/ppcoin/ppcoin)) as a security model, with a combined [proof-of-stake](http://en.wikipedia.org/wiki/Proof-of-stake)/[proof-of-work](https://en.wikipedia.org/wiki/Proof-of-work_system) minting system. Nomiccoin is based on [Peercoin](http://peercoin.net/), itself based on [Bitcoin](http://bitcoin.org/en/), while introducing many important innovations to cryptocurrency field including new security model, energy efficiency, better minting model and more adaptive response to rapid change in network computation power.
 
-## Neucoin Resources
+## Nomiccoin Resources
 
-  * [Source Code](https://github.com/neucoin/neucoin)
-  * [Whitepaper](http://www.neucoin.org/en/whitepaper/)
-  * [Forum](http://forum.neucoin.org/)
+  * [Source Code](https://github.com/nomiccoin/nomiccoin)
+  * [Whitepaper](http://www.nomiccoin.org/en/whitepaper/)
+  * [Forum](http://forum.nomiccoin.org/)
 
 # Usage
 
-Please check the [doc](https://github.com/neucoin/neucoin/blob/master/doc/) directory for more information, including how to compile the client.
+Please check the [doc](https://github.com/nomiccoin/nomiccoin/blob/master/doc/) directory for more information, including how to compile the client.
 
 # Repo Guidelines
 
   * Developers work in their own forks, then submit pull requests when they think their feature or bug fix is ready.
   * If it is a simple/trivial/non-controversial change, then one of the development team members simply pulls it.
-  * If it is a more complicated or potentially controversial change, then the change may be discussed in the pull request, or the requester may be asked to start a discussion on [our forums](http://forum.neucoin.org/) for a broader community discussion.
+  * If it is a more complicated or potentially controversial change, then the change may be discussed in the pull request, or the requester may be asked to start a discussion on [our forums](http://forum.nomiccoin.org/) for a broader community discussion.
   * The patch will be accepted if there is broad consensus that it is a good thing. Developers should expect to rework and resubmit patches if they don't match the project's coding conventions (see coding.txt) or are controversial.
   * From time to time a pull request will become outdated. If this occurs, and the pull is no longer automatically mergeable, a comment on the pull will be used to issue a warning of closure. Pull requests closed in this manner will have their corresponding issue labeled 'stagnant'.
   * No pull request will be merged as long as it breaks the functional tests (Travis will run on every pull request).

@@ -34,13 +34,13 @@ ui_*.h
 /src/.make.cxxflags
 /src/.make.ldflags
 
-/src/neucoind
-/src/neucoin-qt
+/src/nomiccoind
+/src/nomiccoin-qt
 
-/src/neucoind.exe
-/src/neucoin-qt.exe
+/src/nomiccoind.exe
+/src/nomiccoin-qt.exe
 
-/src/neucoin-qt.app
-/src/neucoin-qt.dmg
+/src/nomiccoin-qt.app
+/src/nomiccoin-qt.dmg
 
 /share/pixmaps

@@ -1,17 +1,17 @@
-# Maintainer: Sylvain "Magicking" Laurent <sylvain@neucoin.org>
+# Maintainer: Sylvain "Magicking" Laurent <sylvain@nomiccoin.org>
 
-pkgbase=neucoin
-pkgname=('neucoin-daemon-git' 'neucoin-qt-git')
+pkgbase=nomiccoin
+pkgname=('nomiccoin-daemon-git' 'nomiccoin-qt-git')
 pkgver=0.8.0
 pkgrel=1
 arch=('i686' 'x86_64')
-url="http://www.neucoin.org/"
+url="http://www.nomiccoin.org/"
 makedepends=('boost' 'miniupnpc' 'git' 'openssl')
 license=('MIT')
 provides=(${pkgname%-*}=$pkgver)
 source=($pkgbase::git+https://github.com/althousedev/$pkgbase.git
-      neucoind.service
-      neucoin-qt.install)
+      nomiccoind.service
+      nomiccoin-qt.install)
 sha256sums=('SKIP'
             '8b0dba4e5bf5dcebc8a13f273c950adb0f26b5a40c1fb5998e04f48335be19b6'
             'ebf7090ca1202e2c2ccd1aa5bb03e6ac911c458141a1cedda9b41f9c26c2602c')
@@ -21,27 +21,27 @@ build() {
 
   ../contrib/build-versioning/generate-build-version.sh build.h # Tag binaries
 
-  PIE=1 CPPFLAGS_HEADLESS="-z noexecstack" make -f Makefile.unix neucoind
-  PIE=1 CPPFLAGS_HEADLESS="-z noexecstack" make -f Makefile.unix neucoin-qt
+  PIE=1 CPPFLAGS_HEADLESS="-z noexecstack" make -f Makefile.unix nomiccoind
+  PIE=1 CPPFLAGS_HEADLESS="-z noexecstack" make -f Makefile.unix nomiccoin-qt
 }
 
-package_neucoin-daemon-git() {
-  pkgdesc="Neucoin is a peer-to-peer network PoS based digital currency - daemon"
+package_nomiccoin-daemon-git() {
+  pkgdesc="Nomiccoin is a peer-to-peer network PoS based digital currency - daemon"
   depends=(boost-libs miniupnpc openssl)
   conflicts=(${pkgname%-*})-daemon
 
   cd "$srcdir/$pkgbase"
 
-  install -Dm644 ../neucoind.service "$pkgdir"/usr/lib/systemd/user/neucoind.service
-  install -Dm755 src/neucoind "$pkgdir"/usr/bin/neucoind
+  install -Dm644 ../nomiccoind.service "$pkgdir"/usr/lib/systemd/user/nomiccoind.service
+  install -Dm755 src/nomiccoind "$pkgdir"/usr/bin/nomiccoind
 }
 
-package_neucoin-qt-git() {
-  pkgdesc="Neucoin is a peer-to-peer network PoS based digital currency - Qt"
+package_nomiccoin-qt-git() {
+  pkgdesc="Nomiccoin is a peer-to-peer network PoS based digital currency - Qt"
   depends=(boost-libs qt5-base miniupnpc qrencode openssl)
-  install=neucoin-qt.install
+  install=nomiccoin-qt.install
   conflicts=(${pkgname%-*})-qt
 
   cd "$srcdir/$pkgbase"
-  install -Dm755 src/neucoin-qt "$pkgdir"/usr/bin/neucoin-qt
+  install -Dm755 src/nomiccoin-qt "$pkgdir"/usr/bin/nomiccoin-qt
 }

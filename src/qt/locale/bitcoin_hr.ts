@@ -4,17 +4,17 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="14"/>
-        <source>About NeuCoin</source>
-        <translation>O NeuCoinu</translation>
+        <source>About NomicCoin</source>
+        <translation>O NomicCoinu</translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="53"/>
-        <source>&lt;b&gt;NeuCoin&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;NeuCoin&lt;/b&gt; verzija</translation>
+        <source>&lt;b&gt;NomicCoin&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;NomicCoin&lt;/b&gt; verzija</translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="85"/>
-        <source>Copyright © 2011-2013 NeuCoin Developers
+        <source>Copyright © 2011-2013 NomicCoin Developers
 
 This is experimental software.
 
@@ -33,8 +33,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location filename="../forms/addressbookpage.ui" line="20"/>
-        <source>These are your NeuCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>Ovo su vaše NeuCoin adrese za primanje isplate. Možda želite dati drukčiju adresu svakom primatelju tako da možete pratiti tko je platio.</translation>
+        <source>These are your NomicCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <translation>Ovo su vaše NomicCoin adrese za primanje isplate. Možda želite dati drukčiju adresu svakom primatelju tako da možete pratiti tko je platio.</translation>
     </message>
     <message>
         <location filename="../forms/addressbookpage.ui" line="33"/>
@@ -220,9 +220,9 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="102"/>
-        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NeuCoinS&lt;/b&gt;!
+        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NomicCoinS&lt;/b&gt;!
 Are you sure you wish to encrypt your wallet?</source>
-        <translation>UPOZORENJE: Ako šifrirate vaš novčanik i izgubite lozinku, &lt;b&gt;IZGUBIT ĆETE SVE SVOJE NeuCoinSE!&lt;/b&gt;
+        <translation>UPOZORENJE: Ako šifrirate vaš novčanik i izgubite lozinku, &lt;b&gt;IZGUBIT ĆETE SVE SVOJE NomicCoinSE!&lt;/b&gt;
 Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
@@ -233,7 +233,7 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="112"/>
-        <source>NeuCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NeuCoins from being stolen by malware infecting your computer.</source>
+        <source>NomicCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NomicCoins from being stolen by malware infecting your computer.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -285,11 +285,11 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
 </context>
 <context>
-    <name>NeuCoinGUI</name>
+    <name>NomicCoinGUI</name>
     <message>
         <location filename="../bitcoingui.cpp" line="69"/>
-        <source>NeuCoin Wallet</source>
-        <translation>NeuCoin novčanik</translation>
+        <source>NomicCoin Wallet</source>
+        <translation>NomicCoin novčanik</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="142"/>
@@ -349,8 +349,8 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="201"/>
-        <source>Send coins to a NeuCoin address</source>
-        <translation>Slanje novca na NeuCoin adresu</translation>
+        <source>Send coins to a NomicCoin address</source>
+        <translation>Slanje novca na NomicCoin adresu</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="206"/>
@@ -379,8 +379,8 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="231"/>
-        <source>Show information about NeuCoin</source>
-        <translation>Prikaži informacije o NeuCoinu</translation>
+        <source>Show information about NomicCoin</source>
+        <translation>Prikaži informacije o NomicCoinu</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="233"/>
@@ -399,18 +399,18 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="237"/>
-        <source>Modify configuration options for NeuCoin</source>
-        <translation>Promijeni postavke konfiguracije za NeuCoin</translation>
+        <source>Modify configuration options for NomicCoin</source>
+        <translation>Promijeni postavke konfiguracije za NomicCoin</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="239"/>
-        <source>Open &amp;NeuCoin</source>
-        <translation>Otvori &amp;NeuCoin</translation>
+        <source>Open &amp;NomicCoin</source>
+        <translation>Otvori &amp;NomicCoin</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="240"/>
-        <source>Show the NeuCoin window</source>
-        <translation>Prikaži NeuCoin prozor</translation>
+        <source>Show the NomicCoin window</source>
+        <translation>Prikaži NomicCoin prozor</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="241"/>
@@ -479,13 +479,13 @@ Jeste li sigurni da želite šifrirati svoj novčanik?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="407"/>
-        <source>NeuCoin-qt</source>
-        <translation>NeuCoin-qt</translation>
+        <source>NomicCoin-qt</source>
+        <translation>NomicCoin-qt</translation>
     </message>
     <message numerus="yes">
         <location filename="../bitcoingui.cpp" line="449"/>
-        <source>%n active connection(s) to NeuCoin network</source>
-        <translation><numerusform>%n aktivna veza na NeuCoin mrežu</numerusform><numerusform>%n aktivne veze na NeuCoin mrežu</numerusform><numerusform>%n aktivnih veza na NeuCoin mrežu</numerusform></translation>
+        <source>%n active connection(s) to NomicCoin network</source>
+        <translation><numerusform>%n aktivna veza na NomicCoin mrežu</numerusform><numerusform>%n aktivne veze na NomicCoin mrežu</numerusform><numerusform>%n aktivnih veza na NomicCoin mrežu</numerusform></translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="475"/>
@@ -606,7 +606,7 @@ Adresa:%4
     <message>
         <location filename="../optionsdialog.cpp" line="274"/>
         <source>Choose the default subdivision unit to show in the interface, and when sending coins</source>
-        <translation>Izaberite željeni najmanji dio NeuCoina koji će biti prikazan u sučelju i koji će se koristiti za plaćanje.</translation>
+        <translation>Izaberite željeni najmanji dio NomicCoina koji će biti prikazan u sučelju i koji će se koristiti za plaćanje.</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="281"/>
@@ -668,8 +668,8 @@ Adresa:%4
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="96"/>
-        <source>The entered address &quot;%1&quot; is not a valid NeuCoin address.</source>
-        <translation>Upisana adresa &quot;%1&quot; nije valjana NeuCoin adresa.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid NomicCoin address.</source>
+        <translation>Upisana adresa &quot;%1&quot; nije valjana NomicCoin adresa.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="101"/>
@@ -686,13 +686,13 @@ Adresa:%4
     <name>MainOptionsPage</name>
     <message>
         <location filename="../optionsdialog.cpp" line="170"/>
-        <source>&amp;Start NeuCoin on window system startup</source>
-        <translation>&amp;Pokreni NeuCoin kod pokretanja sustava</translation>
+        <source>&amp;Start NomicCoin on window system startup</source>
+        <translation>&amp;Pokreni NomicCoin kod pokretanja sustava</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="171"/>
-        <source>Automatically start NeuCoin after the computer is turned on</source>
-        <translation>Automatski pokreni NeuCoin kad se uključi računalo</translation>
+        <source>Automatically start NomicCoin after the computer is turned on</source>
+        <translation>Automatski pokreni NomicCoin kad se uključi računalo</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="175"/>
@@ -711,8 +711,8 @@ Adresa:%4
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="181"/>
-        <source>Automatically open the NeuCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatski otvori port NeuCoin klijenta na ruteru. To radi samo ako ruter podržava UPnP i ako je omogućen.</translation>
+        <source>Automatically open the NomicCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatski otvori port NomicCoin klijenta na ruteru. To radi samo ako ruter podržava UPnP i ako je omogućen.</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="185"/>
@@ -1172,8 +1172,8 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="25"/>
-        <source>Enter a NeuCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Unesite NeuCoin adresu (npr. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a NomicCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <translation>Unesite NomicCoin adresu (npr. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
     </message>
 </context>
 <context>
@@ -1621,11 +1621,11 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
-    <name>NeuCoin-core</name>
+    <name>NomicCoin-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="3"/>
-        <source>NeuCoin version</source>
-        <translation>NeuCoin verzija</translation>
+        <source>NomicCoin version</source>
+        <translation>NomicCoin verzija</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="4"/>
@@ -1634,8 +1634,8 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="5"/>
-        <source>Send command to -server or neucoind</source>
-        <translation>Pošalji komandu usluzi -server ili neucoind</translation>
+        <source>Send command to -server or nomiccoind</source>
+        <translation>Pošalji komandu usluzi -server ili nomiccoind</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="6"/>
@@ -1654,13 +1654,13 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="9"/>
-        <source>Specify configuration file (default: NeuCoin.conf)</source>
-        <translation>Odredi konfiguracijsku datoteku (ugrađeni izbor: NeuCoin.conf)</translation>
+        <source>Specify configuration file (default: NomicCoin.conf)</source>
+        <translation>Odredi konfiguracijsku datoteku (ugrađeni izbor: NomicCoin.conf)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="10"/>
-        <source>Specify pid file (default: neucoind.pid)</source>
-        <translation>Odredi proces ID datoteku (ugrađeni izbor: NeuCoin.pid)</translation>
+        <source>Specify pid file (default: nomiccoind.pid)</source>
+        <translation>Odredi proces ID datoteku (ugrađeni izbor: NomicCoin.pid)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="11"/>
@@ -1835,8 +1835,8 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bitcoinstrings.cpp" line="47"/>
         <source>
-SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
-        <translation>SSL postavke: (za detalje o podešavanju SSL opcija vidi NeuCoin Wiki)</translation>
+SSL options: (see the NomicCoin Wiki for SSL setup instructions)</source>
+        <translation>SSL postavke: (za detalje o podešavanju SSL opcija vidi NomicCoin Wiki)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="50"/>
@@ -1865,8 +1865,8 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="57"/>
-        <source>Cannot obtain a lock on data directory %s.  NeuCoin is probably already running.</source>
-        <translation>Program ne može pristupiti direktoriju s datotekama %s. NeuCoin program je vjerojatno već pokrenut.</translation>
+        <source>Cannot obtain a lock on data directory %s.  NomicCoin is probably already running.</source>
+        <translation>Program ne može pristupiti direktoriju s datotekama %s. NomicCoin program je vjerojatno već pokrenut.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="60"/>
@@ -1890,12 +1890,12 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="66"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of NeuCoin</source>
+        <source>Error loading wallet.dat: Wallet requires newer version of NomicCoin</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="67"/>
-        <source>Wallet needed to be rewritten: restart NeuCoin to complete</source>
+        <source>Wallet needed to be rewritten: restart NomicCoin to complete</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -1950,13 +1950,13 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="78"/>
-        <source>Unable to bind to port %d on this computer.  NeuCoin is probably already running.</source>
-        <translation>Program ne može koristiti port %d na ovom računalu.  NeuCoin program je vjerojatno već pokrenut.</translation>
+        <source>Unable to bind to port %d on this computer.  NomicCoin is probably already running.</source>
+        <translation>Program ne može koristiti port %d na ovom računalu.  NomicCoin program je vjerojatno već pokrenut.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="81"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NeuCoin will not work properly.</source>
-        <translation>Upozorenje: Molimo provjerite jesu li datum i vrijeme na vašem računalu točni. Ako vaš sat ide krivo, NeuCoin neće raditi ispravno.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NomicCoin will not work properly.</source>
+        <translation>Upozorenje: Molimo provjerite jesu li datum i vrijeme na vašem računalu točni. Ako vaš sat ide krivo, NomicCoin neće raditi ispravno.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="84"/>

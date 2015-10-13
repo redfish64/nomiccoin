@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>About NeuCoin</string>
+   <string>About NomicCoin</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
@@ -50,7 +50,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>&lt;b&gt;NeuCoin&lt;/b&gt; version</string>
+          <string>&lt;b&gt;NomicCoin&lt;/b&gt; version</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -86,9 +86,9 @@
       </layout>
      </item>
      <item>
-      <widget class="QLabel" name="label_copyright_neucoin">
+      <widget class="QLabel" name="label_copyright_nomiccoin">
        <property name="text">
-        <string>Copyright © 2014-2015 NeuCoin Developers</string>
+        <string>Copyright © 2014-2015 NomicCoin Developers</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>

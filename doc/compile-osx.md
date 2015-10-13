@@ -17,7 +17,7 @@
     Or, if you wish to build the Qt client:
 
     ```
-    $> make -f Makefile.osx neucoin-qt
+    $> make -f Makefile.osx nomiccoin-qt
     ```
 
     Or, if you wish to build everything:

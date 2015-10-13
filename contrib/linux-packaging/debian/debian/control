@@ -1,7 +1,7 @@
-Source: neucoin
+Source: nomiccoin
 Section: utils
 Priority: optional
-Maintainer: Sylvain Laurent <sylvain@neucoin.org>
+Maintainer: Sylvain Laurent <sylvain@nomiccoin.org>
 Build-Depends: debhelper,
  devscripts,
  libboost-system-dev (>> 1.55) | libboost-system1.55-dev,
@@ -18,15 +18,15 @@ Build-Depends: debhelper,
  libqrencode-dev,
  imagemagick
 Standards-Version: 3.9.2
-Homepage: http://www.neucoin.org/
-Vcs-Git: git://github.com/althousedev/neucoin.git
-Vcs-Browser: http://github.com/althousedev/neucoin
+Homepage: http://www.nomiccoin.org/
+Vcs-Git: git://github.com/althousedev/nomiccoin.git
+Vcs-Browser: http://github.com/althousedev/nomiccoin
 
-Package: neucoind
+Package: nomiccoind
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - daemon
- NeuCoin is a free open source peer-to-peer electronic cash system that
+ NomicCoin is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
@@ -35,14 +35,14 @@ Description: peer-to-peer network based digital currency - daemon
  Full transaction history is stored locally at each client.  This
  requires 2+ GB of space, slowly growing.
  .
- This package provides neucoind, a combined daemon and CLI tool to
+ This package provides nomiccoind, a combined daemon and CLI tool to
  interact with the daemon.
 
-Package: neucoin-qt
+Package: nomiccoin-qt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - QT GUI
- NeuCoin is a free open source peer-to-peer electronic cash system that
+ NomicCoin is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
@@ -51,4 +51,4 @@ Description: peer-to-peer network based digital currency - QT GUI
  Full transaction history is stored locally at each client.  This
  requires 2+ GB of space, slowly growing.
  .
- This package provides neucoin-qt, a GUI for NeuCoin based on QT.
+ This package provides nomiccoin-qt, a GUI for NomicCoin based on QT.

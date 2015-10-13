@@ -1,0 +1,7 @@
+	find . -name '*.o' -delete
+	find . -name '*.d' -delete
+	find . -name '*.qrc.cpp' -delete
+	find . -name '*.qt.cpp' -delete
+	find qt -name '*.moc' -delete
+	find qt -name 'ui_*.h' -delete
+

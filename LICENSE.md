@@ -1,4 +1,4 @@
-**Copyright (c) 2014-2015 Neucoin Developers**
+**Copyright (c) 2014-2015 Nomiccoin Developers**
 
 **Copyright (c) 2011-2014 Peercoin Developers**
 

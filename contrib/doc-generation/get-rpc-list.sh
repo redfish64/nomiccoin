@@ -3,12 +3,12 @@
 DIRECTORY="$(dirname "$(readlink -f "$0")")"
 
 cd "$DIRECTORY"/../../src
-make -f Makefile.unix neucoind >&2
+make -f Makefile.unix nomiccoind >&2
 
 rm -rf /tmp/tmpcoindir
 mkdir -p /tmp/tmpcoindir
 
-./neucoind -testnet -rpcport=2001 -rpcuser=user -rpcpassword=password -port=2000 -rpcport=2001 -datadir=/tmp/tmpcoindir -dnsseed=0 >&2 &
+./nomiccoind -testnet -rpcport=2001 -rpcuser=user -rpcpassword=password -port=2000 -rpcport=2001 -datadir=/tmp/tmpcoindir -dnsseed=0 >&2 &
 NODE=$!
 
 htmlentities() {
@@ -39,7 +39,7 @@ while read COMMAND; do
 
     printf '<td><a href="#%s">%s</a></td>\n' "$(printf "%s" "$NAME" | sed 's/[^a-z]\+/-/g' | sed 's/^-\+\|-\+$//g')" "$NAME"
 
-done < <(./neucoind -rpcport=2001 -rpcuser=user -rpcpassword=password help)
+done < <(./nomiccoind -rpcport=2001 -rpcuser=user -rpcpassword=password help)
 
 printf '</tr></table>\n'
 
@@ -52,7 +52,7 @@ while read COMMAND; do
     NAME="${COMMAND%% *}"
     PARAMETERS="${COMMAND#* }"
 
-    HELP="$(./neucoind -rpcport=2001 -rpcuser=user -rpcpassword=password help "$NAME" | tail -n+2 | htmlentities)"
+    HELP="$(./nomiccoind -rpcport=2001 -rpcuser=user -rpcpassword=password help "$NAME" | tail -n+2 | htmlentities)"
 
     printf '### %s\n' "$NAME"
     printf '\n'
@@ -63,6 +63,6 @@ while read COMMAND; do
     printf '%s\n' "$HELP"
     printf '\n'
 
-done < <(./neucoind -rpcport=2001 -rpcuser=user -rpcpassword=password help)
+done < <(./nomiccoind -rpcport=2001 -rpcuser=user -rpcpassword=password help)
 
 kill -9 $NODE

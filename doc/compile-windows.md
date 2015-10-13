@@ -78,7 +78,7 @@ If you have correctly followed the instructions, your dependency folder should l
 
 Now, we will have to compile these library. In order to do this, we will use a script file, just because there's no point in describing every single compilation lines.
 
-Copy the [compile-dependencies.sh](https://github.com/neucoin/neucoin/blob/master/docs/contrib/windows/compile-dependencies.sh) script, and open it with a text editor. We will have to edit a single things:
+Copy the [compile-dependencies.sh](https://github.com/nomiccoin/nomiccoin/blob/master/docs/contrib/windows/compile-dependencies.sh) script, and open it with a text editor. We will have to edit a single things:
 
   - *DEPENDENCY_PATH* is the path where we can find the dependencies we downloaded before. Here's mine:
 
@@ -92,6 +92,6 @@ And that's all! You shouldn't have to edit the other things. Go in msys shell, a
 
 ### Compilation
 
-Once again, we made a script for you to use. Copy the [compile-client.sh](https://github.com/neucoin/neucoin/blob/master/docs/contrib/windows/compile-client.sh) script, change the `DEPENDENCY_PATH`, and run it with bash from the repository `src/` directory (important).
+Once again, we made a script for you to use. Copy the [compile-client.sh](https://github.com/nomiccoin/nomiccoin/blob/master/docs/contrib/windows/compile-client.sh) script, change the `DEPENDENCY_PATH`, and run it with bash from the repository `src/` directory (important).
 
-If you wish to build the Qt client, just pass `neucoin-qt` as script first parameter and be done with it :)
+If you wish to build the Qt client, just pass `nomiccoin-qt` as script first parameter and be done with it :)

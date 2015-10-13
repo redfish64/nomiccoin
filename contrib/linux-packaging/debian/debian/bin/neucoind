@@ -4,15 +4,15 @@ set -e
 
 umask 077
 
-basedir=~/.neucoin
+basedir=~/.nomiccoin
 dbfile="$basedir/DB_CONFIG"
-cfgfile="$basedir/neucoin.conf"
+cfgfile="$basedir/nomiccoin.conf"
 
 [ -e "$basedir" ] || mkdir "$basedir"
 
 [ -e "$cfgfile" ] || perl -le 'print"rpcpassword=",map{(a..z,A..Z,0..9)[rand 62]}0..9' > "$cfgfile"
 
-# NeuCoin does not clean up DB log files by default
+# NomicCoin does not clean up DB log files by default
 [ -e "$dbfile" ] || echo 'set_flags DB_LOG_AUTOREMOVE' > "$dbfile"
 
-exec /usr/lib/neucoin/neucoind "$@"
+exec /usr/lib/nomiccoin/nomiccoind "$@"

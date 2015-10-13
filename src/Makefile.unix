@@ -1,9 +1,13 @@
-TARGET_HEADLESS = neucoind
-TARGET_QT = neucoin-qt
+TARGET_HEADLESS = nomiccoind
+TARGET_QT = nomiccoin-qt
 
 MAKEFILE = Makefile.unix
 
 QT_MID_SUFFIX = 5
+
+export QT_SELECT=qt5
+
+TESTING=1
 
 include Makefile.default
 

@@ -54,16 +54,16 @@ for i in ${svg_stroke[@]}; do
   LINE_STROKE=`echo -n $i | cut -d'#' -f2`
   update_stroke $LINE_STROKE
   $CONVERT -geometry "$PIX_SIZE" -background none "$TMP_FILE" \
-                    "${PIXMAP_FOLDER}/neucoin${PIX_SIZE}.png"
+                    "${PIXMAP_FOLDER}/nomiccoin${PIX_SIZE}.png"
   $CONVERT -geometry "$PIX_SIZE" -background none "$TMP_FILE" \
-                    "${PIXMAP_FOLDER}/neucoin${PIX_SIZE}.bmp"
+                    "${PIXMAP_FOLDER}/nomiccoin${PIX_SIZE}.bmp"
   $CONVERT -geometry "$PIX_SIZE" -background none "$TMP_FILE" \
-                    "${PIXMAP_FOLDER}/neucoin${PIX_SIZE}.xpm"
-  ico_list_bmp="${ico_file_list} ${PIXMAP_FOLDER}/neucoin${PIX_SIZE}.bmp"
-  ico_list_png="${ico_file_list} ${PIXMAP_FOLDER}/neucoin${PIX_SIZE}.png"
+                    "${PIXMAP_FOLDER}/nomiccoin${PIX_SIZE}.xpm"
+  ico_list_bmp="${ico_file_list} ${PIXMAP_FOLDER}/nomiccoin${PIX_SIZE}.bmp"
+  ico_list_png="${ico_file_list} ${PIXMAP_FOLDER}/nomiccoin${PIX_SIZE}.png"
 done
 
-$CONVERT ${ico_list_bmp} "${PIXMAP_FOLDER}/neucoin.ico"   # png ico is only Windows7+
-[ x"$PNG2ICNS" != "x" ] && $PNG2ICNS "${PIXMAP_FOLDER}/neucoin.icns" ${ico_list_png}
+$CONVERT ${ico_list_bmp} "${PIXMAP_FOLDER}/nomiccoin.ico"   # png ico is only Windows7+
+[ x"$PNG2ICNS" != "x" ] && $PNG2ICNS "${PIXMAP_FOLDER}/nomiccoin.icns" ${ico_list_png}
 
 rm -f "$TMP_FILE"

@@ -2097,7 +2097,7 @@ double getMintingOdds(CBigNum targetHash)
  */
 double getExpectedStakeDaysForTarget(CBigNum targetHash)
 {
-  //WARNING assumes neucoin's 1 second per target
+  //WARNING assumes nomiccoin's 1 second per target
   double mintingOdds = getMintingOdds(targetHash);
   if(mintingOdds != 0)
     return 1/ mintingOdds /3600./24.;

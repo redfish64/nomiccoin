@@ -4,24 +4,24 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="14"/>
-        <source>About NeuCoin</source>
-        <translation>NeuCoin hakkında</translation>
+        <source>About NomicCoin</source>
+        <translation>NomicCoin hakkında</translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="53"/>
-        <source>&lt;b&gt;NeuCoin&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;NeuCoin&lt;/b&gt; sürüm</translation>
+        <source>&lt;b&gt;NomicCoin&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;NomicCoin&lt;/b&gt; sürüm</translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="85"/>
-        <source>Copyright © 2011-2013 NeuCoin Developers
+        <source>Copyright © 2011-2013 NomicCoin Developers
 
 This is experimental software.
 
 Distributed under the MIT/X11 software license, see the accompanying file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
-        <translation>Telif hakkı © 2011-2013 NeuCoin geliştiricileri
+        <translation>Telif hakkı © 2011-2013 NomicCoin geliştiricileri
 
 Bu yazılım deneme safhasındadır.
 
@@ -39,8 +39,8 @@ Bu ürün OpenSSL projesi tarafından OpenSSL Toolkit (http://www.openssl.org/) 
     </message>
     <message>
         <location filename="../forms/addressbookpage.ui" line="20"/>
-        <source>These are your NeuCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>Bunlar, ödemeleri almak için NeuCoin adresleridir.  Kimin ödeme yaptığını izleyebilmek için her ödeme yollaması gereken kişiye değişik bir adres verebilirsiniz.</translation>
+        <source>These are your NomicCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <translation>Bunlar, ödemeleri almak için NomicCoin adresleridir.  Kimin ödeme yaptığını izleyebilmek için her ödeme yollaması gereken kişiye değişik bir adres verebilirsiniz.</translation>
     </message>
     <message>
         <location filename="../forms/addressbookpage.ui" line="33"/>
@@ -226,7 +226,7 @@ Bu ürün OpenSSL projesi tarafından OpenSSL Toolkit (http://www.openssl.org/) 
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="102"/>
-        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NeuCoinS&lt;/b&gt;!
+        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NomicCoinS&lt;/b&gt;!
 Are you sure you wish to encrypt your wallet?</source>
         <translation>UYARI: Eğer cüzdanınızı şifrelerseniz ve parolanızı kaybederseniz, &lt;b&gt;TÜM BİTCOİNLERİNİZİ KAYBEDERSİNİZ&lt;/b&gt;!
 Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
@@ -239,8 +239,8 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="112"/>
-        <source>NeuCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NeuCoins from being stolen by malware infecting your computer.</source>
-        <translation>Şifreleme işlemini tamamlamak için NeuCoin şimdi kapanacaktır. Cüzdanınızı şifrelemenin, NeuCoinlerinizin bilgisayara bulaşan kötücül bir yazılım tarafından çalınmaya karşı tamamen koruyamayacağını unutmayınız.</translation>
+        <source>NomicCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NomicCoins from being stolen by malware infecting your computer.</source>
+        <translation>Şifreleme işlemini tamamlamak için NomicCoin şimdi kapanacaktır. Cüzdanınızı şifrelemenin, NomicCoinlerinizin bilgisayara bulaşan kötücül bir yazılım tarafından çalınmaya karşı tamamen koruyamayacağını unutmayınız.</translation>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="208"/>
@@ -291,11 +291,11 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
 </context>
 <context>
-    <name>NeuCoinGUI</name>
+    <name>NomicCoinGUI</name>
     <message>
         <location filename="../bitcoingui.cpp" line="69"/>
-        <source>NeuCoin Wallet</source>
-        <translation>NeuCoin cüzdanı</translation>
+        <source>NomicCoin Wallet</source>
+        <translation>NomicCoin cüzdanı</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="142"/>
@@ -355,8 +355,8 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="201"/>
-        <source>Send coins to a NeuCoin address</source>
-        <translation>Bir NeuCoin adresine para (NeuCoin) yollar</translation>
+        <source>Send coins to a NomicCoin address</source>
+        <translation>Bir NomicCoin adresine para (NomicCoin) yollar</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="206"/>
@@ -385,8 +385,8 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="231"/>
-        <source>Show information about NeuCoin</source>
-        <translation>NeuCoin hakkında bilgi gösterir</translation>
+        <source>Show information about NomicCoin</source>
+        <translation>NomicCoin hakkında bilgi gösterir</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="233"/>
@@ -405,18 +405,18 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="237"/>
-        <source>Modify configuration options for NeuCoin</source>
-        <translation>NeuCoin seçeneklerinin yapılandırmasını değiştirir</translation>
+        <source>Modify configuration options for NomicCoin</source>
+        <translation>NomicCoin seçeneklerinin yapılandırmasını değiştirir</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="239"/>
-        <source>Open &amp;NeuCoin</source>
-        <translation>&amp;NeuCoin&apos;i aç</translation>
+        <source>Open &amp;NomicCoin</source>
+        <translation>&amp;NomicCoin&apos;i aç</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="240"/>
-        <source>Show the NeuCoin window</source>
-        <translation>NeuCoin penceresini gösterir</translation>
+        <source>Show the NomicCoin window</source>
+        <translation>NomicCoin penceresini gösterir</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="241"/>
@@ -485,13 +485,13 @@ Cüzdanınızı şifrelemek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="407"/>
-        <source>NeuCoin-qt</source>
-        <translation>NeuCoin-qt</translation>
+        <source>NomicCoin-qt</source>
+        <translation>NomicCoin-qt</translation>
     </message>
     <message numerus="yes">
         <location filename="../bitcoingui.cpp" line="449"/>
-        <source>%n active connection(s) to NeuCoin network</source>
-        <translation><numerusform>NeuCoin şebekesine %n etkin bağlantı</numerusform></translation>
+        <source>%n active connection(s) to NomicCoin network</source>
+        <translation><numerusform>NomicCoin şebekesine %n etkin bağlantı</numerusform></translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="475"/>
@@ -674,8 +674,8 @@ Adres: %4
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="96"/>
-        <source>The entered address &quot;%1&quot; is not a valid NeuCoin address.</source>
-        <translation>Girilen &quot;%1&quot; adresi geçerli bir NeuCoin adresi değildir.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid NomicCoin address.</source>
+        <translation>Girilen &quot;%1&quot; adresi geçerli bir NomicCoin adresi değildir.</translation>
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="101"/>
@@ -692,13 +692,13 @@ Adres: %4
     <name>MainOptionsPage</name>
     <message>
         <location filename="../optionsdialog.cpp" line="170"/>
-        <source>&amp;Start NeuCoin on window system startup</source>
-        <translation>NeuCoin&apos;i pencere sistemi ile &amp;başlat</translation>
+        <source>&amp;Start NomicCoin on window system startup</source>
+        <translation>NomicCoin&apos;i pencere sistemi ile &amp;başlat</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="171"/>
-        <source>Automatically start NeuCoin after the computer is turned on</source>
-        <translation>NeuCoin&apos;i bilgisayar başlatıldığında başlatır</translation>
+        <source>Automatically start NomicCoin after the computer is turned on</source>
+        <translation>NomicCoin&apos;i bilgisayar başlatıldığında başlatır</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="175"/>
@@ -717,8 +717,8 @@ Adres: %4
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="181"/>
-        <source>Automatically open the NeuCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Yönlendiricide NeuCoin istemci portlarını otomatik olarak açar. Bu, sadece yönlendiricinizin UPnP desteği bulunuyorsa ve etkinse çalışabilir.</translation>
+        <source>Automatically open the NomicCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Yönlendiricide NomicCoin istemci portlarını otomatik olarak açar. Bu, sadece yönlendiricinizin UPnP desteği bulunuyorsa ve etkinse çalışabilir.</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="185"/>
@@ -738,7 +738,7 @@ Adres: %4
     <message>
         <location filename="../optionsdialog.cpp" line="191"/>
         <source>Connect to the Bitcon network through a SOCKS4 proxy (e.g. when connecting through Tor)</source>
-        <translation>NeuCoin şebekesine SOCKS4 vekil sunucusu vasıtasıyla bağlanır (mesela Tor ile bağlanıldığında)</translation>
+        <translation>NomicCoin şebekesine SOCKS4 vekil sunucusu vasıtasıyla bağlanır (mesela Tor ile bağlanıldığında)</translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="196"/>
@@ -1178,8 +1178,8 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="25"/>
-        <source>Enter a NeuCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>NeuCoin adresi giriniz (mesela 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a NomicCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <translation>NomicCoin adresi giriniz (mesela 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
     </message>
 </context>
 <context>
@@ -1627,11 +1627,11 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
-    <name>NeuCoin-core</name>
+    <name>NomicCoin-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="3"/>
-        <source>NeuCoin version</source>
-        <translation>NeuCoin sürümü</translation>
+        <source>NomicCoin version</source>
+        <translation>NomicCoin sürümü</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="4"/>
@@ -1640,8 +1640,8 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="5"/>
-        <source>Send command to -server or neucoind</source>
-        <translation>-server ya da neucoind&apos;ye komut gönder</translation>
+        <source>Send command to -server or nomiccoind</source>
+        <translation>-server ya da nomiccoind&apos;ye komut gönder</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="6"/>
@@ -1660,13 +1660,13 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="9"/>
-        <source>Specify configuration file (default: NeuCoin.conf)</source>
-        <translation>Yapılandırma dosyası belirt (varsayılan: NeuCoin.conf)</translation>
+        <source>Specify configuration file (default: NomicCoin.conf)</source>
+        <translation>Yapılandırma dosyası belirt (varsayılan: NomicCoin.conf)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="10"/>
-        <source>Specify pid file (default: neucoind.pid)</source>
-        <translation>Pid dosyası belirt (varsayılan: neucoind.pid)</translation>
+        <source>Specify pid file (default: nomiccoind.pid)</source>
+        <translation>Pid dosyası belirt (varsayılan: nomiccoind.pid)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="11"/>
@@ -1841,9 +1841,9 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bitcoinstrings.cpp" line="47"/>
         <source>
-SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
+SSL options: (see the NomicCoin Wiki for SSL setup instructions)</source>
         <translation>
-SSL seçenekleri: (SSL kurulum bilgisi için NeuCoin vikisine bakınız)</translation>
+SSL seçenekleri: (SSL kurulum bilgisi için NomicCoin vikisine bakınız)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="50"/>
@@ -1872,8 +1872,8 @@ SSL seçenekleri: (SSL kurulum bilgisi için NeuCoin vikisine bakınız)</transl
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="57"/>
-        <source>Cannot obtain a lock on data directory %s.  NeuCoin is probably already running.</source>
-        <translation>%s veri dizininde kilit elde edilemedi.  NeuCoin muhtemelen hâlihazırda çalışmaktadır.</translation>
+        <source>Cannot obtain a lock on data directory %s.  NomicCoin is probably already running.</source>
+        <translation>%s veri dizininde kilit elde edilemedi.  NomicCoin muhtemelen hâlihazırda çalışmaktadır.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="60"/>
@@ -1897,13 +1897,13 @@ SSL seçenekleri: (SSL kurulum bilgisi için NeuCoin vikisine bakınız)</transl
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="66"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of NeuCoin</source>
-        <translation>wallet.dat dosyasının yüklenmesinde hata oluştu: cüzdanın daha yeni bir NeuCoin sürümüne ihtiyacı var</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of NomicCoin</source>
+        <translation>wallet.dat dosyasının yüklenmesinde hata oluştu: cüzdanın daha yeni bir NomicCoin sürümüne ihtiyacı var</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="67"/>
-        <source>Wallet needed to be rewritten: restart NeuCoin to complete</source>
-        <translation>Cüzdanın tekrar yazılması gerekiyordu: işlemi tamamlamak için NeuCoin&apos;i yeniden başlatınız</translation>
+        <source>Wallet needed to be rewritten: restart NomicCoin to complete</source>
+        <translation>Cüzdanın tekrar yazılması gerekiyordu: işlemi tamamlamak için NomicCoin&apos;i yeniden başlatınız</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="68"/>
@@ -1957,13 +1957,13 @@ SSL seçenekleri: (SSL kurulum bilgisi için NeuCoin vikisine bakınız)</transl
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="78"/>
-        <source>Unable to bind to port %d on this computer.  NeuCoin is probably already running.</source>
-        <translation>%d sayılı porta bu bilgisayarda bağlanılamadı.  NeuCoin muhtemelen hâlihazırda çalışmaktadır.</translation>
+        <source>Unable to bind to port %d on this computer.  NomicCoin is probably already running.</source>
+        <translation>%d sayılı porta bu bilgisayarda bağlanılamadı.  NomicCoin muhtemelen hâlihazırda çalışmaktadır.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="81"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NeuCoin will not work properly.</source>
-        <translation>Uyarı: Lütfen bilgisayarınızın tarih ve saatinin doğru olup olmadığını kontrol ediniz.  Saatiniz doğru değilse NeuCoin gerektiği gibi çalışamaz.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NomicCoin will not work properly.</source>
+        <translation>Uyarı: Lütfen bilgisayarınızın tarih ve saatinin doğru olup olmadığını kontrol ediniz.  Saatiniz doğru değilse NomicCoin gerektiği gibi çalışamaz.</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="84"/>

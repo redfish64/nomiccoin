@@ -21,7 +21,7 @@ install:
 script:
 
     - cd ../src
-    - make -f Makefile.unix TESTING=1 neucoind
+    - make -f Makefile.unix TESTING=1 nomiccoind
 
     - cd ../test
     - bash run-all.sh

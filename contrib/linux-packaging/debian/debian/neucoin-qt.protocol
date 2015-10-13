@@ -1,6 +1,6 @@
 [Protocol]
-exec=neucoin-qt '%u'
-protocol=neucoin
+exec=nomiccoin-qt '%u'
+protocol=nomiccoin
 input=none
 output=none
 helper=true

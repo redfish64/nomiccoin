@@ -890,6 +890,45 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+Value vote(const Array& params, bool fHelp)
+{
+    if (pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 4))
+        throw runtime_error(
+            "vote <deadline> <toaddress>\n"
+            "Votes with all coins towards the given deadline and given address.\n"
+            "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n");
+    if (!pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 4))
+        throw runtime_error(
+            "vote <deadline> <toaddress>\n"
+            "Votes with all coins towards the given deadline and given address.\n"
+			    );
+
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
+
+    // Amount
+    int64 nAmount = AmountFromValue(params[1]);
+    if (nAmount < MIN_TXOUT_AMOUNT)
+        throw JSONRPCError(-101, "Send amount too small");
+
+    // Wallet comments
+    CWalletTx wtx;
+    if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
+        wtx.mapValue["comment"] = params[2].get_str();
+    if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
+        wtx.mapValue["to"]      = params[3].get_str();
+
+    if (pwalletMain->IsLocked())
+        throw JSONRPCError(-13, "Error: Please enter the wallet passphrase with walletpassphrase first.\n");
+
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    if (strError != "")
+        throw JSONRPCError(-4, strError);
+
+    return wtx.GetHash().GetHex();
+}
+
 Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
@@ -3163,6 +3202,7 @@ Value sendrawtransaction(const Array& params, bool fHelp)
     // or in the memory pool:
     CTransaction existingTx;
     uint256 hashBlock = 0;
+ #ifdef TIMHACK
     if (GetTransaction(hashTx, existingTx, hashBlock))
     {
         if (hashBlock != 0)
@@ -3179,6 +3219,7 @@ Value sendrawtransaction(const Array& params, bool fHelp)
 
         SyncWithWallets(tx, NULL, true);
     }
+#endif
     RelayMessage(CInv(MSG_TX, hashTx), tx);
 
     return hashTx.GetHex();
@@ -3346,7 +3387,7 @@ VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 	//derived from CheckStakeKernelHash
 	int64 nValueIn = txPrevPtr->vout[prevout.n].nValue;
 
-	//nTimeWeight is always STAKE_AGE_STEP for neucoin
+	//nTimeWeight is always STAKE_AGE_STEP for nomiccoin
 	//CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / STAKE_COIN_STEP / STAKE_AGE_STEP;
 	CBigNum bnCoinDayWeight = CBigNum(nValueIn) / STAKE_COIN_STEP;
 	
@@ -3445,7 +3486,7 @@ static Value generateblock(const Array& params, bool fHelp, bool fProofOfStake)
 
 Value generatework(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "generatework [amount] [timeout]\n"
             "generate proof of work blocks"
@@ -3459,7 +3500,7 @@ Value generatework(const Array& params, bool fHelp)
 
 Value generatestake(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "generatestake [amount] [timeout]\n"
             "generate proof of stake blocks"
@@ -3546,7 +3587,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",          &getrawmempool,          true },
     { "addcoldmintingaddress",  &addcoldmintingaddress,  false},
     { "getmintingstatus",          &getmintingstatus,    false },
-    { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false }
+    { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
+    { "vote",   &vote,   false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },
@@ -4201,10 +4243,10 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2]);
     if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<boost::int64_t>(params[1]);
+    if (strMethod == "generatework"           && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "generatework"           && n > 1) ConvertTo<boost::int64_t>(params[1]);
-    if (strMethod == "generatework"           && n > 2) ConvertTo<boost::int64_t>(params[2]);
+    if (strMethod == "generatestake"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "generatestake"          && n > 1) ConvertTo<boost::int64_t>(params[1]);
-    if (strMethod == "generatestake"          && n > 2) ConvertTo<boost::int64_t>(params[2]);
 
     return params;
 }

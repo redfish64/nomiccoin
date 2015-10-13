@@ -6,17 +6,17 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="14"/>
-        <source>About NeuCoin</source>
+        <source>About NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="53"/>
-        <source>&lt;b&gt;NeuCoin&lt;/b&gt; version</source>
+        <source>&lt;b&gt;NomicCoin&lt;/b&gt; version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../forms/aboutdialog.ui" line="91"/>
-        <source>Copyright © 2011-2013 NeuCoin Developers
+        <source>Copyright © 2011-2013 NomicCoin Developers
 
 This is experimental software.
 
@@ -35,7 +35,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location filename="../forms/addressbookpage.ui" line="20"/>
-        <source>These are your NeuCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <source>These are your NomicCoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -222,7 +222,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="102"/>
-        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NeuCoinS&lt;/b&gt;!
+        <source>WARNING: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR NomicCoinS&lt;/b&gt;!
 Are you sure you wish to encrypt your wallet?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -234,7 +234,7 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../askpassphrasedialog.cpp" line="112"/>
-        <source>NeuCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NeuCoins from being stolen by malware infecting your computer.</source>
+        <source>NomicCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your NomicCoins from being stolen by malware infecting your computer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -286,15 +286,15 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
 </context>
 <context>
-    <name>NeuCoinGUI</name>
+    <name>NomicCoinGUI</name>
     <message>
         <location filename="../bitcoingui.cpp" line="70"/>
-        <source>NeuCoin Wallet</source>
+        <source>NomicCoin Wallet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="243"/>
-        <source>Show/Hide &amp;NeuCoin</source>
+        <source>Show/Hide &amp;NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -349,7 +349,7 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="205"/>
-        <source>Send coins to a NeuCoin address</source>
+        <source>Send coins to a NomicCoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -379,7 +379,7 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="235"/>
-        <source>Show information about NeuCoin</source>
+        <source>Show information about NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -399,7 +399,7 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="241"/>
-        <source>Modify configuration options for NeuCoin</source>
+        <source>Modify configuration options for NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
@@ -422,7 +422,7 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="244"/>
-        <source>Show or hide the NeuCoin window</source>
+        <source>Show or hide the NomicCoin window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -487,20 +487,20 @@ Are you sure you wish to encrypt your wallet?</source>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="383"/>
-        <source>NeuCoin client</source>
+        <source>NomicCoin client</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="411"/>
-        <source>NeuCoin-qt</source>
+        <source>NomicCoin-qt</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
         <location filename="../bitcoingui.cpp" line="475"/>
-        <source>%n active connection(s) to NeuCoin network</source>
+        <source>%n active connection(s) to NomicCoin network</source>
         <translation>
-            <numerusform>%n active connection to NeuCoin network</numerusform>
-            <numerusform>%n active connections to NeuCoin network</numerusform>
+            <numerusform>%n active connection to NomicCoin network</numerusform>
+            <numerusform>%n active connections to NomicCoin network</numerusform>
         </translation>
     </message>
     <message>
@@ -687,7 +687,7 @@ Address: %4
     </message>
     <message>
         <location filename="../editaddressdialog.cpp" line="96"/>
-        <source>The entered address &quot;%1&quot; is not a valid NeuCoin address.</source>
+        <source>The entered address &quot;%1&quot; is not a valid NomicCoin address.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -705,12 +705,12 @@ Address: %4
     <name>MainOptionsPage</name>
     <message>
         <location filename="../optionsdialog.cpp" line="170"/>
-        <source>&amp;Start NeuCoin on window system startup</source>
+        <source>&amp;Start NomicCoin on window system startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="171"/>
-        <source>Automatically start NeuCoin after the computer is turned on</source>
+        <source>Automatically start NomicCoin after the computer is turned on</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -730,7 +730,7 @@ Address: %4
     </message>
     <message>
         <location filename="../optionsdialog.cpp" line="185"/>
-        <source>Automatically open the NeuCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the NomicCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1192,7 +1192,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="25"/>
-        <source>Enter a NeuCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <source>Enter a NomicCoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1647,10 +1647,10 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
-    <name>NeuCoin-core</name>
+    <name>NomicCoin-core</name>
     <message>
         <location filename="../bitcoinstrings.cpp" line="7"/>
-        <source>NeuCoin version</source>
+        <source>NomicCoin version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1660,7 +1660,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="9"/>
-        <source>Send command to -server or neucoind</source>
+        <source>Send command to -server or nomiccoind</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1680,12 +1680,12 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="13"/>
-        <source>Specify configuration file (default: NeuCoin.conf)</source>
+        <source>Specify configuration file (default: NomicCoin.conf)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="14"/>
-        <source>Specify pid file (default: neucoind.pid)</source>
+        <source>Specify pid file (default: nomiccoind.pid)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1866,7 +1866,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bitcoinstrings.cpp" line="62"/>
         <source>
-SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
+SSL options: (see the NomicCoin Wiki for SSL setup instructions)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1901,12 +1901,12 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="73"/>
-        <source>Cannot obtain a lock on data directory %s.  NeuCoin is probably already running.</source>
+        <source>Cannot obtain a lock on data directory %s.  NomicCoin is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="76"/>
-        <source>NeuCoin</source>
+        <source>NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1931,12 +1931,12 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="83"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of NeuCoin</source>
+        <source>Error loading wallet.dat: Wallet requires newer version of NomicCoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="84"/>
-        <source>Wallet needed to be rewritten: restart NeuCoin to complete</source>
+        <source>Wallet needed to be rewritten: restart NomicCoin to complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2081,7 +2081,7 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="3"/>
-        <source>Unable to bind to port %d on this computer.  NeuCoin is probably already running.</source>
+        <source>Unable to bind to port %d on this computer.  NomicCoin is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2094,7 +2094,7 @@ SSL options: (see the NeuCoin Wiki for SSL setup instructions)</source>
         <source>%s, you must set a rpcpassword in the configuration file:
  %s
 It is recommended you use the following random password:
-rpcuser=NeuCoinrpc
+rpcuser=NomicCoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
@@ -2120,7 +2120,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="114"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NeuCoin will not work properly.</source>
+        <source>Warning: Please check that your computer&apos;s date and time are correct.  If your clock is wrong NomicCoin will not work properly.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

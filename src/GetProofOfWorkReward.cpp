@@ -9,10 +9,10 @@ money_t GetProofOfWorkReward(blockheight_t prevHeight)
         return COIN_PREMINE;
 
     if (prevHeight < POW_DUMMY_BLOCK_COUNT)
-        return 1 * CENT;
+        return MIN_TX_FEES;
 
     if (prevHeight >= POW_MAX_BLOCK)
-        return 1 * CENT;
+        return MIN_TX_FEES;
 
     return POW_BLOCK_REWARD;
 }

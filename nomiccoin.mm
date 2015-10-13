@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444095086546" TEXT="Voting Coin">
-<node CREATED="1444028673000" ID="ID_652303042" MODIFIED="1444287870491" POSITION="right" TEXT="v2">
+<node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1444694478596" POSITION="right" TEXT="v2">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -25,24 +25,24 @@
 </node>
 </node>
 </node>
-<node CREATED="1444085388773" ID="ID_1927218558" MODIFIED="1444199743130" TEXT="vote % target adjusts for 1 poll per week?">
+<node COLOR="#009999" CREATED="1444085388773" FOLDED="true" ID="ID_1927218558" MODIFIED="1444622881871" TEXT="vote % target adjusts for 1 poll per week?">
 <node CREATED="1444199366814" ID="ID_825508835" MODIFIED="1444199368562" TEXT="FUTURE"/>
 </node>
 <node CREATED="1444028788767" ID="ID_1601664234" MODIFIED="1444199393130" TEXT="51% vote necessary to win"/>
 </node>
-<node CREATED="1444028966750" ID="ID_1742226302" MODIFIED="1444560819204" TEXT="most votes gets to run script">
+<node CREATED="1444028966750" ID="ID_1742226302" MODIFIED="1444622829771" TEXT="most votes gets to run script">
 <richcontent TYPE="NOTE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Script is run by someone creating a script that matches the script_hash that won the initial vote, using hidden vote nonces
+      Script is run by someone creating a txn that matches the txn_hash that won the initial vote
     </p>
   </body>
 </html>
 </richcontent>
-<node CREATED="1444534942463" ID="ID_128446323" MODIFIED="1444534974938" TEXT="Person running script pays a fee to the minter.. Minter doesn&apos;t necessarily have to process all vote result script. Minter gets fee regardless if vote passes or not">
+<node COLOR="#009999" CREATED="1444534942463" ID="ID_128446323" MODIFIED="1444622884961" TEXT="Person running script pays a fee to the minter.. Minter doesn&apos;t necessarily have to process all vote result script. Minter gets fee regardless if vote passes or not?">
 <node CREATED="1444534999262" ID="ID_1857219212" MODIFIED="1444560870401" TEXT="Is paying the minter regardless of whether script passes or not feasible?"/>
 <node CREATED="1444560824655" ID="ID_1676109916" MODIFIED="1444560871614" TEXT="I don&apos;t think an extra fee is necessary. Given that we don&apos;t encrypt the vote, votes can be sorted, can be totaled within the block, etc. It will end up fast enough">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -59,12 +59,19 @@
       If it gets 51% of the vote, then it runs.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1444029105484" ID="ID_1289068667" MODIFIED="1444029196194" TEXT="vote script have special powers">
-<node CREATED="1444029200893" ID="ID_1220322872" MODIFIED="1444029204825" TEXT="Spend pool money"/>
-<node CREATED="1444029209133" ID="ID_1648724080" MODIFIED="1444029223040" TEXT="Request/enforce upgrade of official client"/>
+<node CREATED="1444029200893" ID="ID_1220322872" MODIFIED="1444029204825" TEXT="Spend pool money">
+<node CREATED="1444623457345" ID="ID_255579966" MODIFIED="1444623626117" TEXT="This is done by invoking the special pool script"/>
+<node CREATED="1444623626697" ID="ID_617136135" MODIFIED="1444624499501" TEXT="The pool script contains: OP_POLL_UNLOCKED">
+<node CREATED="1444624050866" ID="ID_983563016" MODIFIED="1444624100717" TEXT="The txn needs to supply an input script which contains OP_UNLOCK_POLL &lt;deadline&gt;"/>
+</node>
+<node CREATED="1444624114472" ID="ID_196013488" MODIFIED="1444624121277" TEXT="Unlocking it will release all funds to the txn"/>
+</node>
+<node CREATED="1444029209133" ID="ID_1648724080" MODIFIED="1444029223040" TEXT="Request/enforce upgrade of official client">
+<node CREATED="1444624519865" ID="ID_918380935" MODIFIED="1444624561229" TEXT="Contains OP_POLL_UPGRADE &lt;hash of source of new code&gt; &lt;block where upgrade is enforced&gt;"/>
+</node>
 <node CREATED="1444029232741" ID="ID_1234189419" MODIFIED="1444029243768" TEXT="Display message in client">
 <node CREATED="1444029581853" ID="ID_1016316310" MODIFIED="1444085474929" TEXT="Whats the point if so much participation is necessary?">
 <richcontent TYPE="NOTE"><html>
@@ -78,6 +85,7 @@
   </body>
 </html></richcontent>
 </node>
+<node CREATED="1444624136769" ID="ID_752836638" MODIFIED="1444624164261" TEXT="Contains OP_POLL_DISPLAY &lt;message&gt; &lt;block where message disappears&gt;"/>
 </node>
 </node>
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
@@ -102,12 +110,14 @@
 <node CREATED="1444085481373" ID="ID_320685966" MODIFIED="1444085500225" TEXT="To vote, paste a base64 blob">
 <node CREATED="1444085504669" ID="ID_1083007587" MODIFIED="1444085512728" TEXT="Blob contains">
 <node CREATED="1444085526829" ID="ID_1068826274" MODIFIED="1444085538617" TEXT="Block deadline"/>
-<node CREATED="1444085540213" ID="ID_975782327" MODIFIED="1444560989187" TEXT="Script to run"/>
+<node CREATED="1444085540213" ID="ID_975782327" MODIFIED="1444624588373" TEXT="txn to run">
+<node CREATED="1444624597648" ID="ID_951448902" MODIFIED="1444625728588" TEXT="We need this to be a txn rather than a script because a script can&apos;t specify how much of the pool to spend. The pool address is the input address"/>
+</node>
 </node>
 </node>
 <node CREATED="1444085580861" ID="ID_855582610" MODIFIED="1444098480430" TEXT="Shown to user ">
 <node CREATED="1444085612516" ID="ID_1517133175" MODIFIED="1444085617289" TEXT="Vote deadline"/>
-<node CREATED="1444085621877" ID="ID_1762544535" MODIFIED="1444085627377" TEXT="Human readable script"/>
+<node CREATED="1444085621877" ID="ID_1762544535" MODIFIED="1444625744012" TEXT="Human readable txn"/>
 <node CREATED="1444085627941" ID="ID_277436710" MODIFIED="1444085641649" TEXT="Pasted blob"/>
 <node CREATED="1444085671453" ID="ID_315919070" MODIFIED="1444561035714" TEXT="Current poll votes">
 <richcontent TYPE="NOTE"><html>
@@ -119,8 +129,7 @@
       The number of coins that already voted for poll
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1444094619726" ID="ID_591790047" MODIFIED="1444298477325" TEXT="Votes needed to win (currently)">
 <richcontent TYPE="NOTE"><html>
@@ -137,44 +146,50 @@
 <node CREATED="1444098429559" ID="ID_1334600508" MODIFIED="1444098539057" TEXT="Invalid (non standard) scripts are rejected"/>
 </node>
 <node CREATED="1444085648685" ID="ID_1166122250" MODIFIED="1444298507078" TEXT="User votes Yea or Nea ">
-<node CREATED="1444088465477" ID="ID_1690598974" MODIFIED="1444088479968" TEXT="Nea always corresponds to &quot;0&quot; vote"/>
+<node CREATED="1444088465477" ID="ID_1690598974" MODIFIED="1444626011277" TEXT="Nea is the same as transferring the money to yourself, and only really helps you by registrating you to vote"/>
 </node>
 <node CREATED="1444298519450" ID="ID_604913285" MODIFIED="1444298531982" TEXT="Explained that moving coins will negate vote, but vote may be recast"/>
 <node CREATED="1444298544299" ID="ID_763886705" MODIFIED="1444298553766" TEXT="Explained that staking will not negate vote"/>
 <node CREATED="1444561078736" ID="ID_1972808819" MODIFIED="1444561090107" TEXT="What about DoS by voting too many times?">
-<node CREATED="1444561094167" ID="ID_1257051190" MODIFIED="1444561118580" TEXT="You may only vote once. If you want to change your vote, you need to move your coins and do it again"/>
-<node CREATED="1444561120880" ID="ID_1484243454" MODIFIED="1444561165523" TEXT="There is a cool down period where you can&apos;t vote again"/>
-<node COLOR="#cc3300" CREATED="1444561182200" ID="ID_527001067" MODIFIED="1444561223312" TEXT="What if someone creates a million UTXO&apos;s and votes with them over and over again?">
-<node COLOR="#cc3300" CREATED="1444561240944" ID="ID_770304587" MODIFIED="1444561258239" TEXT="So maybe a fee does need to be paid?"/>
-</node>
+<node CREATED="1444625790146" ID="ID_1820751432" MODIFIED="1444625791758" TEXT="Fees"/>
 </node>
 </node>
 <node CREATED="1444088496301" ID="ID_1120039614" MODIFIED="1444088502960" TEXT="Implementation">
-<node CREATED="1444028682661" ID="ID_809883464" MODIFIED="1444300923023" TEXT="vote_txn: script_hash(address) deadline ip_public_key">
-<node CREATED="1444088662156" ID="ID_7079616" MODIFIED="1444088671249" TEXT="script_hash may be &quot;0&quot; which means No to all"/>
-<node CREATED="1444300768899" ID="ID_560007428" MODIFIED="1444300775974" TEXT="ip_public_key is used to encrypt vote"/>
+<node CREATED="1444028682661" ID="ID_809883464" MODIFIED="1444625924725" TEXT="to vote: OP_VOTE txn_hash deadline">
 <node CREATED="1444300778331" ID="ID_1816757668" MODIFIED="1444300790958" TEXT="If coins are spent before deadline, vote is invalid"/>
 </node>
 <node CREATED="1444096167767" ID="ID_1913606226" MODIFIED="1444098517536" TEXT="Workflow">
-<node CREATED="1444300822002" ID="ID_73838141" MODIFIED="1444300846734" TEXT="Interested Party creates an election script, and a public priivate key pair outside of the system">
-<node COLOR="#996600" CREATED="1444469661826" ID="ID_1155363303" MODIFIED="1444469672426" TEXT="What does this look like?"/>
-<node COLOR="#996600" CREATED="1444469693281" ID="ID_357207552" MODIFIED="1444469704506" TEXT="Create through client?"/>
+<node CREATED="1444300822002" ID="ID_73838141" MODIFIED="1444626038588" TEXT="Interested Party creates an poll txn">
+<node CREATED="1444469693281" ID="ID_357207552" MODIFIED="1444626448738" TEXT="Create through client?">
+<node CREATED="1444626437762" ID="ID_611783520" MODIFIED="1444626445501" TEXT="cmdline at first I think"/>
 </node>
-<node CREATED="1444300848915" ID="ID_994016205" MODIFIED="1444300870150" TEXT="IP publishes script and public key in a base64 blob"/>
+<node CREATED="1444626045433" ID="ID_731986072" MODIFIED="1444626073070" TEXT="A vote txn has an input of the spending pool if pool funds are to be used"/>
+<node CREATED="1444626073962" ID="ID_1782995806" MODIFIED="1444626086254" TEXT="It has one or more output scripts to send the pool fund money"/>
+<node CREATED="1444626086786" ID="ID_1973347641" MODIFIED="1444626114301" TEXT="Output scripts can also contain display message and upgrade client commands"/>
+</node>
+<node CREATED="1444300848915" ID="ID_994016205" MODIFIED="1444626366326" TEXT="IP publishes txn and deadline in a base64 blob"/>
 <node CREATED="1444300871403" ID="ID_239674975" MODIFIED="1444300878990" TEXT="Voters paste blob into client"/>
 <node CREATED="1444096177870" ID="ID_1443854479" MODIFIED="1444300890671" TEXT="Voters create vote txns"/>
 <node CREATED="1444300943011" ID="ID_389973440" MODIFIED="1444300950430" TEXT="If IP loses, nothing happens"/>
-<node CREATED="1444098520237" ID="ID_545958826" MODIFIED="1444098532025" TEXT="Voting result scripts are standardized"/>
+<node CREATED="1444098520237" ID="ID_545958826" MODIFIED="1444098532025" TEXT="Voting result scripts are standardized">
+<node CREATED="1444626410802" ID="ID_1908681065" MODIFIED="1444626412734" TEXT="FUTURE"/>
+</node>
 </node>
 <node CREATED="1444197008382" ID="ID_948753356" MODIFIED="1444197010562" TEXT="Pool">
-<node CREATED="1444197025038" ID="ID_1616848283" MODIFIED="1444197056222" TEXT="Pool amount stored in block?">
-<node CREATED="1444197061926" ID="ID_126498864" MODIFIED="1444199964682" TEXT="No, better as a script"/>
+<node COLOR="#009999" CREATED="1444197025038" ID="ID_1616848283" MODIFIED="1444626465210" TEXT="Pool amount stored in block?">
+<node CREATED="1444197061926" ID="ID_126498864" MODIFIED="1444626475734" TEXT="no, a script"/>
 </node>
 <node CREATED="1444199967310" ID="ID_186340188" MODIFIED="1444199982810" TEXT="How does the pool script get introduced?">
 <node CREATED="1444199984014" ID="ID_1167793686" MODIFIED="1444199989362" TEXT="Genesis Block"/>
 </node>
-<node COLOR="#cc3300" CREATED="1444301210563" ID="ID_376245874" MODIFIED="1444301233291" TEXT="How do the clients know what the pool address is?"/>
-<node COLOR="#cc3300" CREATED="1444199997638" ID="ID_1718091863" MODIFIED="1444200052789" TEXT="What is the script contents?"/>
+<node CREATED="1444301210563" ID="ID_376245874" MODIFIED="1444626501042" TEXT="How do the clients know what the pool address is?">
+<node CREATED="1444626502650" ID="ID_1711531087" MODIFIED="1444626507222" TEXT="It&apos;s hardcoded"/>
+</node>
+<node CREATED="1444199997638" ID="ID_1718091863" LINK="#ID_617136135" MODIFIED="1444626543291" TEXT="What is the script contents?"/>
+</node>
+<node CREATED="1444632235941" ID="ID_1356695553" MODIFIED="1444632252168" TEXT="How to give nomiccoin out in genesis?">
+<node CREATED="1444632253493" ID="ID_1440547071" MODIFIED="1444632266320" TEXT="Read public keys from text file?"/>
+<node CREATED="1444632274709" ID="ID_48108268" MODIFIED="1444632289905" TEXT="How to generate public/private keys?"/>
 </node>
 </node>
 <node CREATED="1444094371949" ID="ID_500004707" MODIFIED="1444095258121" TEXT="Upgrade client">
@@ -209,6 +224,7 @@
 <node CREATED="1444098604949" ID="ID_1505398898" MODIFIED="1444098610329" TEXT="Start from Neucoin"/>
 </node>
 <node CREATED="1444198543806" ID="ID_1881359814" MODIFIED="1444198831094" TEXT="Should we cache things in the block?">
+<node CREATED="1444626681498" ID="ID_606314004" MODIFIED="1444626691678" TEXT="In general, caching should be done by the client outside of the block"/>
 <node CREATED="1444198556270" ID="ID_533510654" MODIFIED="1444198831862" TEXT="Pool value?">
 <font NAME="SansSerif" SIZE="12"/>
 <node CREATED="1444198882942" ID="ID_1093947240" MODIFIED="1444198908130" TEXT="No, because the pool value can be calculated easily, and better to be some p2sh script"/>
@@ -225,7 +241,7 @@
 <node CREATED="1444298776939" ID="ID_573985658" MODIFIED="1444298796310" TEXT="Although a somewhat intensive process, vote passing should happen rarely enough that it won&apos;t hurt the network"/>
 </node>
 </node>
-<node CREATED="1444225241249" ID="ID_1518178913" MODIFIED="1444225246151" TEXT="stake and vote interplay">
+<node CREATED="1444225241249" FOLDED="true" ID="ID_1518178913" MODIFIED="1444630913007" TEXT="stake and vote interplay">
 <node CREATED="1444225249158" ID="ID_903706015" MODIFIED="1444287839466" TEXT="if everyone is voting, who will stake?">
 <node CREATED="1444225266323" ID="ID_1325700328" MODIFIED="1444287838529" TEXT="Can we vote and stake at the same time?">
 <node CREATED="1444287833697" ID="ID_936216574" MODIFIED="1444287835133" TEXT="Yes"/>
@@ -252,27 +268,26 @@
 </node>
 </node>
 </node>
-<node CREATED="1444287872786" FOLDED="true" ID="ID_216486077" MODIFIED="1444563795959" TEXT="Vote txn">
-<node CREATED="1444287879314" FOLDED="true" ID="ID_1812033536" MODIFIED="1444563795433" TEXT="Votes will be completely separate from txns and stored in a separate part of the block">
-<node CREATED="1444287910241" ID="ID_1155097946" MODIFIED="1444287928734" TEXT="We can&apos;t make it a regular txn, because then staking couldn&apos;t occur at the same time"/>
-</node>
-</node>
-<node CREATED="1444290072466" FOLDED="true" ID="ID_1300786329" MODIFIED="1444563706873" TEXT="Minimum time for vote?">
-<node CREATED="1444290103642" ID="ID_1874528819" MODIFIED="1444290113582" TEXT="At least an hour, I&apos;d think"/>
+<node CREATED="1444290072466" FOLDED="true" ID="ID_1300786329" MODIFIED="1444630910695" TEXT="Minimum time for vote?">
 <node CREATED="1444463373846" FOLDED="true" ID="ID_1230309887" MODIFIED="1444563706448" TEXT="I don&apos;t think a minimum time is necessary. If a user wants to attack the network with votes somehow, a minimum time won&apos;t stop them">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1444463435087" ID="ID_1481244043" MODIFIED="1444463457954" TEXT="They can always hide the election. An election puts nothing concrete into the chain"/>
 </node>
 </node>
-<node CREATED="1444290122186" ID="ID_296047853" MODIFIED="1444290125542" TEXT="Voter registration">
+<node CREATED="1444290122186" FOLDED="true" ID="ID_296047853" MODIFIED="1444630909272" TEXT="Voter registration">
 <node CREATED="1444290127178" ID="ID_172829074" MODIFIED="1444290134510" TEXT="Registration is automatic when voting"/>
 <node CREATED="1444290136850" ID="ID_1100154611" MODIFIED="1444290141742" TEXT="Lasts for 2 weeks"/>
 <node CREATED="1444290146610" ID="ID_986076541" MODIFIED="1444290154742" TEXT="Used to determine if vote passes"/>
-<node CREATED="1444290164154" ID="ID_618849242" MODIFIED="1444290177822" TEXT="Should we enforce only registered voters can vote?">
-<node COLOR="#cc3300" CREATED="1444290181082" ID="ID_811022490" MODIFIED="1444563698560" TEXT="What if someone doesn&apos;t vote for a long time, then suddenly votes?"/>
+<node COLOR="#009999" CREATED="1444290164154" ID="ID_618849242" MODIFIED="1444626797082" TEXT="Should we enforce only registered voters can vote?">
+<node CREATED="1444626799050" ID="ID_1227874174" MODIFIED="1444626806956" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1444290181082" ID="ID_811022490" MODIFIED="1444626745890" TEXT="What if someone doesn&apos;t vote for a long time, then suddenly votes?">
+<node CREATED="1444626746977" ID="ID_1509377275" MODIFIED="1444626768054" TEXT="Doing so won&apos;t make a vote more likely to pass, so I don&apos;t see a problem with this"/>
 </node>
 </node>
-<node CREATED="1444292585850" FOLDED="true" ID="ID_1347811899" MODIFIED="1444563675785" TEXT="Should votes carry over across txns?">
+</node>
+<node COLOR="#009999" CREATED="1444292585850" FOLDED="true" ID="ID_1347811899" MODIFIED="1444630906657" TEXT="Should votes carry over across txns?">
 <node CREATED="1444292620194" ID="ID_1197106708" MODIFIED="1444292649270" TEXT="If someone stakes right before the vote, and we don&apos;t allow this, then they may miss their chance to vote"/>
 <node CREATED="1444292653259" ID="ID_1599193448" MODIFIED="1444292733190" TEXT="If we allow this, then someone can vote with coins already spent"/>
 <node CREATED="1444292750418" FOLDED="true" ID="ID_612860248" MODIFIED="1444563675265" TEXT="No, we don&apos;t allow votes to carry over, but when staking, the prior vote automatically gets recreated">
@@ -280,7 +295,7 @@
 <node CREATED="1444296777738" ID="ID_427679434" MODIFIED="1444296791734" TEXT="This prevents the staker from losing their vote"/>
 </node>
 </node>
-<node CREATED="1444294380298" FOLDED="true" ID="ID_1725020290" MODIFIED="1444563648194" TEXT="Hidden vote?">
+<node COLOR="#009999" CREATED="1444294380298" ID="ID_1725020290" MODIFIED="1444626785938" TEXT="Hidden vote?">
 <node CREATED="1444294417778" FOLDED="true" ID="ID_1126954970" MODIFIED="1444563646488" TEXT="Implementation">
 <node CREATED="1444294388034" ID="ID_912629385" MODIFIED="1444300657200" TEXT="Voting party signs their vote, and encrypts it with a public key given by the IP(Interested Party)"/>
 <node CREATED="1444294441450" ID="ID_951897852" MODIFIED="1444300689430" TEXT="Interested Party decrypts the votes, looking for votes to him"/>
@@ -336,32 +351,29 @@
 </node>
 <node CREATED="1444299633275" ID="ID_628035443" MODIFIED="1444463163094" TEXT="Why store results in blockchain at all before deadline?">
 <node CREATED="1444299654874" ID="ID_134830972" MODIFIED="1444299671166" TEXT="Interested Party can ask for signatures and UTXO&apos;s"/>
-<node COLOR="#cc3300" CREATED="1444299672314" FOLDED="true" ID="ID_714261308" MODIFIED="1444563588485" TEXT="Once enough are received, Interested Party can then place something on the block chain, but what?">
-<node CREATED="1444299974907" ID="ID_1886734850" MODIFIED="1444563541536" TEXT="A million signatures?">
-<node CREATED="1444300005098" ID="ID_1546017821" MODIFIED="1444300015446" TEXT="Maybe within a special vote block"/>
-<node CREATED="1444300016595" ID="ID_1041678717" MODIFIED="1444300033982" TEXT="This vote block gets signed into the block chain as normal"/>
-<node CREATED="1444300038050" ID="ID_1128120790" MODIFIED="1444300055295" TEXT="The interested party gets to mint it"/>
-<node CREATED="1444300058370" ID="ID_1086476826" MODIFIED="1444563543496" TEXT="But the peers could reject it, right?"/>
-</node>
-</node>
+<node CREATED="1444299672314" ID="ID_714261308" LINK="#ID_73838141" MODIFIED="1444626876730" TEXT="Once enough are received, Interested Party can then place something on the block chain, but what?"/>
 <node CREATED="1444563457041" ID="ID_1504243141" MODIFIED="1444563476024" TEXT="Too many voters. They all can&apos;t vote at once">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 <node CREATED="1444348643078" ID="ID_1769946597" MODIFIED="1444460308002" TEXT="Network security">
-<node CREATED="1444348648094" FOLDED="true" ID="ID_111834533" MODIFIED="1444563421147" TEXT="Do we need some sort of mining to bootstrap? 20 minting peers, only mintable every 1.6 days means blocks be signed for several hours possibly">
+<node CREATED="1444348648094" ID="ID_111834533" MODIFIED="1444626889360" TEXT="Do we need some sort of mining to bootstrap? 20 minting peers, only mintable every 1.6 days means blocks be signed for several hours possibly">
 <node CREATED="1444461424734" ID="ID_680951259" MODIFIED="1444461670665" TEXT="Without miners this will leave gaps when few minters are creating blocks.">
 <node CREATED="1444461479813" ID="ID_1514978022" MODIFIED="1444461520953" TEXT="An attacker could conceivably create more blocks during that timeframe having a better block height in secret">
 <node CREATED="1444461530597" ID="ID_1868159341" MODIFIED="1444461537633" TEXT="Using millions of UTXO&apos;s"/>
 </node>
 <node CREATED="1444461577902" ID="ID_1986498813" MODIFIED="1444461616226" TEXT="If miners are working in parallel as minters, then miners could make up the slack. Attackers wouldn&apos;t have the hash power of the main chain, conceivably, making it impossible for them to perform the attack."/>
 </node>
-<node CREATED="1444461672229" ID="ID_1824377267" MODIFIED="1444461857361" TEXT="Miners should be employed when the target hash for minters indiciates that few minters are participating">
+<node CREATED="1444626908290" ID="ID_295116166" MODIFIED="1444626921837" TEXT="Probably a fixed period for mining should be good enough">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1444461672229" ID="ID_1824377267" MODIFIED="1444626924061" TEXT="Miners should be employed when the target hash for minters indiciates that few minters are participating">
+<font NAME="SansSerif" SIZE="12"/>
 <node CREATED="1444461708006" ID="ID_922621987" MODIFIED="1444461715850" TEXT="We can work this out in the code"/>
+<node CREATED="1444626928555" ID="ID_542858137" MODIFIED="1444626930334" TEXT="FUTURE"/>
 </node>
 </node>
-<node CREATED="1444348691142" FOLDED="true" ID="ID_1724572450" MODIFIED="1444563400429" TEXT="What about UTXO splitting that SunnyKing put in?">
+<node CREATED="1444348691142" ID="ID_1724572450" MODIFIED="1444626935166" TEXT="What about UTXO splitting that SunnyKing put in?">
 <node CREATED="1444376152526" ID="ID_22187907" MODIFIED="1444461834421" TEXT="Should we enforce it? Verify that it occurs?">
 <node CREATED="1444461747038" ID="ID_1733549313" MODIFIED="1444461767010" TEXT="Some UTXO splitting is a good idea to prevent gaps"/>
 <node CREATED="1444461784302" ID="ID_1218767910" MODIFIED="1444461804762" TEXT="It actually makes it easier for the user to spend a certain percentage of funds without losing a good deal of their unclaimed rewards"/>
@@ -370,18 +382,18 @@
 </node>
 </node>
 </node>
-<node CREATED="1444348755846" FOLDED="true" ID="ID_1904514118" MODIFIED="1444563366132" TEXT="Can we have mining make up for lack of security due to a low number of peers?">
+<node CREATED="1444348755846" ID="ID_1904514118" MODIFIED="1444626950096" TEXT="Can we have mining make up for lack of security due to a low number of peers?">
 <node CREATED="1444461849445" ID="ID_535701644" MODIFIED="1444461853959" TEXT="Yes">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 <node CREATED="1444563348592" ID="ID_1705477654" MODIFIED="1444563363804" TEXT="We can decide on this after we know how many people are getting involved"/>
 </node>
-<node CREATED="1444348785006" FOLDED="true" ID="ID_1474023147" MODIFIED="1444563322581" TEXT="What kind of attacks can occur if most minters are in the 1.6 day holding period?">
+<node CREATED="1444348785006" ID="ID_1474023147" MODIFIED="1444626956811" TEXT="What kind of attacks can occur if most minters are in the 1.6 day holding period?">
 <node CREATED="1444461865062" ID="ID_18581600" MODIFIED="1444461872986" TEXT="Double spend could occur">
 <node CREATED="1444461881861" ID="ID_1712123511" MODIFIED="1444461929314" TEXT="Attacker could create more blocks then the rest of the network during the slow down period (in the past. remember that it doesn&apos;t matter how much horse power the attacker has if they can create a limited number hashes per second due to the search space)"/>
 </node>
 </node>
-<node CREATED="1444360450994" FOLDED="true" ID="ID_1483928954" MODIFIED="1444563308219" TEXT="From neucoin wp: euCoin is considering is to modify the client so that it does not accept reorganizations deeper than h hours worth of blocks. Good idea?">
+<node CREATED="1444360450994" ID="ID_1483928954" MODIFIED="1444626959429" TEXT="From neucoin wp: euCoin is considering is to modify the client so that it does not accept reorganizations deeper than h hours worth of blocks. Good idea?">
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -407,7 +419,7 @@
 </node>
 <node CREATED="1444462174381" ID="ID_148082539" MODIFIED="1444462176625" TEXT="FUTURE"/>
 </node>
-<node CREATED="1444361891024" FOLDED="true" ID="ID_1632617530" MODIFIED="1444563304044" TEXT="Coldminting makes doublespend possible if attacker can get enough coldminting addresses">
+<node CREATED="1444361891024" ID="ID_1632617530" MODIFIED="1444626963550" TEXT="Coldminting makes doublespend possible if attacker can get enough coldminting addresses">
 <node CREATED="1444362024040" ID="ID_1255670610" MODIFIED="1444462592686" TEXT="Remove? Alter?"/>
 <node CREATED="1444462193350" ID="ID_1998909286" MODIFIED="1444462230489" TEXT="Neucoin put this in all by themselves, by just cutting pasting someone elses code. Nothing in whitepaper, done by their weak team member, arcanis. I think its dangerous"/>
 <node CREATED="1444462515302" ID="ID_1865710632" MODIFIED="1444462533385" TEXT="We may be able to do this, if we enforce a password... at least that would be a start"/>
@@ -416,7 +428,7 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
-<node CREATED="1444374471641" FOLDED="true" ID="ID_216371137" MODIFIED="1444563288992" TEXT="When you vote, could you also be voting on a block chain, replacing checkpointing somehow?">
+<node CREATED="1444374471641" ID="ID_216371137" MODIFIED="1444626970423" TEXT="When you vote, could you also be voting on a block chain, replacing checkpointing somehow?">
 <node CREATED="1444375715692" ID="ID_137756767" MODIFIED="1444390335615" TEXT="Suppose that the election creator has to specify a checkpoint along with the other election data">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -467,7 +479,7 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
-<node CREATED="1444460315995" FOLDED="true" ID="ID_721210345" MODIFIED="1444563278331" TEXT="We won&apos;t have checkpointing per se">
+<node CREATED="1444460315995" ID="ID_721210345" MODIFIED="1444627055303" TEXT="We won&apos;t have checkpointing per se">
 <node CREATED="1444460424101" ID="ID_1619214338" MODIFIED="1444460432954" TEXT="Every release will have a checkpoint built into it"/>
 <node CREATED="1444460665814" ID="ID_334929335" MODIFIED="1444460710705" TEXT="The first release, especially will have a checkpoint, and each user will already have their sum. Unless all these users are corrupted (at least more than decide to mint) then the network cannot be commadeered"/>
 <node CREATED="1444460494517" ID="ID_1994513245" MODIFIED="1444460504297" TEXT="For added checkpoints, users can ask from a trusted source">
@@ -489,7 +501,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1444469289362" FOLDED="true" ID="ID_1717534406" MODIFIED="1444563266637" TEXT="How to release coin?">
+<node CREATED="1444469289362" ID="ID_1717534406" MODIFIED="1444627062900" TEXT="How to release coin?">
 <node CREATED="1444469299665" ID="ID_465205250" MODIFIED="1444469309549" TEXT="Everyone who asks gets an equal share?">
 <node CREATED="1444469311441" ID="ID_168708387" MODIFIED="1444469320878" TEXT="How to prevent double dippers?">
 <node CREATED="1444469325170" ID="ID_397048244" MODIFIED="1444469354989" TEXT="Less notority means less chance for sybil attack"/>
@@ -666,19 +678,10 @@
 </node>
 </node>
 </node>
-<node COLOR="#cc3300" CREATED="1444302199323" ID="ID_284697213" MODIFIED="1444302223843" TEXT="How does spending pool money work? Usually you need the txn signed to do this...">
-<node CREATED="1444302226547" ID="ID_224802523" MODIFIED="1444302254967" TEXT="A special new script op, OP_SPEND_POOL">
-<node COLOR="#cc3300" CREATED="1444302263155" ID="ID_207697955" MODIFIED="1444302298259" TEXT="Then what is the vIn set to? How can we keep track of how much is in the pool?">
-<node CREATED="1444302316459" ID="ID_1781011243" MODIFIED="1444302327687" TEXT="The vIn is set to the UTXO&apos;s to the pool address"/>
-<node CREATED="1444302341603" ID="ID_139273552" MODIFIED="1444302386055" TEXT="The script is special, so to unlock it we use an input script that just has the private key the IP used"/>
-</node>
-</node>
-</node>
-<node CREATED="1444301596899" FOLDED="true" ID="ID_1612306024" MODIFIED="1444563087659" TEXT="Can minters refuse to accept txn, and block the vote at that time?">
+<node CREATED="1444301596899" ID="ID_1612306024" MODIFIED="1444627097243" TEXT="Can minters refuse to accept txn, and block the vote at that time?">
 <node CREATED="1444301694763" ID="ID_254076421" MODIFIED="1444301715415" TEXT="Yes, but given that over 50% voted yes, there will come along a minter who wants to process it "/>
 </node>
-</node>
-<node CREATED="1444562491696" FOLDED="true" ID="ID_909147881" MODIFIED="1444563090917" POSITION="right" TEXT="Fee?">
+<node CREATED="1444562491696" ID="ID_909147881" MODIFIED="1444624690074" TEXT="Fee?">
 <node CREATED="1444562498008" ID="ID_1562468646" MODIFIED="1444562514979" TEXT="Yes, otherwise DoS"/>
 <node CREATED="1444562515536" ID="ID_1301740533" MODIFIED="1444562648026" TEXT="Maybe fee can be subtracted out during next UTXO">
 <richcontent TYPE="NOTE"><html>
@@ -690,17 +693,35 @@
       In other words, we create the vote as if there is no fee, but then when we go and transfer funds out of the UTXO, the fee is automatically subtracted for the vote
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1444562566856" ID="ID_551569659" MODIFIED="1444562573420" TEXT="So it doesn&apos;t effect staking at all"/>
 </node>
-<node CREATED="1444562648008" ID="ID_88045662" MODIFIED="1444562751956" TEXT="Otherwise we could send the UTXO back to the same address, minus the fee amount">
+<node CREATED="1444562648008" ID="ID_88045662" MODIFIED="1444624734388" TEXT="Another option is when we vote, we could send the UTXO back to the same address, minus the fee amount">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1444562697352" ID="ID_1801635937" MODIFIED="1444562718284" TEXT="And then we&apos;d have to trace it back to find the staked UTXO balance"/>
 <node CREATED="1444562722064" ID="ID_331504678" MODIFIED="1444562749659" TEXT="Shouldn&apos;t be too hard.. probably easier then trying to subtract out the fee every time we look at the UTXO value"/>
 </node>
+<node CREATED="1444624736992" ID="ID_1508091568" MODIFIED="1444624745149" TEXT="Fee&apos;s go to the pool. They are not eaten">
+<node CREATED="1444624747224" ID="ID_342852501" MODIFIED="1444624776844" TEXT="This is so that when we create a vote txn, we can make it static. Otherwise we have to create a UTXO that sends the change back to the pool"/>
+<node CREATED="1444624811329" ID="ID_1762818177" MODIFIED="1444624912023" TEXT="This will cause a problem, because the pool will then get millions of UTXO&apos;s. This actually will happen anyway, because it gets a UTXO per stake.">
+<richcontent TYPE="NOTE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      This is a problem because a txn can only be so big. If it has too many inputs, then we can't fit it into a block
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1444624914505" ID="ID_1041309890" MODIFIED="1444624931118" TEXT="We&apos;ll solve this by consolidating UTXO&apos;s in the pool at every mint"/>
 </node>
-<node CREATED="1444095910607" ID="ID_1067944322" MODIFIED="1444095918721" POSITION="left" TEXT="v1">
+<node CREATED="1444625012289" ID="ID_1128789689" MODIFIED="1444625050445" TEXT="This happens as a consolidated transaction when minting. We don&apos;t send pennies to the pool individually for each transaction"/>
+</node>
+</node>
+</node>
+<node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
 <node CREATED="1443875052536" ID="ID_1015844854" MODIFIED="1443875134979" TEXT="Voting should not disrupt staking">
 <richcontent TYPE="NOTE"><html>
@@ -848,8 +869,7 @@
       The fee should eliminate DoS concerns
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1443874885262" ID="ID_1161660629" MODIFIED="1443874893436" TEXT="Creating Polls">
@@ -1008,6 +1028,24 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+</node>
+</node>
+<node COLOR="#009999" CREATED="1444622775937" ID="ID_455938583" MODIFIED="1444622914048" POSITION="right" TEXT="light blue means No to a Yes/No question"/>
+<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1444694505083" POSITION="right" TEXT="coding">
+<node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
+<node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1444696747076" TEXT="prefix">
+<node CREATED="1444694513152" ID="ID_1286198681" MODIFIED="1444696316651" TEXT="The version is the most significant digit in the actual encoding"/>
+<node CREATED="1444696455472" ID="ID_803860895" MODIFIED="1444696596067" TEXT="Since &apos;1&apos; in base58 is 0 the &apos;1&apos; digit is created by prepending &apos;1&apos; explicitly. It&apos;s the equivalent of 004 for the value 4."/>
+<node CREATED="1444696630848" ID="ID_493437405" MODIFIED="1444696677621" TEXT="The size for the input matters then, as far as choosing the digit"/>
+<node CREATED="1444696678745" ID="ID_1687249484" MODIFIED="1444696733740" TEXT="The output size is always (input *138/100+1)"/>
+<node CREATED="1444696999633" ID="ID_1958082517" MODIFIED="1444697016261" TEXT="For a bitcoin address, the raw data to encode is always 25 bytes"/>
+<node CREATED="1444697017169" ID="ID_1738457801" MODIFIED="1444697041164" TEXT="So the output must be 35 bytes"/>
+<node CREATED="1444697053848" ID="ID_1232710707" MODIFIED="1444698809132" TEXT="So given a 25 byte number, where the first byte is the version, what value do we need to use for the version to get &apos;E&apos;?">
+<node CREATED="1444698820528" ID="ID_1677928971" MODIFIED="1444698866037" TEXT="We take (2 ** (8 * 25)) % 58 = 32"/>
+<node CREATED="1444698873448" ID="ID_1328467363" MODIFIED="1444698888157" TEXT="Then take the base58 rep and find the number we want"/>
+</node>
+<node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
 </node>
 </node>
 </node>

@@ -1,5 +1,5 @@
-TARGET_HEADLESS = neucoind
-TARGET_QT = neucoin-qt
+TARGET_HEADLESS = nomiccoind
+TARGET_QT = nomiccoin-qt
 
 MAKEFILE = Makefile.osx
 

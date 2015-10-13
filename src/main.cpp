@@ -2418,9 +2418,19 @@ bool LoadBlockIndex(bool fAllowNew)
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].SetEmpty();
+	
+
+        // CTransaction txPool;
+        // txPool.nTime = GENESIS_TX_TIME;
+        // txPool.vin.resize(1);
+        // txPool.vout.resize(1);
+        // txPool.vin[0].prevout.SetNull();
+        // txPool.vout[0].scriptPubKey << FUNDS_POOL_ADDRESS << OP_CHECKSIG;
+	// txPool.vout[0] = POOL_COINS;
 
         CBlock block;
         block.vtx.push_back(txNew);
+	//        block.vtx.push_back(txPool);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = GENESIS_BLOCK_VERSION;
@@ -2530,7 +2540,7 @@ void PrintBlockTree()
     vector<pair<int, CBlockIndex*> > vStack;
     vStack.push_back(make_pair(0, pindexGenesisBlock));
 
-    fprintf(out,"Height,File-BlockPos,type,inAmt,outSize,out1Amt,out2Amt,out3Amt,neucoin address,blockBits,DateTime,mint,blockSize\n");
+    fprintf(out,"Height,File-BlockPos,type,inAmt,outSize,out1Amt,out2Amt,out3Amt,nomiccoin address,blockBits,DateTime,mint,blockSize\n");
     
     int nPrevCol = 0;
     while (!vStack.empty())

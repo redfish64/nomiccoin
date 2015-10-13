@@ -7,22 +7,22 @@
 #include "bignum.h"
 #include "types.h"
 
-#define COIN_NAME        "NeuCoin"
-#define COIN_SLUG        "neucoin"
-#define COIN_CLIENT_QT   "neucoin-qt"
-#define COIN_CLIENT      "neucoind"
-#define COIN_SCHEME      "neucoin"
-#define COIN_DOMAIN      "neucoin.org"
+#define COIN_NAME        "NomicCoin"
+#define COIN_SLUG        "nomiccoin"
+#define COIN_CLIENT_QT   "nomiccoin-qt"
+#define COIN_CLIENT      "nomiccoind"
+#define COIN_SCHEME      "nomiccoin"
+#define COIN_DOMAIN      "nomiccoin.org"
 
-#define COIN_UNIT        "NEU"
-#define COIN_UNIT_M      "mNEU"
-#define COIN_UNIT_U      "uNEU"
+#define COIN_UNIT        "NOM"
+#define COIN_UNIT_M      "mNOM"
+#define COIN_UNIT_U      "uNOM"
 
-#define COIN_UNIT_NAME   "NeuCoins"
+#define COIN_UNIT_NAME   "NomicCoins"
 #define COIN_UNIT_NAME_M "Milli-" COIN_UNIT
 #define COIN_UNIT_NAME_U "Micro-" COIN_UNIT
 
-#define COIN_BUGTRACKER  "http://github.com/neucoin/neucoind/issues"
+#define COIN_BUGTRACKER  "http://github.com/nomiccoin/nomiccoind/issues"
 
 extern uint16_t                          COIN_PORT;
 extern uint16_t                          RPC_PORT;

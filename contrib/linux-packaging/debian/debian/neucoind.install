@@ -1,2 +1,2 @@
-debian/bin/neucoind usr/bin
-src/neucoind usr/lib/neucoin
+debian/bin/nomiccoind usr/bin
+src/nomiccoind usr/lib/nomiccoin

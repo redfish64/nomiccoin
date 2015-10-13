@@ -1,6 +1,6 @@
 export var MAKEFILE_NAME = 'Makefile.unix';
 
-export var CLIENT_PATH   = __dirname + '/../src/neucoind';
+export var CLIENT_PATH   = __dirname + '/../src/nomiccoind';
 
 export var BASE_DATADIR  = '/tmp/';
 

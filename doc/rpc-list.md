@@ -337,7 +337,7 @@ Returns a recent Ghash/second network mining estimate.
 getnewaddress [account]
 ```
 
-Returns a new NeuCoin address that you can use to receive payments.
+Returns a new NomicCoin address that you can use to receive payments.
 If [account] is specified (recommended), the address will be added to the address book, so that payments received on it will be credited to the right account.
 
 ### getpeerinfo
@@ -639,7 +639,7 @@ Returns json object with keys:
 stop stop
 ```
 
-Stops the NeuCoin server.
+Stops the NomicCoin server.
 
 ### submitblock
 

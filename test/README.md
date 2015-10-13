@@ -6,7 +6,7 @@ Every contributor should make sure that their work doesn't break anything here b
 
 ## Requirements
 
-  - Prepare your environment for the tests to successfully build the client (check the [doc](https://github.com/neucoin/neucoin/tree/master/doc) directory for more information)
+  - Prepare your environment for the tests to successfully build the client (check the [doc](https://github.com/nomiccoin/nomiccoin/tree/master/doc) directory for more information)
 
   - Install node and npm
 
