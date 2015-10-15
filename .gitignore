@@ -44,3 +44,7 @@ ui_*.h
 /src/nomiccoin-qt.dmg
 
 /share/pixmaps
+
+# other junk
+cscope.out
+TAGS
