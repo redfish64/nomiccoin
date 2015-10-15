@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1444694478596" POSITION="right" TEXT="v2">
+<node CREATED="1444028673000" ID="ID_652303042" MODIFIED="1444811592642" POSITION="right" TEXT="v2">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -40,8 +40,7 @@
       Script is run by someone creating a txn that matches the txn_hash that won the initial vote
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node COLOR="#009999" CREATED="1444534942463" ID="ID_128446323" MODIFIED="1444622884961" TEXT="Person running script pays a fee to the minter.. Minter doesn&apos;t necessarily have to process all vote result script. Minter gets fee regardless if vote passes or not?">
 <node CREATED="1444534999262" ID="ID_1857219212" MODIFIED="1444560870401" TEXT="Is paying the minter regardless of whether script passes or not feasible?"/>
 <node CREATED="1444560824655" ID="ID_1676109916" MODIFIED="1444560871614" TEXT="I don&apos;t think an extra fee is necessary. Given that we don&apos;t encrypt the vote, votes can be sorted, can be totaled within the block, etc. It will end up fast enough">
@@ -210,7 +209,9 @@
 </node>
 </node>
 <node CREATED="1444098138742" ID="ID_1447993648" MODIFIED="1444098173741" TEXT="Checkpoints?">
-<node CREATED="1444098150726" ID="ID_1671173630" MODIFIED="1444098162521" TEXT="Same as peercoin, centrally broadcasted at first"/>
+<node CREATED="1444098150726" ID="ID_1671173630" MODIFIED="1444811546744" TEXT="No checkpoints">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
 <node CREATED="1444098258126" ID="ID_1779384701" MODIFIED="1444098271777" TEXT="Multiple checkpoint senders?">
 <node CREATED="1444098276285" ID="ID_688940101" MODIFIED="1444098277673" TEXT="FUTURE"/>
 <node CREATED="1444098291453" ID="ID_1040678965" MODIFIED="1444098306001" TEXT="Voters can vote people in and out of checkpoint responsibility"/>
@@ -268,7 +269,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1444290072466" FOLDED="true" ID="ID_1300786329" MODIFIED="1444630910695" TEXT="Minimum time for vote?">
+<node COLOR="#009999" CREATED="1444290072466" ID="ID_1300786329" MODIFIED="1444811523975" TEXT="Minimum time for vote?">
 <node CREATED="1444463373846" FOLDED="true" ID="ID_1230309887" MODIFIED="1444563706448" TEXT="I don&apos;t think a minimum time is necessary. If a user wants to attack the network with votes somehow, a minimum time won&apos;t stop them">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1444463435087" ID="ID_1481244043" MODIFIED="1444463457954" TEXT="They can always hide the election. An election puts nothing concrete into the chain"/>
@@ -295,7 +296,7 @@
 <node CREATED="1444296777738" ID="ID_427679434" MODIFIED="1444296791734" TEXT="This prevents the staker from losing their vote"/>
 </node>
 </node>
-<node COLOR="#009999" CREATED="1444294380298" ID="ID_1725020290" MODIFIED="1444626785938" TEXT="Hidden vote?">
+<node COLOR="#009999" CREATED="1444294380298" FOLDED="true" ID="ID_1725020290" MODIFIED="1444811404300" TEXT="Hidden vote?">
 <node CREATED="1444294417778" FOLDED="true" ID="ID_1126954970" MODIFIED="1444563646488" TEXT="Implementation">
 <node CREATED="1444294388034" ID="ID_912629385" MODIFIED="1444300657200" TEXT="Voting party signs their vote, and encrypts it with a public key given by the IP(Interested Party)"/>
 <node CREATED="1444294441450" ID="ID_951897852" MODIFIED="1444300689430" TEXT="Interested Party decrypts the votes, looking for votes to him"/>
@@ -713,11 +714,18 @@
       This is a problem because a txn can only be so big. If it has too many inputs, then we can't fit it into a block
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1444624914505" ID="ID_1041309890" MODIFIED="1444624931118" TEXT="We&apos;ll solve this by consolidating UTXO&apos;s in the pool at every mint"/>
 </node>
 <node CREATED="1444625012289" ID="ID_1128789689" MODIFIED="1444625050445" TEXT="This happens as a consolidated transaction when minting. We don&apos;t send pennies to the pool individually for each transaction"/>
+</node>
+</node>
+<node COLOR="#cc3300" CREATED="1444811594767" ID="ID_502270088" MODIFIED="1444811785287" TEXT="How to tell if there are duplicate transactions for the same vote?">
+<node COLOR="#cc3300" CREATED="1444811657919" ID="ID_909658653" MODIFIED="1444811781768" TEXT="Voting is done against a txn hash. The txn will contain a future block as its timestamp. So only that one transaction can be posted... Possibly?">
+<node COLOR="#cc3300" CREATED="1444811711375" ID="ID_629999899" MODIFIED="1444811782543" TEXT="Will clients discard txns too far in the future?">
+<node COLOR="#cc3300" CREATED="1444811766087" ID="ID_1007275606" MODIFIED="1444811783135" TEXT="What is the timeframe? If it&apos;s too short we&apos;ll have to revist"/>
+</node>
+<node CREATED="1444811728759" ID="ID_600321981" MODIFIED="1444811758227" TEXT="If the txn is posted too late, it won&apos;t go through at all"/>
 </node>
 </node>
 </node>
@@ -1048,6 +1056,88 @@
 <node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
 </node>
 </node>
+<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
+<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
+<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
 </node>
+<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
+<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
+</node>
+<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
+<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
+</node>
+<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
+<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
+</node>
+<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
+<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
+</node>
+</node>
+<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
+<node CREATED="1444787387823" ID="ID_1097637190" MODIFIED="1444804778917" TEXT="OP_FUNDS_POOL_UNLOCKED">
+<node CREATED="1444787429639" ID="ID_1021862128" MODIFIED="1444804793805" TEXT="Used by pool address. Returns 1 when the pool is unlocked"/>
+</node>
+<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
+<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1444804836870" TEXT="Causes the client to upgrade. md5sum is of the source code"/>
+</node>
+<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
+</node>
+<node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1444811830459" TEXT="new rpc commands">
+<node CREATED="1444811832655" ID="ID_536155444" MODIFIED="1444811865235" TEXT="create_poll &lt;poll deadline&gt; &lt;txn time&gt; [commands...]">
+<node CREATED="1444811867511" ID="ID_1627882680" MODIFIED="1444811870516" TEXT="commands are:">
+<node CREATED="1444811871543" ID="ID_1550214091" MODIFIED="1444811880348" TEXT="display_msg &lt;message&gt;"/>
+<node CREATED="1444811881535" ID="ID_1712691062" MODIFIED="1444811895475" TEXT="upgrade_client &lt;md5 sum&gt; &lt;deadline&gt;"/>
+<node CREATED="1444811896263" ID="ID_572978824" MODIFIED="1444811911099" TEXT="spend_pool &lt;to_address&gt; &lt;amt&gt;"/>
+</node>
+<node CREATED="1444811955303" ID="ID_1721155090" MODIFIED="1444812072032" TEXT="returns">
+<node CREATED="1444812057719" ID="ID_765820127" MODIFIED="1444812061019" TEXT="vote blob">
+<node CREATED="1444811975423" ID="ID_1281186894" MODIFIED="1444811979500" TEXT="blob contains:">
+<node CREATED="1444811981079" ID="ID_1680189055" MODIFIED="1444811991011" TEXT="raw txn"/>
+<node CREATED="1444811991711" ID="ID_1530000969" MODIFIED="1444812054651" TEXT="poll_deadline"/>
+</node>
+</node>
+<node CREATED="1444812072034" ID="ID_787200501" MODIFIED="1444812076452" TEXT="poll_deadline"/>
+<node CREATED="1444812077183" ID="ID_639466224" MODIFIED="1444812079659" TEXT="txn hash"/>
+<node CREATED="1444812191544" ID="ID_1286388180" MODIFIED="1444812200331" TEXT="raw txn?">
+<node CREATED="1444812201823" ID="ID_204356709" MODIFIED="1444812218563" TEXT="The txn will be future timestamped to &lt;txn time&gt;"/>
+<node COLOR="#cc3300" CREATED="1444812219695" ID="ID_479637884" LINK="#ID_629999899" MODIFIED="1444812292151" TEXT="When can user start broadcasting it nodes?"/>
+</node>
+</node>
+</node>
+<node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
+<node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
+</node>
+</node>
+<node CREATED="1444891307258" ID="ID_95498414" MODIFIED="1444891319630" TEXT="enough people minting?">
+<node CREATED="1444891340226" ID="ID_301178068" MODIFIED="1444891372286" TEXT="There are 2304 minutes in 1.6 days"/>
+<node CREATED="1444891375970" ID="ID_655539735" MODIFIED="1444891381464" TEXT="Each block is a minute long"/>
+<node CREATED="1444891381930" ID="ID_1352284918" MODIFIED="1444891422519" TEXT="With 100 initial founders each will need 23 or 24 txns so that all blocks are minting"/>
+<node CREATED="1444892302019" ID="ID_1126241670" MODIFIED="1444892311582" TEXT="If only half mint, then that&apos;s 50 each"/>
+<node CREATED="1444892312163" ID="ID_156715045" MODIFIED="1444892332030" TEXT="What is the relationship between minting and mining?">
+<node CREATED="1444894105827" ID="ID_1235677799" MODIFIED="1444894128951" TEXT="Minting and mining are separate in neucoin. The prev block is calculated separately"/>
+</node>
+<node CREATED="1444894129611" ID="ID_1917303435" MODIFIED="1444894227328" TEXT="Minting computes a target and multiplies that by the number of coins (satoshis) and the constant of the number of seconds in 1.6 days">
+<node CREATED="1444894171876" ID="ID_201402395" MODIFIED="1444894185288" TEXT="Peercoin also multiplies the stake age"/>
+</node>
+<node CREATED="1444892333260" ID="ID_106219201" MODIFIED="1444894236848" TEXT="Can we make mining profitable only when needed?"/>
+<node CREATED="1444895511955" ID="ID_78251665" MODIFIED="1444895524815" TEXT="Best Minting block chain">
+<node CREATED="1444895526387" ID="ID_1087044876" MODIFIED="1444895553383" TEXT="This is determined by adding 1/difficulty for proof of stake blocks">
+<node CREATED="1444895581283" ID="ID_779225614" MODIFIED="1444895593071" TEXT="So proof of work blocks are hardly trusted at all, they get a value of 1"/>
+</node>
+</node>
+<node CREATED="1444896665467" ID="ID_1290914060" MODIFIED="1444896749869" TEXT="We can&apos;t let the thing fail before it starts. If everyone gets locked into the pre-minting 1.6 days to mint, the experiment is over">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1444896705707" ID="ID_869462798" MODIFIED="1444896745591" TEXT="So if the time period between blocks falls to certain percentage over target, we allow POW"/>
+<node CREATED="1444896750475" ID="ID_12537786" MODIFIED="1444896768207" TEXT="Since PoW is defined to be not trusted, it shouldn&apos;t affect anything"/>
+</node>
+</node>
+</node>
+<node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
+<node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">
+<node CREATED="1444793466312" ID="ID_1683492426" MODIFIED="1444793472868" TEXT="bust of some old guy"/>
+<node CREATED="1444793473265" ID="ID_267686207" MODIFIED="1444793480971" TEXT="current spirograph"/>
+</node>
+</node>
+<node CREATED="1444804708449" ID="ID_1339735347" MODIFIED="1444804712885" POSITION="left" TEXT="block explorer?"/>
 </node>
 </map>
