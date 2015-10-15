@@ -22,6 +22,7 @@ ui_*.h
 
 *~
 .#*
+\#*#
 
 # Binaries & Generated files
 

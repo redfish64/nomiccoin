@@ -195,6 +195,21 @@ enum opcodetype
     // proof-of-stake
     OP_MINT = 0xc0,
 
+    //
+    // ** voting **
+    //
+
+    //returns 1 if the funds pool has been unlocked (for now whenever a poll has been won)
+    OP_FUNDS_POOL_UNLOCKED = 0xd0, 
+
+    // client is to be upgraded, args: <block to enforce> <md5sum of upgrade source code>
+    // Does nothing unless poll has been won
+    OP_UPGRADE_CLIENT = 0xd1,
+
+    //displays a message in the client
+    OP_DISPLAY_MSG = 0xd2,
+    
+
     // template matching params
     OP_SMALLDATA = 0xf9,
     OP_SMALLINTEGER = 0xfa,
@@ -203,6 +218,7 @@ enum opcodetype
     OP_PUBKEY = 0xfe,
 
     OP_INVALIDOPCODE = 0xff,
+
 };
 
 const char* GetOpName(opcodetype opcode);

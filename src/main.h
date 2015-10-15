@@ -16,6 +16,7 @@
 #include "macros.h"
 
 #include "IsValidAmount.h"
+#include "base58.h"
 
 #ifdef WIN32
 #include <io.h> /* for _commit */
@@ -1836,4 +1837,8 @@ public:
 
 extern CTxMemPool mempool;
 
+extern CScript FUNDS_POOL_SCRIPT;
+extern CBitcoinAddress FUNDS_POOL_ADDRESS;
+
 #endif
+

@@ -96,3 +96,8 @@ extern money_t                           MIN_TXOUT_AMOUNT;
 extern uint32_t                          MAX_BLOCK_SIZE_GEN;
 extern uint32_t                          MAX_BLOCK_SIGOPS;
 extern uint32_t                          MAX_BLOCK_ORPHAN_TX;
+
+extern double                             POOL_MINTING_CUT;
+extern double                            POOL_MINING_CUT;
+
+extern money_t INITIAL_FUNDS_POOL_BALANCE;

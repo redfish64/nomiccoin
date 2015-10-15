@@ -39,18 +39,18 @@ uint8_t                           SCRIPT_ADDRESS_PREFIX       = 35; // "F"
 //                                The following constants define the genesis block of the coin network
 //                                If you change them, the hash will probably be wrong and the genesis invalid (because its hash would be higher than the initial target), and the client will try to generate a new valid genesis at startup
 
-hash_t                            GENESIS_MERKLE_HASH         = hash_t("b0c01c59825e8df457a272471b18d4c60984fccfc39aa175030654760dcf0886");
-hash_t                            GENESIS_HASH                = hash_t("00000b09199db4fb14c75bc94d6c1523c0e27978b1a5340b346e052d518be469");
+hash_t                            GENESIS_MERKLE_HASH         = hash_t("1a46597bfd646ffb8a31b652b114c544096fb358514185fba096b9232413fb6c");
+hash_t                            GENESIS_HASH                = hash_t("000005a949b64f506ecb0cd97b61d87c2ed183db818952f6fd780c860ca669c0");
 char const *                      GENESIS_IDENT               = "And I moved upon the face of the darkness. And I saw that I was alone. Let there be light.";
 timestamp_t                       GENESIS_TX_TIME             = 1444122312;
 timestamp_t                       GENESIS_BLOCK_TIME          = 1444122312;
-uint32_t                          GENESIS_BLOCK_NONCE         = 1809884;
+uint32_t                          GENESIS_BLOCK_NONCE         = 2180676;
 uint32_t                          GENESIS_BLOCK_VERSION       = 1;
 
 // std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
 //   (600, hash_t("0000002116c928d1b212578d6d13ada478bb22cc7f82c38a743ee6084d2690de"));
 std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH);
-std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 234907403);
+std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0xfd11f4e7);
 
 //                                The maturity is the number of block required for a coinbase/coinstake transaction to be confirmed by the network (excluding the block which embeds the transaction)
 //                                Since you need to include your transaction in a block, and the COINBASE_MATURITY cannot be lower than 1, you will always need at least two blocks before maturing
@@ -99,8 +99,9 @@ target_t                          POS_MAX_TARGET              = target_t(~uint25
 timestamp_t                       POW_TARGET_SPACING          = 10 * MINUTE;
 timestamp_t                       POS_TARGET_SPACING          = 1 * MINUTE;
 
-//                                Reward for each PoW block mined, until POW_MAX_BLOCK (from which it will become null)
-
+//                                Reward for each PoW block mined, until we reach escape velocity
+//                                PoW doesn't add any security so we don't make the reward very big
+//                                We don't make the target very big either, though
 money_t                           POW_BLOCK_REWARD            = 1 * COIN;
 
 //                                Number of blocks that will have a null reward (exactly 1 cent - we didn't want to risk anything by putting a zero reward) - useful if you want to delay the network until your premine is able to mint, but don't want to be rewarded for the new blocks (which would effectively give you an extra premine if they did)
@@ -151,10 +152,11 @@ uint32_t                          MAX_BLOCK_SIZE_GEN          = MAX_BLOCK_SIZE /
 uint32_t                          MAX_BLOCK_SIGOPS            = MAX_BLOCK_SIZE / 50;
 uint32_t                          MAX_BLOCK_ORPHAN_TX         = MAX_BLOCK_SIZE / 100;
 
-int64                             INITIAL_POOL_BALANCE        = 100 * COIN;
+money_t INITIAL_FUNDS_POOL_BALANCE = 1000 * COIN;
 
 /**
-   The v
+   The portion that the funds pool gets for every mint and mine.
  */
-int64                             POOL_MINTING_CUT           = .25;
-int64                             POOL_MINING_CUT            = .25;
+double                             POOL_MINTING_CUT           = .25;
+double                            POOL_MINING_CUT            = .25;
+

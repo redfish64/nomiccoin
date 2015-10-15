@@ -62,6 +62,17 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
+/**
+   Script used by pool to deliver funds
+ */
+CScript FUNDS_POOL_SCRIPT = CScript() << OP_FUNDS_POOL_UNLOCKED;
+
+/**
+   The fundings pool address
+ */
+CBitcoinAddress FUNDS_POOL_ADDRESS = CBitcoinAddress(FUNDS_POOL_SCRIPT.GetID());
+
+
 const string strMessageMagic = COIN_NAME " Signed Message:\n";
 
 double dHashesPerSec;
@@ -2385,6 +2396,23 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     }
 }
 
+struct initial_owner_data
+{
+  const char *addr;
+  money_t coins;
+} typedef initial_owner_data;
+
+/**
+   Recorded forevermore in history. The great founders of our coin
+*/
+initial_owner_data INITIAL_OWNERS [] =
+  {
+    {"EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM", 500 * COIN},
+    {"Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ", 1000 * COIN},
+    {"Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS", 1500 * COIN},
+    {NULL, 0}
+  };
+//TODO 2, must resync before pre-balance works
 bool LoadBlockIndex(bool fAllowNew)
 {
     //
@@ -2419,18 +2447,33 @@ bool LoadBlockIndex(bool fAllowNew)
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].SetEmpty();
 	
-
-        // CTransaction txPool;
-        // txPool.nTime = GENESIS_TX_TIME;
-        // txPool.vin.resize(1);
-        // txPool.vout.resize(1);
-        // txPool.vin[0].prevout.SetNull();
-        // txPool.vout[0].scriptPubKey << FUNDS_POOL_ADDRESS << OP_CHECKSIG;
-	// txPool.vout[0] = POOL_COINS;
+        CTransaction txPool;
+        txPool.nTime = GENESIS_TX_TIME;
+        txPool.vin.resize(1);
+        txPool.vout.resize(1);
+        txPool.vin[0].prevout.SetNull();
+        txPool.vout[0].scriptPubKey.SetDestination(FUNDS_POOL_ADDRESS.Get());
+	txPool.vout[0].nValue = INITIAL_FUNDS_POOL_BALANCE;
 
         CBlock block;
         block.vtx.push_back(txNew);
-	//        block.vtx.push_back(txPool);
+	block.vtx.push_back(txPool);
+
+	for(initial_owner_data* it = INITIAL_OWNERS; it->coins != 0; it++) {
+	  CBitcoinAddress addr(it->addr);
+	  int funds = it->coins;
+	  
+	  CTransaction txNew;
+	  txNew.nTime = GENESIS_TX_TIME;
+	  txNew.vin.resize(1);
+	  txNew.vout.resize(1);
+	  txNew.vin[0].prevout.SetNull();
+	  txNew.vout[0].scriptPubKey.SetDestination(addr.Get());
+	  txNew.vout[0].nValue = funds;
+
+	  block.vtx.push_back(txNew);
+	}
+	
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = GENESIS_BLOCK_VERSION;
@@ -2481,7 +2524,10 @@ bool LoadBlockIndex(bool fAllowNew)
         //// debug print
         assert(block.hashMerkleRoot == GENESIS_MERKLE_HASH);
         assert(block.GetHash() == GENESIS_HASH);
-        assert(block.CheckBlock());
+
+	//co: nomiccoin's genesis block sets up a bunch of addresses with coins, so it doesn't
+	//conform
+        //assert(block.CheckBlock());
 
         // Start new block file
         unsigned int nFile;
@@ -3877,7 +3923,6 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
         }
     }
 
-    
     pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
 
     // Collect memory pool transactions into the block
