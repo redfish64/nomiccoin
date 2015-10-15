@@ -2016,7 +2016,7 @@ bool CBlock::AcceptBlock()
     // Check that the block chain matches the known block chain up to a hardened checkpoint
     if (!Checkpoints::CheckHardened(nHeight, hash))
         return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lockin at %d", nHeight));
-
+    
     // ppcoin: check that the block satisfies synchronized checkpoint
     if (!Checkpoints::CheckSync(hash, pindexPrev))
         return error("AcceptBlock() : rejected by synchronized checkpoint");
@@ -4284,6 +4284,14 @@ bool BitcoinMiner(CWallet *pwallet, bool fProofOfStake, uint256 * minedBlock, ui
         //
         int64 nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+
+	//if pow isn't allowed right now because pos is going well enough
+	if(hashTarget == 0)
+	  {
+	    printf("PoW isn't allowed right now because minting is going well enough\n");
+	    Sleep(500);
+	    continue;
+	  }
 
         INFINITE_LOOP
         {

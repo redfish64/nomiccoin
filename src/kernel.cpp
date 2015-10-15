@@ -141,7 +141,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64& nStakeMo
 
     // Sort candidate blocks by timestamp
     vector<pair<int64, uint256> > vSortedByTimestamp;
-    vSortedByTimestamp.reserve(64 * MODIFIER_INTERVAL_BASE / POS_TARGET_SPACING);
+    vSortedByTimestamp.reserve(64 * MODIFIER_INTERVAL_BASE / TARGET_SPACING);
     int64 nSelectionInterval = GetStakeModifierSelectionInterval();
     int64 nSelectionIntervalStart = (pindexPrev->GetBlockTime() / MODIFIER_INTERVAL_BASE) * MODIFIER_INTERVAL_BASE - nSelectionInterval;
     const CBlockIndex* pindex = pindexPrev;

@@ -1108,6 +1108,12 @@
 <node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
 </node>
 </node>
+<node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
+<node CREATED="1444904518467" ID="ID_1505124101" MODIFIED="1444904531199" TEXT="PoW is activated if PoS takes over 5 minutes"/>
+<node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1444904544207" TEXT="For each PoW block found, 1 coin is rewarded"/>
+<node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
+<node CREATED="1444904569803" ID="ID_257967512" MODIFIED="1444904596008" TEXT="Blocks generated with PoW get very low trust (inherited from Peercoin)"/>
+</node>
 <node CREATED="1444891307258" ID="ID_95498414" MODIFIED="1444891319630" TEXT="enough people minting?">
 <node CREATED="1444891340226" ID="ID_301178068" MODIFIED="1444891372286" TEXT="There are 2304 minutes in 1.6 days"/>
 <node CREATED="1444891375970" ID="ID_655539735" MODIFIED="1444891381464" TEXT="Each block is a minute long"/>
@@ -1127,7 +1133,12 @@
 </node>
 <node CREATED="1444896665467" ID="ID_1290914060" MODIFIED="1444896749869" TEXT="We can&apos;t let the thing fail before it starts. If everyone gets locked into the pre-minting 1.6 days to mint, the experiment is over">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1444896705707" ID="ID_869462798" MODIFIED="1444896745591" TEXT="So if the time period between blocks falls to certain percentage over target, we allow POW"/>
+<node CREATED="1444896705707" ID="ID_869462798" MODIFIED="1444896745591" TEXT="So if the time period between blocks falls to certain percentage over target, we allow POW">
+<node CREATED="1444902568891" ID="ID_1119312199" MODIFIED="1444902594839" TEXT="We can&apos;t use the current time, because there is up to 2 hours of clock drift"/>
+<node CREATED="1444902595355" ID="ID_1829790705" MODIFIED="1444902608023" TEXT="So instead, we use the time between the last 2 proof of stake blocks"/>
+<node CREATED="1444902608523" ID="ID_439258070" MODIFIED="1444902628032" TEXT="If the proof of stake time is too long, we allow proof of work until the next proof of stake block"/>
+<node CREATED="1444902628459" ID="ID_206880362" MODIFIED="1444902657271" TEXT="Since PoW are not trusted anyways, having a bunch of PoW blocks can&apos;t be used to fork"/>
+</node>
 <node CREATED="1444896750475" ID="ID_12537786" MODIFIED="1444896768207" TEXT="Since PoW is defined to be not trusted, it shouldn&apos;t affect anything"/>
 </node>
 </node>
@@ -1139,5 +1150,10 @@
 </node>
 </node>
 <node CREATED="1444804708449" ID="ID_1339735347" MODIFIED="1444804712885" POSITION="left" TEXT="block explorer?"/>
+<node CREATED="1444902278539" ID="ID_792916005" MODIFIED="1444902281288" POSITION="right" TEXT="Odd things">
+<node CREATED="1444902284051" ID="ID_1780078057" MODIFIED="1444902294919" TEXT="The next block doesn&apos;t seem to always need to be after the current block">
+<node CREATED="1444902300020" ID="ID_1782588129" MODIFIED="1444902316848" TEXT="A block will be accepted even if the time is earlier than the previous block"/>
+</node>
+</node>
 </node>
 </map>

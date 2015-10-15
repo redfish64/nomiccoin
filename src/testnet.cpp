@@ -46,8 +46,7 @@ void ApplyTestnetParameters(void)
     POW_MAX_TARGET             = target_t(~uint256(0) >> 10);
     POS_MAX_TARGET             = target_t(~uint256(0) >> 10);
 
-    POW_TARGET_SPACING         =  2 * SECOND;
-    POS_TARGET_SPACING         =  1 * SECOND;
+    TARGET_SPACING         =  10 * SECOND;
     
     //POW_BLOCK_REWARD           = 1 * COIN;
 

@@ -86,23 +86,28 @@ blockheight_t                     POW_MAX_BLOCK               = 1;
 
 //                                Initial network targets
 
-target_t                          POW_INITIAL_TARGET          = target_t(~uint256(0) >> 20);
 target_t                          POS_INITIAL_TARGET          = target_t(~uint256(0) >> 20);
+target_t                          POW_INITIAL_TARGET          = target_t(~uint256(0) >> 10);
 
 // //                                Maximal network targets (after which mining/minting a block won't be easier)
 
-target_t                          POW_MAX_TARGET              = target_t(~uint256(0) >> 20);
 target_t                          POS_MAX_TARGET              = target_t(~uint256(0) >> 20);
+target_t                          POW_MAX_TARGET              = target_t(~uint256(0) >> 10);
 
 //                                The average delay between two blocks
 
-timestamp_t                       POW_TARGET_SPACING          = 10 * MINUTE;
-timestamp_t                       POS_TARGET_SPACING          = 1 * MINUTE;
+timestamp_t                       TARGET_SPACING          = 1 * MINUTE;
+
+//                                If the last pos takes at least this long, then we let pow
+//                                earn some money
+
+timestamp_t                       TARGET_SPACING_LIFTOFF  = 5 * MINUTE;
 
 //                                Reward for each PoW block mined, until we reach escape velocity
 //                                PoW doesn't add any security so we don't make the reward very big
-//                                We don't make the target very big either, though
+//                                We don't make the target very hard either, though
 money_t                           POW_BLOCK_REWARD            = 1 * COIN;
+
 
 //                                Number of blocks that will have a null reward (exactly 1 cent - we didn't want to risk anything by putting a zero reward) - useful if you want to delay the network until your premine is able to mint, but don't want to be rewarded for the new blocks (which would effectively give you an extra premine if they did)
 //                                Note that this number includes the premine block, if any

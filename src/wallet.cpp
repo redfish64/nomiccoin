@@ -1301,8 +1301,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     CBlockIndex const * pLastBlockIndex = GetLastBlockIndex(pindexBest, false);
     int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / COMBINE_THRESHOLD;
 
-    CBigNum bnTargetPerCoinDay;
-    bnTargetPerCoinDay.SetCompact(nBits);
 
     LOCK2(cs_main, cs_wallet);
     txNew.vin.clear();

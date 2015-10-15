@@ -69,8 +69,8 @@ extern target_t                          POS_INITIAL_TARGET;
 extern target_t                          POW_MAX_TARGET;
 extern target_t                          POS_MAX_TARGET;
 
-extern timestamp_t                       POW_TARGET_SPACING;
-extern timestamp_t                       POS_TARGET_SPACING;
+extern timestamp_t                       TARGET_SPACING;
+extern timestamp_t                       TARGET_SPACING_LIFTOFF;
 
 extern money_t                           POW_BLOCK_REWARD;
 extern money_t                           POS_BLOCK_REWARD;
@@ -101,3 +101,5 @@ extern double                             POOL_MINTING_CUT;
 extern double                            POOL_MINING_CUT;
 
 extern money_t INITIAL_FUNDS_POOL_BALANCE;
+
+
