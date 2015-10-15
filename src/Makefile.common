@@ -109,3 +109,7 @@ re: fclean
 	$(MAKE) -f $(MAKEFILE) all
 
 .PHONY: force
+
+#we do this because make deletes the qm files as intermediate, but then recreates them everytime.
+#TODO 3 not sure why
+.PRECIOUS: %.qm
