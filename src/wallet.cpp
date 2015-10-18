@@ -1155,8 +1155,107 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
             SelectCoinsMinConf(nTargetValue, 0, 1, vCoins, setCoinsRet, nValueRet));
 }
 
+void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins) const
+{
+  vCoins.clear();
+
+    {
+        LOCK(cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
+            const CWalletTx* pcoin = &(*it).second;
+
+            if (!pcoin->IsFinal())
+                continue;
+
+            for (size_t i = 0; i < pcoin->vout.size(); i++)
+	      {
+                if (pcoin->nTime > nVoteTime)
+		  continue;  
+		
+                if (!(pcoin->IsSpent(i)) &&
+                    IsMine(pcoin->vout[i]) &&
+		    pcoin->vout[i].nValue > 0)
+		  {
+                    vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
+		  }
+	      }
+	}
+    }
+}
+
+CScript CreateVoteScript(CProposal proposal)
+{
+  CScript outScript;
+
+  outScript << proposal.deadline << proposal.txnTemplate.GetHash() << OP_VOTE;
+
+  return outScript;
+}
 
 
+bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
+				 CWalletVotingTxnSet & wVoteSet )
+{
+  wVoteSet.proposal = proposal;
+  
+  {
+    LOCK2(cs_main, cs_wallet);
+    // txdb must be opened before the mapWallet lock
+    CTxDB txdb("r");
+    {
+      vector<COutput> votableCoins;
+      VotableCoins(nVoteTime,votableCoins);
+
+      // Create one transaction per votable input
+      BOOST_FOREACH(COutput output, votableCoins)
+	{
+	  CTxOut utxoToVoteWith = output.tx->vout[output.i];
+	  
+	  CWalletTx txNew;
+	  txNew.BindWallet(this);
+	  
+	  txNew.vin.push_back(CTxIn(output.tx->GetHash(),output.i));
+	  
+	  int64 nValue = utxoToVoteWith.nValue;
+	  nValue -= txNew.GetMinFee();
+	  
+	  //we send the money back exactly where we got it, except that we prepend the voting instruction
+	  //We do this in this way to allow us to find these looped transactions easily, so that we can
+	  //prevent unclaimed staking rewards to reset when these voting transactions occur
+	  CScript scriptWithVote = CreateVoteScript(proposal) << utxoToVoteWith.scriptPubKey;
+	  
+	  CTxOut txOut(nValue, scriptWithVote );
+	  txNew.vout.push_back(txOut);
+	  
+	  wVoteSet.vtxn.push_back(txNew);
+
+	  // Sign
+	  if (!SignSignature(*this, *output.tx, txNew, 0))
+	    return false;
+	}
+    }
+  }
+
+  return true;
+}
+
+bool CWallet::VoteForProposal(CProposal prop)
+{
+  CWalletVotingTxnSet wVoteSet;
+
+  CreateVotingTxnSet(GetAdjustedTime(), prop, wVoteSet);
+
+  BOOST_FOREACH(CWalletTx txn, wVoteSet.vtxn)
+    {
+      //we don't use a reserve key because we are sending the coins right back to where they came from
+      //for voting
+      if(!CommitTransaction(txn, NULL))
+	return false; //we may be half way through voting but, oh well.. shouldn't happen that much anyway
+    }
+
+  return true;
+}
 
 bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
 {
@@ -1592,7 +1691,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 }
 
 // Call after CreateTransaction unless you want to abort
-bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
+bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey *pReserveKey)
 {
     {
         LOCK2(cs_main, cs_wallet);
@@ -1604,7 +1703,8 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
             CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r") : NULL;
 
             // Take key pair from key pool so it won't be used again
-            reservekey.KeepKey();
+	    if(pReserveKey)
+	      pReserveKey->KeepKey();
 
             // Add tx to wallet, because if it has change it's also ours,
             // otherwise just for transaction history.
@@ -1675,7 +1775,7 @@ string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew,
     if (fAskFee && !ThreadSafeAskFee(nFeeRequired, _("Sending...")))
         return "ABORTED";
 
-    if (!CommitTransaction(wtxNew, reservekey))
+    if (!CommitTransaction(wtxNew, &reservekey))
         return _("Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 
     MainFrameRepaint();

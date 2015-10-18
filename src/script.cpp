@@ -229,6 +229,10 @@ const char* GetOpName(opcodetype opcode)
     // proof-of-stake
     case OP_MINT                   : return "OP_MINT";
 
+    case OP_FUNDS_POOL_UNLOCKED    : return "OP_FUNDS_POOL_UNLOCKED"; 
+    case OP_UPGRADE_CLIENT         : return "OP_UPGRADE_CLIENT";
+    case OP_DISPLAY_MSG            : return "OP_DISPLAY_MSG";
+
     // template matching params
     case OP_PUBKEYHASH             : return "OP_PUBKEYHASH";
     case OP_PUBKEY                 : return "OP_PUBKEY";

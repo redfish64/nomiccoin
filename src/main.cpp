@@ -65,6 +65,7 @@ CScript COINBASE_FLAGS;
 /**
    Script used by pool to deliver funds
  */
+
 CScript FUNDS_POOL_SCRIPT = CScript() << OP_FUNDS_POOL_UNLOCKED;
 
 /**

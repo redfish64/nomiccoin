@@ -20,6 +20,8 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 
+#include <string>
+
 #ifndef WIN32
 #include <signal.h>
 #endif
@@ -593,13 +595,23 @@ bool AppInit2(int argc, char* argv[])
     {
         BOOST_FOREACH(string strAddr, mapMultiArgs["-addnode"])
         {
-            CAddress addr(CService(strAddr, GetDefaultPort(), fAllowDNS));
-            addr.nTime = 0; // so it won't relay unless successfully connected
-            if (addr.IsValid())
-                addrman.Add(addr, CNetAddr("127.0.0.1"));
+	  //TODO 4, make connect work with ports as well
+	  int colon = strAddr.find(":");
+	  unsigned short port = GetDefaultPort();
+	  
+	  if(colon != -1)
+	    {
+	      string strPort = strAddr.substr(colon+1);
+	      port = (unsigned short)atoi(strPort);
+	    }
+	  
+	  CAddress addr(CService(strAddr, port, fAllowDNS));
+	  addr.nTime = 0; // so it won't relay unless successfully connected
+	  if (addr.IsValid())
+	    addrman.Add(addr, CNetAddr("127.0.0.1"));
         }
     }
-
+    
     if (mapArgs.count("-paytxfee"))
     {
         if (!ParseMoney(mapArgs["-paytxfee"], nTransactionFee) || nTransactionFee < MIN_TX_FEES)

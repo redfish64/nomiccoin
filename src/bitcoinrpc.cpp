@@ -890,43 +890,167 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value vote(const Array& params, bool fHelp)
+
+template<typename T>
+void ConvertTo(Value& value)
 {
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 4))
+    if (value.type() == str_type)
+    {
+        // reinterpret string as unquoted json value
+        Value value2;
+        if (!read_string(value.get_str(), value2))
+            throw runtime_error("type mismatch");
+        value = value2.get_value<T>();
+    }
+    else
+    {
+        value = value.get_value<T>();
+    }
+}
+
+
+
+int ConvertTimeishToEpochSecs(string timeish)
+{
+  //TODO 1 fixme
+  return 0;
+}
+
+Value createproposal(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 3)
         throw runtime_error(
-            "vote <deadline> <toaddress>\n"
-            "Votes with all coins towards the given deadline and given address.\n"
-            "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n");
-    if (!pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 4))
-        throw runtime_error(
-            "vote <deadline> <toaddress>\n"
-            "Votes with all coins towards the given deadline and given address.\n"
+			    "createproposal <deadline> <title (max size 20)> [commands...]\n"
+			    "commands are:\n"
+			    "display_msg <msg (max size 140)>\n" //TODO 2 max message size?
+			    "upgrade_client <md5sum> <deadline>\n" //TODO 2 max message size?
+			    "spend_pool <toaddress> <amt>\n"
 			    );
 
-    CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
+    int deadline = ConvertTimeishToEpochSecs(params[0].get_str());
+    //TODO put title in somewhere
+    string title = params[1].get_str();
 
-    // Amount
-    int64 nAmount = AmountFromValue(params[1]);
-    if (nAmount < MIN_TXOUT_AMOUNT)
-        throw JSONRPCError(-101, "Send amount too small");
+    //TODO 2 parse deadline from a date into an estimated block height
+    CTransaction tx;
 
-    // Wallet comments
-    CWalletTx wtx;
-    if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
-        wtx.mapValue["comment"] = params[2].get_str();
-    if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
-        wtx.mapValue["to"]      = params[3].get_str();
+    int64 currAmt = 0;
+    CScript currScript;
+	
+    for(uint i = 2; i < params.size(); )
+      {
 
-    if (pwalletMain->IsLocked())
-        throw JSONRPCError(-13, "Error: Please enter the wallet passphrase with walletpassphrase first.\n");
+	string command = params[i].get_str();
 
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
-    if (strError != "")
-        throw JSONRPCError(-4, strError);
+	if(command.compare("display_msg")==0)
+	  {
+	    string msg = params[i+1].get_str();
 
-    return wtx.GetHash().GetHex();
+	    if(msg.size() > 140)
+	      {
+		throw runtime_error("msg length too big");
+	      }
+
+	    const std::vector<unsigned char> charvect(msg.begin(), msg.end());
+	    
+	    currScript = currScript << charvect << OP_DISPLAY_MSG;
+
+	    i+=2;
+	  }
+	else if (command.compare("upgrade_client")==0)
+	  {
+	    string md5sum = params[i+1].get_str();
+	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[i+2].get_str());
+
+	    const std::vector<unsigned char> charvect(md5sum.begin(), md5sum.end());
+	    currScript = currScript << charvect << deadlineEpoch << OP_UPGRADE_CLIENT;
+
+	    i+=3;
+	  }
+	else if (command.compare("spend_pool")==0)
+	  {
+	    string toaddress = params[i+1].get_str();
+	    Value amtVal = params[i+2];
+	    ConvertTo<double>(amtVal);
+	    int64 amt = AmountFromValue(params[i+2]);
+
+	    if (amt < MIN_TXOUT_AMOUNT)
+	      throw JSONRPCError(-101, "Send amount too small");
+
+	    CBitcoinAddress address(params[0].get_str());
+	    if (!address.IsValid())
+	      throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
+	    
+	    //if there is already an output with a spend pool, we have to create a new one
+	    if(currAmt != 0)
+	      {
+		CTxOut out(currAmt, currScript);
+		
+		tx.vout.push_back(out);
+		currScript.clear();
+	      }
+
+	    CScript sendMoney;
+	    sendMoney.SetDestination(address.Get());
+	    
+	    currScript = currScript << sendMoney;
+	    currAmt = amt;
+	    
+	    i+=3;
+	  }
+	else
+	  throw runtime_error("don't understand command");
+      }
+
+    if(!currScript.empty())
+      {
+	CTxOut out(currAmt, currScript);
+	
+	tx.vout.push_back(out);
+      }
+
+    //we don't specify an input, because we don't know the UTXO's that will be present
+    //when we go and spend the pool money
+    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+    ssTx << string("deadline:") << deadline << string(",tx:")  << tx;
+    string strHex = HexStr(ssTx.begin(), ssTx.end());
+
+    Object result;
+    //TODO 2 make this base58?
+    result.push_back(Pair("voteblob", strHex));
+    TxToJSON(tx, 0, result);
+
+    return result;
+}
+
+void ConvertBlobToProposal(std::string blob, CProposal& proposal)
+{
+  std::vector<unsigned char> data;
+  
+  DecodeBase58(blob.c_str(),data);
+
+  CDataStream ssData(data, SER_NETWORK, PROTOCOL_VERSION);
+
+  ssData >> proposal;
+}
+
+Value vote(const Array& params, bool fHelp)
+{
+  if (pwalletMain->IsCrypted() || (fHelp || params.size() != 1))
+        throw runtime_error(
+            "vote <proposalblob>\n"
+            "Votes with all coins for the given proposal.\n"
+            "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n");
+
+  CProposal prop;
+  ConvertBlobToProposal(params[0].get_str(),prop);
+
+  bool error = pwalletMain->VoteForProposal(prop);
+  if (error)
+    throw JSONRPCError(-4, "Voting failed :??????");
+
+  //TODO 2 what should we really return here?
+  return "ok";
 }
 
 Value signmessage(const Array& params, bool fHelp)
@@ -1368,7 +1492,7 @@ Value sendmany(const Array& params, bool fHelp)
             throw JSONRPCError(-6, "Insufficient funds");
         throw JSONRPCError(-4, "Transaction creation failed");
     }
-    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+    if (!pwalletMain->CommitTransaction(wtx, &keyChange))
         throw JSONRPCError(-4, "Transaction commit failed");
 
     return wtx.GetHash().GetHex();
@@ -3588,6 +3712,7 @@ static const CRPCCommand vRPCCommands[] =
     { "addcoldmintingaddress",  &addcoldmintingaddress,  false},
     { "getmintingstatus",          &getmintingstatus,    false },
     { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
+    { "createproposal",   &createproposal,   false },
     { "vote",   &vote,   false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
@@ -4153,23 +4278,6 @@ Object CallRPC(const string& strMethod, const Array& params)
 
 
 
-
-template<typename T>
-void ConvertTo(Value& value)
-{
-    if (value.type() == str_type)
-    {
-        // reinterpret string as unquoted json value
-        Value value2;
-        if (!read_string(value.get_str(), value2))
-            throw runtime_error("type mismatch");
-        value = value2.get_value<T>();
-    }
-    else
-    {
-        value = value.get_value<T>();
-    }
-}
 
 // Convert strings to command-specific RPC representation
 Array RPCConvertValues(const std::string &strMethod, const std::vector<std::string> &strParams)

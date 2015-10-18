@@ -133,6 +133,58 @@ double getMintingOdds(CBigNum targetHash);
  */
 double getExpectedStakeDaysForTarget(CBigNum targetHash);
 
+/**
+ * A proposal is a transaction that can be voted on. If the vote succeeds, the proposal passes,
+ * and the transaction runs.
+ */
+class CProposal
+{
+ public:
+  int nVersion;
+  timestamp_t deadline; //the voting deadline.
+  std::string title; // a short title of the proposal
+  CTransaction txnTemplate; // txn with input missing. This is the action of the proposal if it passes.
+  uint256 selfHash; // a checksum basically
+
+  CProposal()
+    {
+      SetNull();
+    }
+
+
+  IMPLEMENT_SERIALIZE
+    (
+     READWRITE(this->nVersion);
+     nVersion = this->nVersion;
+     READWRITE(deadline);
+     READWRITE(title);
+     READWRITE(txnTemplate);
+     READWRITE(selfHash);
+     )
+    
+    void SetNull()
+    {
+      nVersion = 1;
+      deadline = 0;
+      title = "";
+      txnTemplate = CTransaction();
+      selfHash = 0;
+    }
+
+  void ResetSelfHash()
+  {
+    selfHash = 0;
+    selfHash = SerializeHash(*this);
+  }
+};
+
+class CWalletVotingTxnSet
+{
+ public:
+  CProposal proposal;
+  std::vector<CWalletTx> vtxn;
+};
+
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -140,6 +192,7 @@ class CWallet : public CCryptoKeyStore
 {
 private:
     bool SelectCoins(int64 nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const;
+    void VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins) const;
     bool SelectMintingOnlyCoins(unsigned int nSpendTime, std::set<std::pair<const CWalletTx*, unsigned int> >& setCoinsRet, int64& nValueRet) const;
 
     CWalletDB *pwalletdbEncryption;
@@ -190,6 +243,8 @@ public:
 
     CPubKey vchDefaultKey;
 
+    bool CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal, CWalletVotingTxnSet & wVoteSet );
+    
     // check whether we are allowed to upgrade (or already support) to the named feature
     bool CanSupportFeature(enum WalletFeature wf) { return nWalletMaxVersion >= wf; }
 
@@ -234,9 +289,11 @@ public:
     bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CoinStakeStatus *coinStakeStatusOut = NULL);
-    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);
+    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey *reservekey);
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
+
+    bool VoteForProposal(CProposal p);
 
     bool NewKeyPool();
     bool TopUpKeyPool();

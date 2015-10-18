@@ -199,7 +199,7 @@ enum opcodetype
     // ** voting **
     //
 
-    //returns 1 if the funds pool has been unlocked (for now whenever a poll has been won)
+    //returns 1 if the funds pool has been unlocked (whenever a proposal has passed)
     OP_FUNDS_POOL_UNLOCKED = 0xd0, 
 
     // client is to be upgraded, args: <block to enforce> <md5sum of upgrade source code>
@@ -208,6 +208,9 @@ enum opcodetype
 
     //displays a message in the client
     OP_DISPLAY_MSG = 0xd2,
+
+    //votes for a proposal, args: <block deadline (epoch secs)> <txn hash>
+    OP_VOTE = 0xd3,
     
 
     // template matching params

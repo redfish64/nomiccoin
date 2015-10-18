@@ -40,17 +40,17 @@ uint8_t                           SCRIPT_ADDRESS_PREFIX       = 35; // "F"
 //                                If you change them, the hash will probably be wrong and the genesis invalid (because its hash would be higher than the initial target), and the client will try to generate a new valid genesis at startup
 
 hash_t                            GENESIS_MERKLE_HASH         = hash_t("1a46597bfd646ffb8a31b652b114c544096fb358514185fba096b9232413fb6c");
-hash_t                            GENESIS_HASH                = hash_t("000005a949b64f506ecb0cd97b61d87c2ed183db818952f6fd780c860ca669c0");
+hash_t                            GENESIS_HASH                = hash_t("0000fe32439414ab74b4847a6ac328db089873de1435189da59840dac70351eb");
 char const *                      GENESIS_IDENT               = "And I moved upon the face of the darkness. And I saw that I was alone. Let there be light.";
 timestamp_t                       GENESIS_TX_TIME             = 1444122312;
 timestamp_t                       GENESIS_BLOCK_TIME          = 1444122312;
-uint32_t                          GENESIS_BLOCK_NONCE         = 2180676;
+uint32_t                          GENESIS_BLOCK_NONCE         = 2181278;
 uint32_t                          GENESIS_BLOCK_VERSION       = 1;
 
 // std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
 //   (600, hash_t("0000002116c928d1b212578d6d13ada478bb22cc7f82c38a743ee6084d2690de"));
 std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH);
-std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0xfd11f4e7);
+std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0x0e00670b);
 
 //                                The maturity is the number of block required for a coinbase/coinstake transaction to be confirmed by the network (excluding the block which embeds the transaction)
 //                                Since you need to include your transaction in a block, and the COINBASE_MATURITY cannot be lower than 1, you will always need at least two blocks before maturing
