@@ -46,6 +46,10 @@ ui_*.h
 
 /share/pixmaps
 
+#test stuff
+/test/nomiccoin?
+/test/nomiccoin.conf
+
 # other junk
 cscope.out
 TAGS
