@@ -583,6 +583,7 @@ bool CTxDB::LoadBlockIndex()
             pindexNew->nHeight        = diskindex.nHeight;
             pindexNew->nMint          = diskindex.nMint;
             pindexNew->nMoneySupply   = diskindex.nMoneySupply;
+            pindexNew->nSharedPoolFunds     = diskindex.nSharedPoolFunds;
             pindexNew->nFlags         = diskindex.nFlags;
             pindexNew->nStakeModifier = diskindex.nStakeModifier;
             pindexNew->prevoutStake   = diskindex.prevoutStake;
@@ -859,3 +860,23 @@ bool LoadAddresses()
 {
     return CAddrDB("cr+").LoadAddresses();
 }
+
+bool CTxDB::ReadProposalVoteCount(uint256 txnHash, timestamp_t deadline, CProposalVoteCount& votecount)
+{
+  tuple<string, uint256, timestamp_t> triple(string("votecount"), txnHash, deadline);
+  return Read(triple, votecount);
+}
+
+bool CTxDB::WriteProposalVoteCount(const CProposalVoteCount votecount)
+{
+  tuple<string, uint160, timestamp_t> triple(string("votecount"), votecount.txnHash, votecount.deadline);
+  return Write(triple, votecount);
+}
+
+bool CTxDB::EraseProposalVoteCount(const CProposalVoteCount votecount)
+{
+  tuple<string, uint160, timestamp_t> triple(string("votecount"), votecount.txnHash, votecount.deadline);
+  return Erase(triple);
+}
+
+

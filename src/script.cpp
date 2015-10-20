@@ -232,6 +232,7 @@ const char* GetOpName(opcodetype opcode)
     case OP_FUNDS_POOL_UNLOCKED    : return "OP_FUNDS_POOL_UNLOCKED"; 
     case OP_UPGRADE_CLIENT         : return "OP_UPGRADE_CLIENT";
     case OP_DISPLAY_MSG            : return "OP_DISPLAY_MSG";
+    case OP_VOTE                   : return "OP_VOTE";
 
     // template matching params
     case OP_PUBKEYHASH             : return "OP_PUBKEYHASH";
@@ -462,6 +463,15 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 }
                 break;
 
+		//voting doesn't do anything explicitly when run.
+		//instead, votes are counted as blocks are processed.
+	    case OP_VOTE:
+	      if(stack.size() < 2)
+		return false;
+	      popstack(stack);
+	      popstack(stack);
+	      break;
+	      
                 //
                 // Control
                 //
@@ -1338,9 +1348,26 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
 }
 
 
+bool IsVoteScript(const CScript& scriptPubKey, uint256& txnHash, uint64& deadline)
+{
+  if(scriptPubKey[0] == 8
+     && scriptPubKey[2] == 20
+     && scriptPubKey[4] == OP_VOTE)
+    {
+      CScript::const_iterator pc = scriptPubKey.begin();
+      opcodetype opcode;
+      vector<unsigned char> vch;
+      
+      scriptPubKey.GetOp(pc, opcode,vch);
+      txnHash = CastToBigNum(vch).getuint256();
+      scriptPubKey.GetOp(pc, opcode,vch);
+      deadline = CastToBigNum(vch).getuint64();
 
+      return true;
+    }
 
-
+  return false;
+}
 
 
 
@@ -1705,7 +1732,7 @@ bool IsMineForMintingOnly(const CKeyStore & keystore, const CScript& scriptPubKe
 	  printf("IsMineForMintingOnly : mintingkeyid %s spendingkeyid %s\n",
 		 CBitcoinAddress(mintingKeyID).ToString().c_str(),
 		 CBitcoinAddress(spendingKeyID).ToString().c_str());
-
+	
         return keystore.HaveKey(mintingKeyID) && !keystore.HaveKey(spendingKeyID);
     }
     default:

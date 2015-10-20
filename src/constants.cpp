@@ -39,18 +39,18 @@ uint8_t                           SCRIPT_ADDRESS_PREFIX       = 35; // "F"
 //                                The following constants define the genesis block of the coin network
 //                                If you change them, the hash will probably be wrong and the genesis invalid (because its hash would be higher than the initial target), and the client will try to generate a new valid genesis at startup
 
-hash_t                            GENESIS_MERKLE_HASH         = hash_t("1a46597bfd646ffb8a31b652b114c544096fb358514185fba096b9232413fb6c");
-hash_t                            GENESIS_HASH                = hash_t("0000fe32439414ab74b4847a6ac328db089873de1435189da59840dac70351eb");
+hash_t                            GENESIS_MERKLE_HASH         = hash_t("e71048dc7d5d0c674fe559d373e80411e5faec299748366e68203d0ef9872c13");
+hash_t                            GENESIS_HASH                = hash_t("002c16e4ad8258d4d2026ecfd6bc0922c0163529431b30c0b3050b0c78e10a7e");
 char const *                      GENESIS_IDENT               = "And I moved upon the face of the darkness. And I saw that I was alone. Let there be light.";
 timestamp_t                       GENESIS_TX_TIME             = 1444122312;
 timestamp_t                       GENESIS_BLOCK_TIME          = 1444122312;
-uint32_t                          GENESIS_BLOCK_NONCE         = 2181278;
+uint32_t                          GENESIS_BLOCK_NONCE         = 2182453;
 uint32_t                          GENESIS_BLOCK_VERSION       = 1;
 
 // std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
 //   (600, hash_t("0000002116c928d1b212578d6d13ada478bb22cc7f82c38a743ee6084d2690de"));
 std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH);
-std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0x0e00670b);
+std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0xfd11f4e7);
 
 //                                The maturity is the number of block required for a coinbase/coinstake transaction to be confirmed by the network (excluding the block which embeds the transaction)
 //                                Since you need to include your transaction in a block, and the COINBASE_MATURITY cannot be lower than 1, you will always need at least two blocks before maturing
@@ -157,11 +157,20 @@ uint32_t                          MAX_BLOCK_SIZE_GEN          = MAX_BLOCK_SIZE /
 uint32_t                          MAX_BLOCK_SIGOPS            = MAX_BLOCK_SIZE / 50;
 uint32_t                          MAX_BLOCK_ORPHAN_TX         = MAX_BLOCK_SIZE / 100;
 
-money_t INITIAL_FUNDS_POOL_BALANCE = 1000 * COIN;
+money_t INITIAL_SHARED_POOL_FUNDS_BALANCE = 1000 * COIN;
 
 /**
-   The portion that the funds pool gets for every mint and mine.
+   The portion that the funds pool gets for every minted and mined block.
  */
 double                             POOL_MINTING_CUT           = .25;
+//TODO 2 do we use mining cut or not?
 double                            POOL_MINING_CUT            = .25;
+
+/**
+ * Coins that have voted for something within this time period will be used as the divisor to
+ * figure if a proposal has passed. For example, if 10K coins have been involved in prior votes
+ * over the vote registeration period, and 5,300 votes are for the proposal, then it would pass with
+ * 5300/10000 = 53 %
+ */
+int VOTE_REG_PERIOD_BLOCKS = 2 * WEEK / TARGET_SPACING;
 

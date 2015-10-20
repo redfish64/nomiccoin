@@ -497,6 +497,7 @@ public:
         assert(opcode >= OP_1 && opcode <= OP_16);
         return (int)opcode - (int)(OP_1 - 1);
     }
+    
     static opcodetype EncodeOP_N(int n)
     {
         assert(n >= 0 && n <= 16);
@@ -624,5 +625,6 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
+bool IsVoteScript(const CScript& scriptPubKey, uint256& txnHash, uint64& deadline);
 
 #endif

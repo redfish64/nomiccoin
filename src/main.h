@@ -455,6 +455,13 @@ public:
         return SerializeHash(*this);
     }
 
+    bool IsVoteTxn(uint256& txnHash, uint64& deadline)
+    {
+      if(vout.size() != 1)
+	return false;
+      return IsVoteScript(vout[0].scriptPubKey, txnHash, deadline);
+    }
+
     bool IsFinal(int nBlockHeight=0, int64 nBlockTime=0) const
     {
         // Time based nLockTime implemented in 0.1.6
@@ -1127,6 +1134,8 @@ public:
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);
+    bool UpdateVoteFieldsForConnectBlock(CTxDB& txdb, CBlockIndex *pindex, bool undo);
+
 };
 
 
@@ -1153,6 +1162,12 @@ public:
     int nHeight;
     int64 nMint;
     int64 nMoneySupply;
+
+    //nomiccoin:
+    int64 nSharedPoolFunds; // the size of the spending pool which can be voted on
+    int64 votedCoinsDelta; // the change in the number voting coting in this block
+    int64 votingPeriodVotedCoins; //the total number of coins that were voted with in the given
+    //voting period (used as the divisor to determine whether a particular vote won)
 
     unsigned int nFlags;  // ppcoin: block index flags
     enum
@@ -1189,6 +1204,9 @@ public:
         bnChainTrust = 0;
         nMint = 0;
         nMoneySupply = 0;
+	nSharedPoolFunds = 0;
+	votedCoinsDelta=0;
+	votingPeriodVotedCoins=0;
         nFlags = 0;
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
@@ -1214,6 +1232,9 @@ public:
         bnChainTrust = 0;
         nMint = 0;
         nMoneySupply = 0;
+	nSharedPoolFunds = 0;
+	votedCoinsDelta=0;
+	votingPeriodVotedCoins=0;
         nFlags = 0;
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
@@ -1222,6 +1243,7 @@ public:
         {
             SetProofOfStake();
             prevoutStake = block.vtx[1].vin[0].prevout;
+	    //TODO 2 ??? stake needs to go through vote transactions nStakeTime???
             nStakeTime = block.vtx[1].nTime;
         }
         else
@@ -1413,6 +1435,7 @@ public:
         READWRITE(nHeight);
         READWRITE(nMint);
         READWRITE(nMoneySupply);
+        READWRITE(nSharedPoolFunds);
         READWRITE(nFlags);
         READWRITE(nStakeModifier);
         if (IsProofOfStake())
@@ -1841,8 +1864,42 @@ public:
 
 extern CTxMemPool mempool;
 
-extern CScript FUNDS_POOL_SCRIPT;
-extern CBitcoinAddress FUNDS_POOL_ADDRESS;
+/**
+ * NomicCoin:
+ * Keeps track of the votes for an individual proposal. These records are only kept track of for the best
+ * chain (just as transactions are).
+ */
+class CProposalVoteCount
+{
+ public:
+  int nVersion;
+  uint160 txnHash; //hash of txn that redeems vote
+  timestamp_t deadline; //deadline of vote
+  money_t totalVotes; //the current number of votes
+
+  CProposalVoteCount()
+    {
+      SetNull();
+    }
+
+  IMPLEMENT_SERIALIZE
+    (
+     READWRITE(nVersion);
+     READWRITE(txnHash);
+     READWRITE(deadline);
+     READWRITE(totalVotes);
+    )
+
+    void SetNull()
+    {
+      nVersion = 0;
+      txnHash = 0;
+      deadline = 0;
+      totalVotes = 0;
+    }
+
+};
+
 
 #endif
 

@@ -1223,7 +1223,7 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  //we send the money back exactly where we got it, except that we prepend the voting instruction
 	  //We do this in this way to allow us to find these looped transactions easily, so that we can
 	  //prevent unclaimed staking rewards to reset when these voting transactions occur
-	  CScript scriptWithVote = CreateVoteScript(proposal) << utxoToVoteWith.scriptPubKey;
+	  CScript scriptWithVote = CreateVoteScript(proposal) + utxoToVoteWith.scriptPubKey;
 	  
 	  CTxOut txOut(nValue, scriptWithVote );
 	  txNew.vout.push_back(txOut);

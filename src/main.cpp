@@ -62,18 +62,6 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-/**
-   Script used by pool to deliver funds
- */
-
-CScript FUNDS_POOL_SCRIPT = CScript() << OP_FUNDS_POOL_UNLOCKED;
-
-/**
-   The fundings pool address
- */
-CBitcoinAddress FUNDS_POOL_ADDRESS = CBitcoinAddress(FUNDS_POOL_SCRIPT.GetID());
-
-
 const string strMessageMagic = COIN_NAME " Signed Message:\n";
 
 double dHashesPerSec;
@@ -1384,11 +1372,92 @@ bool CTransaction::ClientConnectInputs()
     return true;
 }
 
+CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count)
+{
+  while(count-- > 0 && pindex)
+    pindex = pindex->pprev;
 
+  return pindex;
+}
+
+
+bool CBlock::UpdateVoteFieldsForConnectBlock(CTxDB& txdb, CBlockIndex *pindex, bool undo)
+{
+  int undoFactor = undo ? -1 : 1;
+  
+    pindex->votedCoinsDelta = 0;
+    BOOST_FOREACH(CTransaction& tx, vtx)
+      {
+	if(tx.IsCoinBase())
+	  continue;
+	
+	uint64 deadline;
+	uint256 txnHash;
+	if(tx.IsVoteTxn(txnHash, deadline))
+	  {
+	    //PERF, we may want to cache these, since many people will be voting for the same proposal often
+	    CProposalVoteCount votecount;
+	    int64 vote = tx.GetValueOut();
+	    pindex->votedCoinsDelta += vote * undoFactor;
+	    
+	    if(deadline > pindex->nTime)
+	      {
+		txdb.ReadProposalVoteCount(txnHash, deadline, votecount);
+		
+		votecount.totalVotes += vote * undoFactor;
+		
+		txdb.WriteProposalVoteCount(votecount);
+	      }
+	  }
+
+	//if any of the inputs were voting transactions, we have to invalidate the those votes,
+	//because they were spent (we do this even if the current txn is a voting txn)
+        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+	  {
+	    CTransaction txPrev;
+
+	    if(!txdb.ReadDiskTx(txin.prevout, txPrev))
+	      return error("UpdateVoteFieldsForConnectBlock() : ReadTxIndex failed");
+	    
+	    uint64 prevDeadline;
+	    uint256 prevTxnHash;
+
+	    if(txPrev.IsVoteTxn(prevTxnHash, prevDeadline))
+	      {
+		CProposalVoteCount votecount;
+		int64 prevVote = txPrev.GetValueOut();
+		pindex->votedCoinsDelta -= prevVote * undoFactor;
+
+		if(deadline > pindex->nTime)
+		  {
+		    txdb.ReadProposalVoteCount(txnHash, deadline, votecount);
+		
+		    votecount.totalVotes -= prevVote * undoFactor;
+		
+		    txdb.WriteProposalVoteCount(votecount);
+		  }
+	      }
+	}
+      }
+
+    //update delta based on prior blocks
+    CBlockIndex *pVotePeriodStartIndex = GetPriorBlockIndex(pindex, VOTE_REG_PERIOD_BLOCKS);
+    
+    pindex->votingPeriodVotedCoins =
+      undoFactor * ((pVotePeriodStartIndex ? -pVotePeriodStartIndex->votedCoinsDelta : 0)
+		    + pindex->votedCoinsDelta)
+      + (pindex->pprev ? pindex->pprev->votingPeriodVotedCoins : 0);
+
+    return true;
+}
 
 
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
+  if(!UpdateVoteFieldsForConnectBlock(txdb, pindex, true))
+    return error("DisconnectBlock() : UpdateVoteFieldsForConnectBlock failed");
+
+
     // Disconnect in reverse order
     for (int i = vtx.size()-1; i >= 0; i--)
         if (!vtx[i].DisconnectInputs(txdb))
@@ -1410,6 +1479,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     return true;
 }
+
 
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
@@ -1491,6 +1561,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
             if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
+
         }
 
         mapQueuedChanges[tx.GetHash()] = CTxIndex(posThisTx, tx.vout.size());
@@ -1499,6 +1570,14 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     // ppcoin: track money supply and mint amount info
     pindex->nMint = nValueOut - nValueIn + nFees;
     pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + nValueOut - nValueIn;
+
+    // nomiccoin, calculate pool funds
+    if(pindex->pprev == NULL) 
+      pindex->nSharedPoolFunds = INITIAL_SHARED_POOL_FUNDS_BALANCE;
+    else
+      pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + (int)(pindex->nMint * POOL_MINTING_CUT); //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
+
+    
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
         return error("Connect() : WriteBlockIndex for pindex failed");
 
@@ -1523,6 +1602,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
         if (!txdb.WriteBlockIndex(blockindexPrev))
             return error("ConnectBlock() : WriteBlockIndex for blockindexPrev failed");
     }
+
+    //NomicCoin: keep track of votes and voting participants
+    if(!UpdateVoteFieldsForConnectBlock(txdb, pindex, false))
+      return error("ConnectBlock() : UpdateVoteFieldsForConnectBlock failed");
 
     // Watch for transactions paying to me
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -1734,7 +1817,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     bnBestChainTrust = pindexNew->bnChainTrust;
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
-    printf("SetBestChain: new best=%s  height=%d  trust=%s  moneysupply=%s\n", hashBestChain.ToString().substr(0,20).c_str(), nBestHeight, bnBestChainTrust.ToString().c_str(), FormatMoney(pindexBest->nMoneySupply).c_str());
+    printf("SetBestChain: new best=%s  height=%d  trust=%s  moneysupply=%s sharedpoolfunds=%s\n", hashBestChain.ToString().substr(0,20).c_str(), nBestHeight, bnBestChainTrust.ToString().c_str(), FormatMoney(pindexBest->nMoneySupply).c_str(),FormatMoney(pindexBest->nSharedPoolFunds).c_str());
 
     std::string strCmd = GetArg("-blocknotify", "");
 
@@ -2448,17 +2531,8 @@ bool LoadBlockIndex(bool fAllowNew)
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].SetEmpty();
 	
-        CTransaction txPool;
-        txPool.nTime = GENESIS_TX_TIME;
-        txPool.vin.resize(1);
-        txPool.vout.resize(1);
-        txPool.vin[0].prevout.SetNull();
-        txPool.vout[0].scriptPubKey.SetDestination(FUNDS_POOL_ADDRESS.Get());
-	txPool.vout[0].nValue = INITIAL_FUNDS_POOL_BALANCE;
-
         CBlock block;
         block.vtx.push_back(txNew);
-	block.vtx.push_back(txPool);
 
 	for(initial_owner_data* it = INITIAL_OWNERS; it->coins != 0; it++) {
 	  CBitcoinAddress addr(it->addr);

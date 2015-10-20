@@ -316,6 +316,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fTxI
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
     result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
+    result.push_back(Pair("sharedpoolfunds", ValueFromAmount(blockindex->nSharedPoolFunds)));
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
     if (blockindex->pnext)
@@ -645,6 +646,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
+    obj.push_back(Pair("sharedpoolfunds",   ValueFromAmount(pindexBest->nSharedPoolFunds)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (fUseProxy ? addrProxy.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
@@ -912,24 +914,53 @@ void ConvertTo(Value& value)
 
 int ConvertTimeishToEpochSecs(string timeish)
 {
-  //TODO 1 fixme
-  return 0;
+  struct tm tm;
+  if(!strptime(timeish.c_str(), "%Y-%m-%d %H:%M:%S %Z", &tm))
+    return 0;
+
+  return mktime(&tm);
+  
+  
+}
+
+bool ConvertBlobToProposal(std::string blob, CProposal& proposal)
+{
+  vector<unsigned char> data;
+
+  if(!DecodeBase58(blob.c_str(),data))
+    return false;
+
+  CDataStream ss(data, SER_NETWORK, 0);
+
+  ss >> proposal;
+  return proposal.VerifyHash();
+}
+
+std::string ConvertProposalToBlob(CProposal& proposal)
+{
+  CDataStream ss(SER_NETWORK, 0);
+  ss << proposal;
+
+  vector<unsigned char> data(ss.begin(), ss.end());
+  
+  return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
 }
 
 Value createproposal(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3)
         throw runtime_error(
-			    "createproposal <deadline> <title (max size 20)> [commands...]\n"
+			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max size 20)> [commands...]\n"
 			    "commands are:\n"
 			    "display_msg <msg (max size 140)>\n" //TODO 2 max message size?
-			    "upgrade_client <md5sum> <deadline>\n" //TODO 2 max message size?
+			    "upgrade_client <md5sum> <deadline(YYYY-MM-DD HH:MM:SS TZ)>\n" //TODO 2 max message size?
 			    "spend_pool <toaddress> <amt>\n"
 			    );
 
-    int deadline = ConvertTimeishToEpochSecs(params[0].get_str());
-    //TODO put title in somewhere
-    string title = params[1].get_str();
+    CProposal proposal;
+    proposal.deadline = ConvertTimeishToEpochSecs(params[0].get_str());
+
+    proposal.title = std::vector<unsigned char>(params[1].get_str().begin(), params[1].get_str().end());
 
     //TODO 2 parse deadline from a date into an estimated block height
     CTransaction tx;
@@ -1011,27 +1042,15 @@ Value createproposal(const Array& params, bool fHelp)
 
     //we don't specify an input, because we don't know the UTXO's that will be present
     //when we go and spend the pool money
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-    ssTx << string("deadline:") << deadline << string(",tx:")  << tx;
-    string strHex = HexStr(ssTx.begin(), ssTx.end());
+    proposal.txnTemplate = tx;
+    proposal.ResetSelfHash();
 
     Object result;
     //TODO 2 make this base58?
-    result.push_back(Pair("voteblob", strHex));
+    result.push_back(Pair("voteblob", ConvertProposalToBlob(proposal)));
     TxToJSON(tx, 0, result);
 
     return result;
-}
-
-void ConvertBlobToProposal(std::string blob, CProposal& proposal)
-{
-  std::vector<unsigned char> data;
-  
-  DecodeBase58(blob.c_str(),data);
-
-  CDataStream ssData(data, SER_NETWORK, PROTOCOL_VERSION);
-
-  ssData >> proposal;
 }
 
 Value vote(const Array& params, bool fHelp)
@@ -1043,7 +1062,9 @@ Value vote(const Array& params, bool fHelp)
             "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n");
 
   CProposal prop;
-  ConvertBlobToProposal(params[0].get_str(),prop);
+
+  if(!ConvertBlobToProposal(params[0].get_str(),prop))
+    throw JSONRPCError(-4, "Blob invalid");
 
   bool error = pwalletMain->VoteForProposal(prop);
   if (error)
@@ -3326,7 +3347,7 @@ Value sendrawtransaction(const Array& params, bool fHelp)
     // or in the memory pool:
     CTransaction existingTx;
     uint256 hashBlock = 0;
- #ifdef TIMHACK
+
     if (GetTransaction(hashTx, existingTx, hashBlock))
     {
         if (hashBlock != 0)
@@ -3343,7 +3364,6 @@ Value sendrawtransaction(const Array& params, bool fHelp)
 
         SyncWithWallets(tx, NULL, true);
     }
-#endif
     RelayMessage(CInv(MSG_TX, hashTx), tx);
 
     return hashTx.GetHex();

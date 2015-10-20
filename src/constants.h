@@ -100,6 +100,7 @@ extern uint32_t                          MAX_BLOCK_ORPHAN_TX;
 extern double                             POOL_MINTING_CUT;
 extern double                            POOL_MINING_CUT;
 
-extern money_t INITIAL_FUNDS_POOL_BALANCE;
+extern money_t INITIAL_SHARED_POOL_FUNDS_BALANCE;
 
 
+extern int VOTE_REG_PERIOD_BLOCKS;

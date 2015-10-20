@@ -292,6 +292,7 @@ public:
     bool ReadDiskTx(COutPoint outpoint, CTransaction& tx);
     bool WriteBlockIndex(const CDiskBlockIndex& blockindex);
     bool EraseBlockIndex(uint256 hash);
+    bool LoadBlockIndex();
     bool ReadHashBestChain(uint256& hashBestChain);
     bool WriteHashBestChain(uint256 hashBestChain);
     bool ReadBestInvalidTrust(CBigNum& bnBestInvalidTrust);
@@ -300,7 +301,10 @@ public:
     bool WriteSyncCheckpoint(uint256 hashCheckpoint);
     bool ReadCheckpointPubKey(std::string& strPubKey);
     bool WriteCheckpointPubKey(const std::string& strPubKey);
-    bool LoadBlockIndex();
+
+    bool WriteProposalVoteCount(const CProposalVoteCount votecount);
+    bool EraseProposalVoteCount(const CProposalVoteCount votecount);
+    bool ReadProposalVoteCount(uint256 txnHash, timestamp_t deadline, CProposalVoteCount& votecount);
 };
 
 

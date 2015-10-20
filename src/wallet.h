@@ -142,7 +142,7 @@ class CProposal
  public:
   int nVersion;
   timestamp_t deadline; //the voting deadline.
-  std::string title; // a short title of the proposal
+  std::vector<unsigned char> title; // a short title of the proposal
   CTransaction txnTemplate; // txn with input missing. This is the action of the proposal if it passes.
   uint256 selfHash; // a checksum basically
 
@@ -166,10 +166,24 @@ class CProposal
     {
       nVersion = 1;
       deadline = 0;
-      title = "";
+      title.clear();
       txnTemplate = CTransaction();
       selfHash = 0;
     }
+
+  bool VerifyHash()
+  {
+    uint256 oldHash = selfHash;
+    ResetSelfHash();
+
+    if(oldHash != selfHash)
+      {
+	selfHash = oldHash;
+	return false;
+      }
+
+    return true;
+  }
 
   void ResetSelfHash()
   {

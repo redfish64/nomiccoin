@@ -1,0 +1,3 @@
+mv ~/.nomiccoin/nomiccoin.conf /tmp/abcdxxx
+rm -r ~/.nomiccoin/*
+mv /tmp/abcdxxx ~/.nomiccoin/nomiccoin.conf

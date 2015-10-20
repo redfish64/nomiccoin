@@ -1319,7 +1319,7 @@
 <node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1445236050165" TEXT="block chain">
 <node CREATED="1445162114093" ID="ID_352007369" MODIFIED="1445162137721" TEXT="Blocks in the best chain are connected using ConnectBlock()"/>
 <node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
-<node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310420184" TEXT=""/>
+<node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310444869" TEXT="Whenever we add a block to the block chain, we call ConnectBlock(), regardless if we made it ourselves or not"/>
 <node CREATED="1445236050159" ID="ID_359326903" MODIFIED="1445236063475" TEXT="AddToBlockIndex">
 <node CREATED="1445235959286" ID="ID_1858487241" MODIFIED="1445235969218" TEXT="SetBestChain">
 <node CREATED="1445235970335" ID="ID_799162962" MODIFIED="1445235974515" TEXT="SetBestChainInner">
