@@ -326,7 +326,13 @@ CNode* FindNode(const CService& addr)
 
 CNode* ConnectNode(CAddress addrConnect, timestamp_t nTimeout)
 {
-    if ((CNetAddr)addrConnect == (CNetAddr)addrLocalHost)
+  if (
+      //co: our test network uses the same host for many instances of nomiccoind
+      //and this == doesn't compare port
+      //TIMHACK
+      //(CNetAddr)addrConnect == (CNetAddr)addrLocalHost
+      addrConnect == addrLocalHost
+      )
         return NULL;
 
     // Look for an existing connection
@@ -1229,10 +1235,12 @@ void ThreadOpenConnections2(void* parg)
             if (nANow - addr.nLastTry < 600 && nTries < 30)
                 continue;
 
+#ifdef TIMHACK	    //our test network uses a bunch of nonstandard ports and the cpu usage from 50 connection tries is bothersome
             // do not allow non-default ports, unless after 50 invalid addresses selected already
             if (addr.GetPort() != GetDefaultPort() && nTries < 50)
                 continue;
-
+#endif
+	    
             addrConnect = addr;
             break;
         }
@@ -1335,7 +1343,13 @@ bool OpenNetworkConnection(const CAddress& addrConnect, bool fUseGrant)
     if (fShutdown)
         return false;
 
-    if ((CNetAddr)addrConnect == (CNetAddr)addrLocalHost || !addrConnect.IsIPv4() ||
+    if (
+	//co: our test network uses the same host for many instances of nomiccoind
+	//and this == doesn't compare port
+	//TIMHACK
+	//(CNetAddr)addrConnect == (CNetAddr)addrLocalHost
+	addrConnect == addrLocalHost
+	|| !addrConnect.IsIPv4() ||
         FindNode((CService)addrConnect) || CNode::IsBanned(addrConnect))
         return ReleaseGrant(fUseGrant);
 
