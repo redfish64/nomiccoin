@@ -761,6 +761,34 @@
 <node CREATED="1445063996049" ID="ID_1542596437" MODIFIED="1445064003901" TEXT="Also the transaction must only have 1 input and 1 output"/>
 </node>
 </node>
+<node CREATED="1445166642310" ID="ID_536540031" MODIFIED="1445166651811" TEXT="How will we count votes?">
+<node CREATED="1445166653783" ID="ID_1651221567" MODIFIED="1445166664706" TEXT="We can store it in the block index">
+<node CREATED="1445166666191" ID="ID_510505184" MODIFIED="1445166675867" TEXT="Could potentially take a lot of space"/>
+<node CREATED="1445166676599" ID="ID_306177749" MODIFIED="1445166680316" TEXT="A lot of duplicated data"/>
+</node>
+<node CREATED="1445166681742" ID="ID_1181264758" MODIFIED="1445166727327" TEXT="Create a new type of db record">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445166694486" ID="ID_113908316" MODIFIED="1445166701922" TEXT="Based only on the best chain"/>
+<node CREATED="1445166702487" ID="ID_852747745" MODIFIED="1445166718858" TEXT="Tx&apos;s are the same way (they are also only based on the best chain), so we have established precedence"/>
+</node>
+</node>
+<node COLOR="#009999" CREATED="1444622775937" ID="ID_455938583" MODIFIED="1444622914048" TEXT="light blue means No to a Yes/No question"/>
+<node CREATED="1445167131383" ID="ID_864387018" MODIFIED="1445167592056" TEXT="Why can&apos;t the deadline be the txn time? In other words, make the txn time future timestamped.">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445167156823" ID="ID_578590590" MODIFIED="1445167252772" TEXT="If we did this, we&apos;d still need some kind of deadline, or we&apos;d have to vote for a raw txn rather than a txn hash">
+<node CREATED="1445167212759" ID="ID_1668332340" MODIFIED="1445167252774" TEXT="Otherwise, how&apos;d we know when the election ended"/>
+</node>
+<node CREATED="1445167253399" ID="ID_1839734787" MODIFIED="1445167288467" TEXT="If we voted for a raw txn, then we could verify that it was within our guidelines."/>
+<node CREATED="1445167296695" ID="ID_1621836290" MODIFIED="1445167311011" TEXT="It would also be easy to see what it was. Which would increase the openness"/>
+<node CREATED="1445167321847" ID="ID_478918800" MODIFIED="1445167369139" TEXT="It would increase the voting txn size, and there will be millions of them."/>
+<node CREATED="1445167505175" ID="ID_1871965333" MODIFIED="1445167595066" TEXT="It&apos;s a good idea, but I think it could potentially increase the size of the block chain too much">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445167537440" ID="ID_1006987410" MODIFIED="1445167554212" TEXT="And we can always reject the transaction at redeem time"/>
+<node CREATED="1445167556903" ID="ID_1179539539" MODIFIED="1445167583884" TEXT="We could change the vote rpc call to accept a transaction and convert it to txn hash, deadline format when storing in block chain">
+<node CREATED="1445167588000" ID="ID_1697677648" MODIFIED="1445167589588" TEXT="FUTURE"/>
+</node>
+</node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
@@ -1072,7 +1100,6 @@
 </node>
 </node>
 </node>
-<node COLOR="#009999" CREATED="1444622775937" ID="ID_455938583" MODIFIED="1444622914048" POSITION="right" TEXT="light blue means No to a Yes/No question"/>
 <node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1444694505083" POSITION="right" TEXT="coding">
 <node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
 <node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1444696747076" TEXT="prefix">
@@ -1160,7 +1187,6 @@
 <node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
 <node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
 <node CREATED="1444998643158" ID="ID_1501782191" MODIFIED="1444998651274" TEXT="poll deadline is in epoch seconds"/>
-<node COLOR="#cc3300" CREATED="1445041749530" ID="ID_58443541" MODIFIED="1445041760545" TEXT="txn hash needs checksum"/>
 </node>
 </node>
 <node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
@@ -1176,6 +1202,71 @@
 </node>
 <node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
 <node COLOR="#cc3300" CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445041663466" TEXT="Cannot take place for the first few blocks... to give people a chance to register"/>
+<node CREATED="1445160080411" ID="ID_1381558090" MODIFIED="1445160695731" TEXT="Should we allow someone to vote for two proposals at the same time?">
+<node CREATED="1445160602243" ID="ID_1580442743" MODIFIED="1445160625391" TEXT="As long as the deadlines differ, they&apos;d be able to do this anyway">
+<node CREATED="1445160686795" ID="ID_1100260026" MODIFIED="1445160693351" TEXT="But if the deadlines are the same, they would not"/>
+</node>
+<node CREATED="1445160626075" ID="ID_905585254" MODIFIED="1445160658479" TEXT="But it&apos;s someone complicated, because it prevents a user from reverting their vote, unless they move funds"/>
+<node CREATED="1445160663107" ID="ID_1225697076" MODIFIED="1445160697180" TEXT="Maybe better to only allow to dedicate coins to one proposal">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445166771171" TEXT="vote counting">
+<node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
+<node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
+<node CREATED="1445168257760" ID="ID_616330575" MODIFIED="1445168284380" TEXT="When we get a vote, we add/update the corresponding record"/>
+<node CREATED="1445168284967" ID="ID_1817559673" MODIFIED="1445169545885" TEXT="When we get a txn that has a prior input that is a vote, we delete the vote from the record. If the record is empty, we delete it">
+<node CREATED="1445168364104" ID="ID_642445228" MODIFIED="1445168414651" TEXT="Note that if a stake is done, and combined, then votes will automatically be recast"/>
+</node>
+</node>
+<node CREATED="1445168420168" ID="ID_153145017" MODIFIED="1445168424939" TEXT="After the deadline">
+<node CREATED="1445168477663" ID="ID_1283390177" MODIFIED="1445169414725" TEXT="We reject any vote txn after deadline, regardless of timestamp"/>
+<node CREATED="1445168882256" ID="ID_679658431" MODIFIED="1445169367428" TEXT="Vote count is frozen and never changes"/>
+<node CREATED="1445169013416" ID="ID_1964754817" MODIFIED="1445169357477" TEXT="Note that because of forks, and possible reorgs, we can not delete vote count entries ">
+<node CREATED="1445169124785" ID="ID_1906495321" MODIFIED="1445169145541" TEXT="If we have a checkpoint, we can prune out old data items, but that would include txns, too. ">
+<node CREATED="1445169162064" ID="ID_1807194911" MODIFIED="1445169163869" TEXT="FUTURE"/>
+</node>
+</node>
+</node>
+<node CREATED="1445169437505" ID="ID_1653078411" MODIFIED="1445169444685" TEXT="Rewinding for a reorg">
+<node CREATED="1445169449105" ID="ID_1217967193" MODIFIED="1445169455477" TEXT="After deadline">
+<node CREATED="1445169456849" ID="ID_75679471" MODIFIED="1445169460581" TEXT="Vote count never changes"/>
+</node>
+<node CREATED="1445169463233" ID="ID_997560439" MODIFIED="1445169467445" TEXT="Before deadline">
+<node CREATED="1445168284967" ID="ID_749629396" MODIFIED="1445169506084" TEXT="When we get a txn that has a prior input that is a vote, we add the vote to the record"/>
+<node CREATED="1445168257760" ID="ID_1090237758" MODIFIED="1445169525621" TEXT="When we get a vote, we delete the vote from the corresponding record. If the record is empty, we delete it"/>
+</node>
+</node>
+</node>
+<node CREATED="1445169906217" ID="ID_1314047598" MODIFIED="1445169912317" TEXT="voting participation counting">
+<node CREATED="1445170696890" ID="ID_1878022510" MODIFIED="1445170707277" TEXT="BlockIndex contains">
+<node CREATED="1445170709096" ID="ID_381771334" MODIFIED="1445170713558" TEXT="voteDelta">
+<node CREATED="1445170715752" ID="ID_271545280" MODIFIED="1445170722309" TEXT="Change in voting transactions">
+<node CREATED="1445170789010" ID="ID_1666088884" MODIFIED="1445170802926" TEXT="When a voting txn is created, delta is increased"/>
+<node CREATED="1445170803442" ID="ID_1291636438" MODIFIED="1445305465827" TEXT="When a voting txn is replaced, delta is decreased"/>
+<node CREATED="1445170821384" ID="ID_1381255416" MODIFIED="1445170838076" TEXT="Voting deadline has no effect"/>
+<node CREATED="1445170838537" ID="ID_882353901" MODIFIED="1445170876956" TEXT="The above will find the current active voters changes that this block effects"/>
+</node>
+</node>
+<node CREATED="1445170723273" ID="ID_1298636252" MODIFIED="1445170737894" TEXT="votersInVotePeriod">
+<node CREATED="1445170740594" ID="ID_1162547574" MODIFIED="1445170756661" TEXT="Rolling total voters in voting period (2 weeks or so)">
+<node CREATED="1445170886593" ID="ID_295574145" MODIFIED="1445170904837" TEXT="The block exactly VOTING_PERIOD ago has it&apos;s delta subtracted from the total"/>
+</node>
+</node>
+<node CREATED="1445170935601" ID="ID_616272666" MODIFIED="1445170943845" TEXT="Reorg just does the opposite"/>
+<node CREATED="1445170914945" ID="ID_432060281" MODIFIED="1445170959614" TEXT="The above 2 fields should calculate the votersInVotePeriod properly"/>
+</node>
+</node>
+</node>
+<node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
+<node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
+<node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
+<node CREATED="1445163707470" ID="ID_1920250947" MODIFIED="1445163718894" TEXT="I&apos;m going to go ahead and do this, it solves a lot of problems">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445163722126" TEXT="But how does the redeeming txn get to unlock the funds?">
+<node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445163728762" TEXT="Something special in its txnIn I guess????"/>
+</node>
 </node>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
@@ -1185,8 +1276,13 @@
 <node CREATED="1445136411545" ID="ID_901737279" MODIFIED="1445136424605" TEXT="When we first start the network, everyone is mining every second"/>
 </node>
 <node CREATED="1445136984121" ID="ID_1402537902" MODIFIED="1445137005285" TEXT="Uses a lot of the cpu, around 17% even when only pos staking???"/>
+<node CREATED="1445156888604" ID="ID_319596110" MODIFIED="1445156910872" TEXT="voting seems to only vote with the first UTXO if there is more than one "/>
 </node>
-<node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5"/>
+<node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5">
+<node CREATED="1445153706299" ID="ID_1983967459" MODIFIED="1445153762078" TEXT="make viewproposal function">
+<node CREATED="1445153764363" ID="ID_275972263" MODIFIED="1445153775230" TEXT="allows user to see proposal before commiting to it in nomiccoind"/>
+</node>
+</node>
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
 </node>
@@ -1219,6 +1315,30 @@
 <node CREATED="1445065690114" ID="ID_516316904" MODIFIED="1445065702839" TEXT="Not sure when TxIn is final, has something to do with nSequence?????"/>
 </node>
 </node>
+</node>
+<node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1445236050165" TEXT="block chain">
+<node CREATED="1445162114093" ID="ID_352007369" MODIFIED="1445162137721" TEXT="Blocks in the best chain are connected using ConnectBlock()"/>
+<node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
+<node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310420184" TEXT=""/>
+<node CREATED="1445236050159" ID="ID_359326903" MODIFIED="1445236063475" TEXT="AddToBlockIndex">
+<node CREATED="1445235959286" ID="ID_1858487241" MODIFIED="1445235969218" TEXT="SetBestChain">
+<node CREATED="1445235970335" ID="ID_799162962" MODIFIED="1445235974515" TEXT="SetBestChainInner">
+<node CREATED="1445235976207" ID="ID_888274618" MODIFIED="1445235978210" TEXT="ConnectBlock"/>
+</node>
+</node>
+</node>
+<node CREATED="1445304736358" ID="ID_613313307" MODIFIED="1445304742177" TEXT="FetchInputs">
+<node CREATED="1445304744230" ID="ID_937049579" MODIFIED="1445304757946" TEXT="Retrieves the inputs of a txn"/>
+<node CREATED="1445304762726" ID="ID_1626317275" MODIFIED="1445305702586" TEXT="Returns typedef std::map&lt;uint256, std::pair&lt;CTxIndex, CTransaction&gt; &gt; MapPrevTx;">
+<node CREATED="1445305709574" ID="ID_1068564177" MODIFIED="1445305732466" TEXT="Map of txn hash to CTxIndex and CTransaction"/>
+</node>
+</node>
+<node CREATED="1445305077685" ID="ID_1464115469" MODIFIED="1445305080537" TEXT="CTxInput">
+<node CREATED="1445305082342" ID="ID_47162182" MODIFIED="1445305633762" TEXT="Location of txn on disk, and vector of location of txns for the spent outputs"/>
+</node>
+</node>
+<node CREATED="1445305467502" ID="ID_569286875" MODIFIED="1445309033623" TEXT="How do we get the previous txn to tell if its a voting txn?">
+<node CREATED="1445309035808" ID="ID_1928500006" MODIFIED="1445309045684" TEXT="ReadDiskTx with COutPoint from vin"/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
