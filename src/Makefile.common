@@ -9,6 +9,7 @@ UIC      ?= uic
 RCC      ?= rcc
 FIND     ?= find
 DEBUG    ?= 1
+ETAGS    ?= etags
 
 # Custom GNU Make function that reverse a word list
 reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) $(firstword $(1))
@@ -29,7 +30,7 @@ ifeq ($(TESTING),1)
   CXXFLAGS += -g -O0 -DTESTING
 endif
 
-default: force $(TARGET_HEADLESS)
+default: TAGS $(TARGET_HEADLESS)
 
 ifneq ($(NO_QT),1)
 all: force $(TARGET_HEADLESS) $(TARGET_QT)
@@ -108,8 +109,13 @@ fclean: clean
 re: fclean
 	$(MAKE) -f $(MAKEFILE) all
 
+TAGS: $(SOURCES_QT) $(SOURCES_HEADLESS)
+	$(ETAGS) -l auto `$(FIND) . \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \)`
+
+
 .PHONY: force
 
+#co: I don't think this is needed. It was because we were building force before...
 #we do this because make deletes the qm files as intermediate, but then recreates them everytime.
 #TODO 3 not sure why
-.PRECIOUS: %.qm
+#.PRECIOUS: %.qm
