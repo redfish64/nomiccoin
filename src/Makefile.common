@@ -33,9 +33,9 @@ endif
 default: TAGS $(TARGET_HEADLESS)
 
 ifneq ($(NO_QT),1)
-all: force $(TARGET_HEADLESS) $(TARGET_QT)
+all: TAGS force $(TARGET_HEADLESS) $(TARGET_QT)
 else
-all: force $(TARGET_HEADLESS)
+all: TAGS force $(TARGET_HEADLESS)
 endif
 
 -include $(DEPENDENCIES_HEADLESS)

@@ -13,6 +13,7 @@ typedef int32_t  blockheight_t;
 typedef uint256  hash_t;
 typedef CBigNum  target_t;
 typedef uint32_t compact_target_t;
+typedef uint256  votehash_t;
 
 static money_t const CENT = 10000;
 static money_t const COIN = 100 * CENT;

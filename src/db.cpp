@@ -861,21 +861,21 @@ bool LoadAddresses()
     return CAddrDB("cr+").LoadAddresses();
 }
 
-bool CTxDB::ReadProposalVoteCount(uint256 txnHash, timestamp_t deadline, CProposalVoteCount& votecount)
+bool CTxDB::ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t &votecount)
 {
-  tuple<string, uint256, timestamp_t> triple(string("votecount"), txnHash, deadline);
+  tuple<string, votehash_t, timestamp_t> triple(string("votecount"), txnHash, deadline);
   return Read(triple, votecount);
 }
 
-bool CTxDB::WriteProposalVoteCount(const CProposalVoteCount votecount)
+bool CTxDB::WriteProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t votecount)
 {
-  tuple<string, uint160, timestamp_t> triple(string("votecount"), votecount.txnHash, votecount.deadline);
+  tuple<string, votehash_t, timestamp_t> triple(string("votecount"), txnHash, deadline);
   return Write(triple, votecount);
 }
 
-bool CTxDB::EraseProposalVoteCount(const CProposalVoteCount votecount)
+bool CTxDB::EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline)
 {
-  tuple<string, uint160, timestamp_t> triple(string("votecount"), votecount.txnHash, votecount.deadline);
+  tuple<string, votehash_t, timestamp_t> triple(string("votecount"), txnHash, deadline);
   return Erase(triple);
 }
 

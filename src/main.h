@@ -455,7 +455,7 @@ public:
         return SerializeHash(*this);
     }
 
-    bool IsVoteTxn(uint256& txnHash, uint64& deadline)
+    bool IsVoteTxn(votehash_t& txnHash, money_t& deadline)
     {
       if(vout.size() != 1)
 	return false;
@@ -742,6 +742,7 @@ public:
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge = false) const;  // ppcoin: get transaction coin age
+    bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts);
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
@@ -1139,8 +1140,6 @@ public:
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);
-    bool UpdateVoteFieldsForConnectBlock(CTxDB& txdb, CBlockIndex *pindex, bool undo);
-
 };
 
 
@@ -1169,9 +1168,9 @@ public:
     int64 nMoneySupply;
 
     //nomiccoin:
-    int64 nSharedPoolFunds; // the size of the spending pool which can be voted on
-    int64 votedCoinsDelta; // the change in the number voting coting in this block
-    int64 votingPeriodVotedCoins; //the total number of coins that were voted with in the given
+    money_t nSharedPoolFunds; // the size of the spending pool which can be voted on
+    money_t votedCoinsDelta; // the change in the number voting coting in this block
+    money_t votingPeriodVotedCoins; //the total number of coins that were voted with in the given
     //voting period (used as the divisor to determine whether a particular vote won)
 
     unsigned int nFlags;  // ppcoin: block index flags

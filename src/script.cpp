@@ -1348,7 +1348,7 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
 }
 
 
-bool IsVoteScript(const CScript& scriptPubKey, uint256& txnHash, uint64& deadline)
+bool IsVoteScript(const CScript& scriptPubKey, votehash_t& txnHash, money_t& deadline)
 {
   if(scriptPubKey[0] == 8
      && scriptPubKey[2] == 20

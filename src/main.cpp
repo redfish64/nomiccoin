@@ -1048,15 +1048,6 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 }
 
 
-
-
-
-
-
-
-
-
-
 bool CTransaction::DisconnectInputs(CTxDB& txdb)
 {
     // Relinquish previous transactions' spent pointers
@@ -1211,41 +1202,61 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
 }
 
 /**
+ * Updates proposalVoteCounts by adding vote to it. If proposalVoteCounts doesn't contain entry
+ * for given txnHash, deadline, looked up in db
+ */
+void AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts,
+		    votehash_t txnHash, timestamp_t deadline, money_t vote)
+{
+  if(deadline < blockTime) //don't count votes that are too late
+    return;
+  
+  money_t vc;
+
+  std::map<std::pair<votehash_t, timestamp_t>,money_t>::iterator vcIter = proposalVoteCounts.find(make_pair(txnHash,deadline));  
+  if(vcIter == proposalVoteCounts.end()) //if not found
+    {
+      //try the disk
+      if(!txdb.ReadProposalVoteCount(txnHash, deadline, vc))
+	{
+	  //first voter
+	  vc = 0;
+	}
+    }
+  else
+    vc = vcIter->second;
+  
+  vc += vote;
+
+  proposalVoteCounts[make_pair(txnHash,deadline)] = vc;
+
+}
+
+/**
  * Calculates the effect this txn has on vote delta has on voter participation, and updates the vote 
  * counts for any proposals being voted for.
  * If the txn spends a UTXO from a previous voting txn, the influence the previous txn had on voting
  * counts is removed.
  */
-bool CTransaction::UpdateVoteCounts(CTxDB& txdb, MapPrevTx inputs, money_t & delta, std::map<std::pair<uint256, int64>,CProposalVoteCount>& proposalVoteCounts)
+bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts)
 {
-  uint64 deadline;
-  uint256 txnHash;
+  timestamp_t deadline;
+  votehash_t txnHash;
 
   if (IsCoinBase())
     return true;
   
   if(IsVoteTxn(txnHash,deadline))
     {
-      delta += GetValueOut();
-      auto vcIter = proposalVoteCounts.find(make_pair(txnHash,deadline));
+      money_t valueOut = GetValueOut();
+      delta += valueOut;
 
-      CProposalVoteCount vc;
-      if(vcIter == proposalVoteCounts.end())
-	{
-	  //try the disk
-	  if(!txdb.ReadProposalVoteCount(txnHash, deadline, vc))
-	    {
-	      vc.txnHash = txnHash;
-	      vc.deadline = deadline;
-	    }
-
-	  
-	  
-	}
-      if(vc.deadline == 0) { }
+      //if their vote got into a block before the deadline expired, only then count it
+      if(deadline >= blockTime)
+	AddToVoteCount(txdb,blockTime,proposalVoteCounts, txnHash, deadline, valueOut);
     }
-
-  //any previous voting output that this txn spent loses its vote
+  
+  //any previous voting output that this txn spent lose their vote
   for (unsigned int i = 0; i < vin.size(); i++)
     {
       COutPoint prevout = vin[i].prevout;
@@ -1254,16 +1265,17 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, MapPrevTx inputs, money_t & del
       CTransaction& txPrev = inputs[prevout.hash].second;
 
       if(txPrev.IsVoteTxn(txnHash,deadline))
-	delta -= txPrev.GetValueOut();
+	{
+	  money_t valueOut = GetValueOut();
+	  delta -= valueOut;
+
+	  //the prev vote gets subtracted if it got spent before the deadline
+	  if(deadline >= blockTime)
+	    AddToVoteCount(txdb,blockTime,proposalVoteCounts, txnHash, deadline, -valueOut);
+	}
     }
 
   return true;
-}
-
-bool CTransaction::UpdateProposalVoteCount(, uint256 txnHash, int deadline)
-{
-  CProposalVoteCount& vc = map[make_pair(txnHash,deadline)];
-  vc
 }
 
 bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
@@ -1436,86 +1448,59 @@ CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count)
   return pindex;
 }
 
-
-bool CBlock::UpdateVoteFieldsForConnectBlock(CTxDB& txdb, CBlockIndex *pindex, bool undo)
+/**
+ * Writes proposal vote counts from map to the db
+ */
+bool WriteProposalVoteCounts(CTxDB& txdb, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts)
 {
-  int undoFactor = undo ? -1 : 1;
-  
-    pindex->votedCoinsDelta = 0;
-    BOOST_FOREACH(CTransaction& tx, vtx)
+  for(std::map<std::pair<votehash_t, timestamp_t>,money_t>::iterator iterator = proposalVoteCounts.begin(); iterator != proposalVoteCounts.end(); iterator++) {
+    if(iterator->second == 0) // if all votes are deleted
+      //erase may fail if a vote was created and then spent right away
+      txdb.EraseProposalVoteCount(iterator->first.first, iterator->first.second);
+    else
       {
-	if(tx.IsCoinBase())
-	  continue;
-	
-	uint64 deadline;
-	uint256 txnHash;
-	if(tx.IsVoteTxn(txnHash, deadline))
-	  {
-	    //PERF, we may want to cache these, since many people will be voting for the same proposal often
-	    CProposalVoteCount votecount;
-	    int64 vote = tx.GetValueOut();
-	    pindex->votedCoinsDelta += vote * undoFactor;
-	    
-	    if(deadline > pindex->nTime)
-	      {
-		txdb.ReadProposalVoteCount(txnHash, deadline, votecount);
-		
-		votecount.totalVotes += vote * undoFactor;
-		
-		txdb.WriteProposalVoteCount(votecount);
-	      }
-	  }
-
-	//if any of the inputs were voting transactions, we have to invalidate the those votes,
-	//because they were spent (we do this even if the current txn is a voting txn)
-        BOOST_FOREACH(const CTxIn& txin, tx.vin)
-	  {
-	    CTransaction txPrev;
-
-	    if(!txdb.ReadDiskTx(txin.prevout, txPrev))
-	      return error("UpdateVoteFieldsForConnectBlock() : ReadTxIndex failed");
-	    
-	    uint64 prevDeadline;
-	    uint256 prevTxnHash;
-
-	    if(txPrev.IsVoteTxn(prevTxnHash, prevDeadline))
-	      {
-		CProposalVoteCount votecount;
-		int64 prevVote = txPrev.GetValueOut();
-		pindex->votedCoinsDelta -= prevVote * undoFactor;
-
-		if(deadline > pindex->nTime)
-		  {
-		    txdb.ReadProposalVoteCount(txnHash, deadline, votecount);
-		
-		    votecount.totalVotes -= prevVote * undoFactor;
-		
-		    txdb.WriteProposalVoteCount(votecount);
-		  }
-	      }
-	}
+	if(!txdb.WriteProposalVoteCount(iterator->first.first, iterator->first.second, iterator->second))
+	  return error("WriteProposalVoteCount() : failed to write");
       }
+  }
 
-    //update delta based on prior blocks
-    CBlockIndex *pVotePeriodStartIndex = GetPriorBlockIndex(pindex, VOTE_REG_PERIOD_BLOCKS);
-    
-    pindex->votingPeriodVotedCoins =
-      undoFactor * ((pVotePeriodStartIndex ? -pVotePeriodStartIndex->votedCoinsDelta : 0)
-		    + pindex->votedCoinsDelta)
-      + (pindex->pprev ? pindex->pprev->votingPeriodVotedCoins : 0);
-
-    return true;
+  return true;
 }
+
 
 
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
+  // Disconnect in reverse order
+  // and update ProposalVoteCounts for disconnected block
+  std::map<std::pair<votehash_t, timestamp_t>,money_t> proposalVoteCounts;
 
-    // Disconnect in reverse order
-    for (int i = vtx.size()-1; i >= 0; i--)
-        if (!vtx[i].DisconnectInputs(txdb))
-            return false;
+  timestamp_t deadline;
+  votehash_t txnHash;
 
+  for (int i = vtx.size()-1; i >= 0; i--)
+      {
+	CTransaction& tx = vtx[i];
+	if(tx.IsVoteTxn(txnHash, deadline))
+	  AddToVoteCount(txdb, pindex->nTime, proposalVoteCounts, txnHash, deadline, -tx.GetValueOut());
+	
+	//if any of the inputs were voting transactions, we have to recount those votes,
+	//because they are now unspent
+        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+	  {
+	    CTransaction txPrev;
+	    
+	    if(!txdb.ReadDiskTx(txin.prevout, txPrev))
+	      return error("UpdateVoteFieldsForConnectBlock() : ReadTxIndex failed");
+	    
+	    if(txPrev.IsVoteTxn(txnHash, deadline))
+	      AddToVoteCount(txdb, pindex->nTime, proposalVoteCounts, txnHash, deadline,
+			     txPrev.GetValueOut());
+	  }
+	
+        if (!tx.DisconnectInputs(txdb))
+	  return false;
+      }
     // Update block index on disk without changing it in memory.
     // The memory index structure will be changed after the db commits.
     if (pindex->pprev)
@@ -1525,6 +1510,10 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
         if (!txdb.WriteBlockIndex(blockindexPrev))
             return error("DisconnectBlock() : WriteBlockIndex failed");
     }
+
+    if(!WriteProposalVoteCounts(txdb, proposalVoteCounts))
+      return error("DisconnectBlock() : WriteProposalVoteCounts failed");
+      
 
     // ppcoin: clean up wallet after disconnecting coinstake
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -1577,6 +1566,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     int64 nValueOut = 0;
     unsigned int nSigOps = 0;
 
+    //reset voting stuff
+    pindex->votedCoinsDelta = 0;
+    pindex->votingPeriodVotedCoins = pindex->pprev->votingPeriodVotedCoins;
+
+    std::map<std::pair<votehash_t, timestamp_t>,money_t> proposalVoteCounts;
+    
     double poolPerc = SHARED_POOL_MINTING_PERC;
     
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -1621,6 +1616,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
 
+	    tx.UpdateVoteCounts(txdb, nTime, mapInputs, pindex->votedCoinsDelta,
+				proposalVoteCounts);
+
         }
 
         mapQueuedChanges[tx.GetHash()] = CTxIndex(posThisTx, tx.vout.size());
@@ -1636,6 +1634,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     money_t sharedPoolDelta =  nFees + (int)(pindex->nMint * poolPerc);
     //calculate pool funds
     pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + sharedPoolDelta; //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
+
+    //write out all the votes.. since this is stored outside of CBlockIndex, we need to revert
+    //these changes when we do a reorg in DisconnectBlock
+    if(!WriteProposalVoteCounts(txdb, proposalVoteCounts))
+      return error("Connect() : WriteProposalVoteCounts failed");
 
     pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolDelta;
     
@@ -1663,10 +1666,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
         if (!txdb.WriteBlockIndex(blockindexPrev))
             return error("ConnectBlock() : WriteBlockIndex for blockindexPrev failed");
     }
-
-    //NomicCoin: keep track of votes and voting participants
-    if(!UpdateVoteFieldsForConnectBlock(txdb, pindex, false))
-      return error("ConnectBlock() : UpdateVoteFieldsForConnectBlock failed");
 
     // Watch for transactions paying to me
     BOOST_FOREACH(CTransaction& tx, vtx)
