@@ -1606,6 +1606,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
       }
     
 
+    //TODO 2 get rid of cold minting. It's dangerous 
+    //TODO 2 get rid of this splitting code. It will upset voting
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         // Attempt to add more inputs

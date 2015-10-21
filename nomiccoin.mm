@@ -1211,7 +1211,7 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
-<node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445166771171" TEXT="vote counting">
+<node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
 <node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
 <node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
 <node CREATED="1445168257760" ID="ID_616330575" MODIFIED="1445168284380" TEXT="When we get a vote, we add/update the corresponding record"/>
@@ -1228,13 +1228,18 @@
 </node>
 </node>
 </node>
-<node CREATED="1445169437505" ID="ID_1653078411" MODIFIED="1445169444685" TEXT="Rewinding for a reorg">
+<node CREATED="1445169437505" ID="ID_1653078411" MODIFIED="1445328764877" TEXT="Rewinding for a reorg">
+<node COLOR="#009999" CREATED="1445328821294" FOLDED="true" ID="ID_1872478295" MODIFIED="1445328843870" TEXT="old">
+<node CREATED="1445169463233" ID="ID_997560439" MODIFIED="1445328831763" TEXT="Before deadline">
+<node CREATED="1445168284967" ID="ID_749629396" MODIFIED="1445169506084" TEXT="When we get a txn that has a prior input that is a vote, we add the vote to the record"/>
+<node CREATED="1445168257760" ID="ID_1090237758" MODIFIED="1445169525621" TEXT="When we get a vote, we delete the vote from the corresponding record. If the record is empty, we delete it"/>
+</node>
 <node CREATED="1445169449105" ID="ID_1217967193" MODIFIED="1445169455477" TEXT="After deadline">
 <node CREATED="1445169456849" ID="ID_75679471" MODIFIED="1445169460581" TEXT="Vote count never changes"/>
 </node>
-<node CREATED="1445169463233" ID="ID_997560439" MODIFIED="1445169467445" TEXT="Before deadline">
-<node CREATED="1445168284967" ID="ID_749629396" MODIFIED="1445169506084" TEXT="When we get a txn that has a prior input that is a vote, we add the vote to the record"/>
-<node CREATED="1445168257760" ID="ID_1090237758" MODIFIED="1445169525621" TEXT="When we get a vote, we delete the vote from the corresponding record. If the record is empty, we delete it"/>
+</node>
+<node CREATED="1445328768269" ID="ID_1208645903" MODIFIED="1445328819327" TEXT="We don&apos;t need to worry about this. Since we aren&apos;t affecting past blocks, it doesn&apos;t matter what the block index for the disconnected block contains">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 </node>
@@ -1258,6 +1263,19 @@
 </node>
 </node>
 </node>
+<node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
+<node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
+<node CREATED="1445328928830" ID="ID_602214935" MODIFIED="1445333839142" TEXT="Should we just use transactions after the fact?">
+<node CREATED="1445328959926" ID="ID_1964564743" MODIFIED="1445328977074" TEXT="It may be simpler than trying to change the code, affecting money supply, etc."/>
+<node CREATED="1445328981062" ID="ID_1818362765" MODIFIED="1445328999882" TEXT="But we need an initial amount, anyway, I suppose we could do the standard first mined block gets a huge payout"/>
+<node CREATED="1445329053678" ID="ID_1659295338" MODIFIED="1445329069049" TEXT="We also wouldn&apos;t need to keep changing the genesis block everytime"/>
+<node CREATED="1445333855782" ID="ID_1697435562" MODIFIED="1445333867258" TEXT="For spending pool, we&apos;ll just create a transaction with a huge fee"/>
+<node CREATED="1445333834734" ID="ID_823427773" MODIFIED="1445333837615" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
 <node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
 <node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
 <node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
@@ -1267,6 +1285,19 @@
 <node COLOR="#ff0000" CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445163722126" TEXT="But how does the redeeming txn get to unlock the funds?">
 <node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445163728762" TEXT="Something special in its txnIn I guess????"/>
 </node>
+</node>
+</node>
+<node CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445334541018" POSITION="right" TEXT="distribution">
+<node CREATED="1445334542478" ID="ID_787565242" MODIFIED="1445335182332" TEXT="Code contributers percentage"/>
+<node CREATED="1445334818975" ID="ID_1454056122" MODIFIED="1445334827594" TEXT="Give some to testnet participants"/>
+<node CREATED="1445334929927" ID="ID_842549061" MODIFIED="1445334938964" TEXT="Certain percentage to people who just ask"/>
+<node CREATED="1445334569270" ID="ID_446146847" MODIFIED="1445335199043" TEXT="Percentage to people owning bitcoin or altcoins who want some">
+<node CREATED="1445334589087" ID="ID_1582952753" MODIFIED="1445334599746" TEXT="Person posts public address of coin"/>
+<node CREATED="1445334603319" ID="ID_813015951" MODIFIED="1445334697994" TEXT="At a published time, I&apos;ll record the current market value of all the coins and give a corresponding percentage"/>
+</node>
+<node CREATED="1445334728495" ID="ID_553261947" MODIFIED="1445335212091" TEXT="Shared pool initial value percentage"/>
+<node CREATED="1445335254695" ID="ID_358078569" MODIFIED="1445335284546" TEXT="Vote on this?">
+<node CREATED="1445335286991" ID="ID_586665549" MODIFIED="1445335344203" TEXT="Even if someone tries to stuff the vote, they have to take into account the value of the coin if they do so. In other words, if they vote 100% for people who just ask, then what will the result be?"/>
 </node>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
@@ -1285,6 +1316,14 @@
 </node>
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
+</node>
+<node CREATED="1445336324239" ID="ID_1200673478" MODIFIED="1445336326507" POSITION="right" TEXT="server stuff">
+<node CREATED="1445336328007" ID="ID_709415985" MODIFIED="1445336330036" TEXT="1and1.com">
+<node CREATED="1445336331112" ID="ID_1542761447" MODIFIED="1445336371131" TEXT="4.99 a monht for 6 months + 9.99 setup fee (afterwards 12.99 a month). Unlimited traffic"/>
+</node>
+<node CREATED="1445336487303" ID="ID_36723372" MODIFIED="1445336489715" TEXT="hostwinds">
+<node CREATED="1445336493983" ID="ID_1723611632" MODIFIED="1445336500091" TEXT="pcmag editor choice for vpn"/>
+</node>
 </node>
 <node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1445065459758" POSITION="right" TEXT="bitcoin analysis">
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
@@ -1321,9 +1360,14 @@
 <node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
 <node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310444869" TEXT="Whenever we add a block to the block chain, we call ConnectBlock(), regardless if we made it ourselves or not"/>
 <node CREATED="1445236050159" ID="ID_359326903" MODIFIED="1445236063475" TEXT="AddToBlockIndex">
+<node CREATED="1445327810805" ID="ID_683237901" MODIFIED="1445327992362" TEXT="Writes CBlockIndex to db before calling SetBestChain"/>
 <node CREATED="1445235959286" ID="ID_1858487241" MODIFIED="1445235969218" TEXT="SetBestChain">
+<node CREATED="1445327925221" ID="ID_973945065" MODIFIED="1445327934345" TEXT="If genesis, does not call SetBestChainInner"/>
 <node CREATED="1445235970335" ID="ID_799162962" MODIFIED="1445235974515" TEXT="SetBestChainInner">
-<node CREATED="1445235976207" ID="ID_888274618" MODIFIED="1445235978210" TEXT="ConnectBlock"/>
+<node CREATED="1445235976207" ID="ID_888274618" MODIFIED="1445235978210" TEXT="ConnectBlock">
+<node CREATED="1445327971749" ID="ID_1123323722" MODIFIED="1445327983769" TEXT="Writes CBlockIndex for the second time (first was in AddToBlockIndex"/>
+<node COLOR="#ff0000" CREATED="1445328415310" ID="ID_294539002" MODIFIED="1445328562865" TEXT="We can&apos;t put nMoneySupply and pool funds here for genesis block because it doesn&apos;t get called"/>
+</node>
 </node>
 </node>
 </node>

@@ -97,10 +97,10 @@ extern uint32_t                          MAX_BLOCK_SIZE_GEN;
 extern uint32_t                          MAX_BLOCK_SIGOPS;
 extern uint32_t                          MAX_BLOCK_ORPHAN_TX;
 
-extern double                             POOL_MINTING_CUT;
-extern double                            POOL_MINING_CUT;
+extern double                            SHARED_POOL_MINTING_PERC;
+extern double                            SHARED_POOL_MINING_PERC;
 
-extern money_t INITIAL_SHARED_POOL_FUNDS_BALANCE;
+extern money_t GENESIS_SHARED_POOL_FUNDS;
 
 
 extern int VOTE_REG_PERIOD_BLOCKS;

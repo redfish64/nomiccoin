@@ -964,6 +964,11 @@ public:
         return (vtx.size() > 1 && vtx[1].IsCoinStake());
     }
 
+    bool IsGenesisBlock() const
+    {
+      return nTime == GENESIS_BLOCK_TIME && GetHash() == GENESIS_HASH;
+    }
+
     bool IsProofOfWork() const
     {
         return !IsProofOfStake();
@@ -1231,7 +1236,8 @@ public:
         nHeight = 0;
         bnChainTrust = 0;
         nMint = 0;
-        nMoneySupply = 0;
+
+	nMoneySupply = 0;
 	nSharedPoolFunds = 0;
 	votedCoinsDelta=0;
 	votingPeriodVotedCoins=0;
@@ -1243,7 +1249,6 @@ public:
         {
             SetProofOfStake();
             prevoutStake = block.vtx[1].vin[0].prevout;
-	    //TODO 2 ??? stake needs to go through vote transactions nStakeTime???
             nStakeTime = block.vtx[1].nTime;
         }
         else
@@ -1873,7 +1878,7 @@ class CProposalVoteCount
 {
  public:
   int nVersion;
-  uint160 txnHash; //hash of txn that redeems vote
+  uint256 txnHash; //hash of txn that redeems vote
   timestamp_t deadline; //deadline of vote
   money_t totalVotes; //the current number of votes
 

@@ -1210,6 +1210,62 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
     return nSigOps;
 }
 
+/**
+ * Calculates the effect this txn has on vote delta has on voter participation, and updates the vote 
+ * counts for any proposals being voted for.
+ * If the txn spends a UTXO from a previous voting txn, the influence the previous txn had on voting
+ * counts is removed.
+ */
+bool CTransaction::UpdateVoteCounts(CTxDB& txdb, MapPrevTx inputs, money_t & delta, std::map<std::pair<uint256, int64>,CProposalVoteCount>& proposalVoteCounts)
+{
+  uint64 deadline;
+  uint256 txnHash;
+
+  if (IsCoinBase())
+    return true;
+  
+  if(IsVoteTxn(txnHash,deadline))
+    {
+      delta += GetValueOut();
+      auto vcIter = proposalVoteCounts.find(make_pair(txnHash,deadline));
+
+      CProposalVoteCount vc;
+      if(vcIter == proposalVoteCounts.end())
+	{
+	  //try the disk
+	  if(!txdb.ReadProposalVoteCount(txnHash, deadline, vc))
+	    {
+	      vc.txnHash = txnHash;
+	      vc.deadline = deadline;
+	    }
+
+	  
+	  
+	}
+      if(vc.deadline == 0) { }
+    }
+
+  //any previous voting output that this txn spent loses its vote
+  for (unsigned int i = 0; i < vin.size(); i++)
+    {
+      COutPoint prevout = vin[i].prevout;
+      assert(inputs.count(prevout.hash) > 0);
+      //CTxIndex& txindex = inputs[prevout.hash].first;
+      CTransaction& txPrev = inputs[prevout.hash].second;
+
+      if(txPrev.IsVoteTxn(txnHash,deadline))
+	delta -= txPrev.GetValueOut();
+    }
+
+  return true;
+}
+
+bool CTransaction::UpdateProposalVoteCount(, uint256 txnHash, int deadline)
+{
+  CProposalVoteCount& vc = map[make_pair(txnHash,deadline)];
+  vc
+}
+
 bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                                  map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                                  const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash)
@@ -1454,9 +1510,6 @@ bool CBlock::UpdateVoteFieldsForConnectBlock(CTxDB& txdb, CBlockIndex *pindex, b
 
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
-  if(!UpdateVoteFieldsForConnectBlock(txdb, pindex, true))
-    return error("DisconnectBlock() : UpdateVoteFieldsForConnectBlock failed");
-
 
     // Disconnect in reverse order
     for (int i = vtx.size()-1; i >= 0; i--)
@@ -1523,6 +1576,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     int64 nValueIn = 0;
     int64 nValueOut = 0;
     unsigned int nSigOps = 0;
+
+    double poolPerc = SHARED_POOL_MINTING_PERC;
+    
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
         nSigOps += tx.GetLegacySigOpCount();
@@ -1534,7 +1590,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
         MapPrevTx mapInputs;
         if (tx.IsCoinBase())
+	  {
             nValueOut += tx.GetValueOut();
+	    poolPerc = SHARED_POOL_MINING_PERC;
+	  }
         else
         {
             bool fInvalid;
@@ -1568,15 +1627,17 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     }
 
     // ppcoin: track money supply and mint amount info
-    pindex->nMint = nValueOut - nValueIn + nFees;
-    pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + nValueOut - nValueIn;
+    //note this is the mining amount for coinbase blocks
+    //TODO 3 keep this??? It doesn't have much purpose
+    pindex->nMint = nValueOut - nValueIn;
 
-    // nomiccoin, calculate pool funds
-    if(pindex->pprev == NULL) 
-      pindex->nSharedPoolFunds = INITIAL_SHARED_POOL_FUNDS_BALANCE;
-    else
-      pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + (int)(pindex->nMint * POOL_MINTING_CUT); //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
+    //nomiccoin:
+    //the shared pool gets awarded a percentage of minting/mining amount along with all the fees
+    money_t sharedPoolDelta =  nFees + (int)(pindex->nMint * poolPerc);
+    //calculate pool funds
+    pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + sharedPoolDelta; //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
 
+    pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolDelta;
     
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
         return error("Connect() : WriteBlockIndex for pindex failed");
@@ -2486,17 +2547,7 @@ struct initial_owner_data
   money_t coins;
 } typedef initial_owner_data;
 
-/**
-   Recorded forevermore in history. The great founders of our coin
-*/
-initial_owner_data INITIAL_OWNERS [] =
-  {
-    {"EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM", 500 * COIN},
-    {"Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ", 1000 * COIN},
-    {"Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS", 1500 * COIN},
-    {NULL, 0}
-  };
-//TODO 2, must resync before pre-balance works
+
 bool LoadBlockIndex(bool fAllowNew)
 {
     //
@@ -2534,21 +2585,6 @@ bool LoadBlockIndex(bool fAllowNew)
         CBlock block;
         block.vtx.push_back(txNew);
 
-	for(initial_owner_data* it = INITIAL_OWNERS; it->coins != 0; it++) {
-	  CBitcoinAddress addr(it->addr);
-	  int funds = it->coins;
-	  
-	  CTransaction txNew;
-	  txNew.nTime = GENESIS_TX_TIME;
-	  txNew.vin.resize(1);
-	  txNew.vout.resize(1);
-	  txNew.vin[0].prevout.SetNull();
-	  txNew.vout[0].scriptPubKey.SetDestination(addr.Get());
-	  txNew.vout[0].nValue = funds;
-
-	  block.vtx.push_back(txNew);
-	}
-	
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = GENESIS_BLOCK_VERSION;

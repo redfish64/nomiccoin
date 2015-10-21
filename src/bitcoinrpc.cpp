@@ -317,6 +317,9 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fTxI
     result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
     result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
     result.push_back(Pair("sharedpoolfunds", ValueFromAmount(blockindex->nSharedPoolFunds)));
+    result.push_back(Pair("sharedpoolfunds",   ValueFromAmount(blockindex->nSharedPoolFunds)));
+    result.push_back(Pair("votedCoinsDelta",   ValueFromAmount(blockindex->votedCoinsDelta)));
+    result.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(blockindex->votingPeriodVotedCoins)));
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
     if (blockindex->pnext)
@@ -647,6 +650,8 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("sharedpoolfunds",   ValueFromAmount(pindexBest->nSharedPoolFunds)));
+    obj.push_back(Pair("votedCoinsDelta",   ValueFromAmount(pindexBest->votedCoinsDelta)));
+    obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(pindexBest->votingPeriodVotedCoins)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (fUseProxy ? addrProxy.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
