@@ -1631,7 +1631,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     //nomiccoin:
     //the shared pool gets awarded a percentage of minting/mining amount along with all the fees
-    money_t sharedPoolDelta =  nFees + (int)(pindex->nMint * poolPerc);
+    money_t sharedPoolDelta =  nFees + (money_t)(pindex->nMint * poolPerc);
     //calculate pool funds
     pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + sharedPoolDelta; //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
 

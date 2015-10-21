@@ -459,7 +459,7 @@ public:
     {
       if(vout.size() != 1)
 	return false;
-      return IsVoteScript(vout[0].scriptPubKey, txnHash, deadline);
+      return GetVoteScriptData(vout[0].scriptPubKey, txnHash, deadline);
     }
 
     bool IsFinal(int nBlockHeight=0, int64 nBlockTime=0) const

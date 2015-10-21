@@ -1347,26 +1347,47 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
     return true;
 }
 
-
-bool IsVoteScript(const CScript& scriptPubKey, votehash_t& txnHash, money_t& deadline)
+bool IsVoteScript(const CScript& scriptPubKey)
 {
-  if(scriptPubKey[0] == 8
-     && scriptPubKey[2] == 20
-     && scriptPubKey[4] == OP_VOTE)
-    {
-      CScript::const_iterator pc = scriptPubKey.begin();
-      opcodetype opcode;
-      vector<unsigned char> vch;
-      
-      scriptPubKey.GetOp(pc, opcode,vch);
-      txnHash = CastToBigNum(vch).getuint256();
-      scriptPubKey.GetOp(pc, opcode,vch);
-      deadline = CastToBigNum(vch).getuint64();
+  CScript::const_iterator iter = scriptPubKey.begin();
+  
+  //first we check the deadline, which is an 8 byte number. CScript << <num> is smart enough
+  //to push less bytes for a smaller number, regardless of the maximum size, so we have to
+  //test for a realistically sized timestamp for a deadline
+  if(iter == scriptPubKey.end() || *iter < 3 || *iter > 8)
+    return false;
 
-      return true;
-    }
+  iter += *iter + 1;
 
-  return false;
+  //check transaction hash
+  if(*iter != 32)
+    return false;
+
+  iter += 33;
+
+  if(*iter != OP_VOTE)
+    return false;
+
+  return true;
+}
+
+bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash, timestamp_t& deadline)
+{
+  if(!IsVoteScript( scriptPubKey))
+    return false;
+
+  CScript::const_iterator iter = scriptPubKey.begin();
+  opcodetype opcode;
+  vector<unsigned char> vch;
+  scriptPubKey.GetOp(iter, opcode,vch);
+  deadline = CastToBigNum(vch).getuint64();
+
+  //now get the txn hash
+  
+  scriptPubKey.GetOp(iter, opcode,vch);
+  txnHash = CastToBigNum(vch).getuint256();
+
+  return true;
 }
 
 
@@ -1375,8 +1396,22 @@ bool IsVoteScript(const CScript& scriptPubKey, votehash_t& txnHash, money_t& dea
 //
 // Return public keys or hashes from scriptPubKey, for 'standard' transaction types.
 //
-bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
+bool SolverInner(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet, bool insideVotePreamble)
 {
+  if(!insideVotePreamble)
+    {
+      if(IsVoteScript(scriptPubKey))
+	{
+	  //verify the rest of the script is standard
+	  CScript::const_iterator first = scriptPubKey.begin() + VOTE_PREAMBLE_SIZE;
+	  CScript::const_iterator last = scriptPubKey.end();
+	  CScript withoutVote(first, last);
+
+	  //we still treat the script as what it was without the vote preamble
+	  return SolverInner(withoutVote, typeRet, vSolutionsRet, true);
+	}
+    }
+  
     // Templates
     static multimap<txnouttype, CScript> mTemplates;
     if (mTemplates.empty())
@@ -1500,6 +1535,10 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     return false;
 }
 
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
+{
+  return SolverInner(scriptPubKey, typeRet, vSolutionsRet, false);
+}
 
 bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int nHashType, CScript& scriptSigRet)
 {

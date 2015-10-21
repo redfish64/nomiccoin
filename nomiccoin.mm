@@ -1211,6 +1211,17 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node CREATED="1445410698446" ID="ID_1307502137" MODIFIED="1445410703794" TEXT="Should we allow a partial vote?">
+<node CREATED="1445410705950" ID="ID_932884072" MODIFIED="1445410720753" TEXT="Help with testing. No need to vote all coins at once"/>
+<node CREATED="1445410722063" ID="ID_1695876266" MODIFIED="1445410757635" TEXT="Won&apos;t matter for staking except that it would split staking up, which is good for network"/>
+<node CREATED="1445410761606" ID="ID_1225482478" MODIFIED="1445415947180" TEXT="Easy to do">
+<node CREATED="1445415056616" ID="ID_260861529" MODIFIED="1445415958124" TEXT="If there is any change, we handle it by creating a null vote"/>
+</node>
+<node CREATED="1445410769894" ID="ID_494428060" MODIFIED="1445416089292" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445416099545" ID="ID_1299293618" MODIFIED="1445416133700" TEXT="It&apos;s not useful to the user. If they want to vote on two things, they should vote all their coins on one, then after the deadline of the first, vote all their coins on the second"/>
+</node>
+</node>
 <node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
 <node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
 <node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
@@ -1288,6 +1299,7 @@
 </node>
 </node>
 <node CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445334541018" POSITION="right" TEXT="distribution">
+<node CREATED="1445392911554" ID="ID_445087297" MODIFIED="1445392913518" TEXT="old">
 <node CREATED="1445334542478" ID="ID_787565242" MODIFIED="1445335182332" TEXT="Code contributers percentage"/>
 <node CREATED="1445334818975" ID="ID_1454056122" MODIFIED="1445334827594" TEXT="Give some to testnet participants"/>
 <node CREATED="1445334929927" ID="ID_842549061" MODIFIED="1445334938964" TEXT="Certain percentage to people who just ask"/>
@@ -1299,6 +1311,10 @@
 <node CREATED="1445335254695" ID="ID_358078569" MODIFIED="1445335284546" TEXT="Vote on this?">
 <node CREATED="1445335286991" ID="ID_586665549" MODIFIED="1445335344203" TEXT="Even if someone tries to stuff the vote, they have to take into account the value of the coin if they do so. In other words, if they vote 100% for people who just ask, then what will the result be?"/>
 </node>
+</node>
+<node CREATED="1445392921442" ID="ID_968435967" MODIFIED="1445392928246" TEXT="Code contributers percentage"/>
+<node CREATED="1445392929122" ID="ID_1348176081" MODIFIED="1445392936022" TEXT="testnet helpers percentage"/>
+<node CREATED="1445392936602" ID="ID_517796839" MODIFIED="1445392944110" TEXT="faucet"/>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
 <node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
@@ -1317,12 +1333,18 @@
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
 </node>
-<node CREATED="1445336324239" ID="ID_1200673478" MODIFIED="1445336326507" POSITION="right" TEXT="server stuff">
+<node CREATED="1445397232564" ID="ID_75830749" MODIFIED="1445397235328" POSITION="right" TEXT="external stuff">
+<node CREATED="1445397236852" ID="ID_1563557230" MODIFIED="1445397239912" TEXT="whitepaper"/>
+<node CREATED="1445397241460" ID="ID_857293888" MODIFIED="1445397245432" TEXT="website"/>
+<node CREATED="1445397245772" ID="ID_776958830" MODIFIED="1445397248280" TEXT="blockexplorer"/>
+<node CREATED="1445397252452" ID="ID_1830912522" MODIFIED="1445397254120" TEXT="forum"/>
+<node CREATED="1445336324239" ID="ID_1200673478" MODIFIED="1445336326507" TEXT="server stuff">
 <node CREATED="1445336328007" ID="ID_709415985" MODIFIED="1445336330036" TEXT="1and1.com">
 <node CREATED="1445336331112" ID="ID_1542761447" MODIFIED="1445336371131" TEXT="4.99 a monht for 6 months + 9.99 setup fee (afterwards 12.99 a month). Unlimited traffic"/>
 </node>
 <node CREATED="1445336487303" ID="ID_36723372" MODIFIED="1445336489715" TEXT="hostwinds">
 <node CREATED="1445336493983" ID="ID_1723611632" MODIFIED="1445336500091" TEXT="pcmag editor choice for vpn"/>
+</node>
 </node>
 </node>
 <node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1445065459758" POSITION="right" TEXT="bitcoin analysis">

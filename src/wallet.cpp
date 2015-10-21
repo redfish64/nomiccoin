@@ -1187,7 +1187,7 @@ void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins)
 CScript CreateVoteScript(CProposal proposal)
 {
   CScript outScript;
-
+  //PERF, should we force deadline to be 4 bytes to standardize the length of op_vite?
   outScript << proposal.deadline << proposal.txnTemplate.GetHash() << OP_VOTE;
 
   return outScript;
@@ -1195,7 +1195,7 @@ CScript CreateVoteScript(CProposal proposal)
 
 
 bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
-				 CWalletVotingTxnSet & wVoteSet )
+				 CWalletVotingTxnSet & wVoteSet)
 {
   wVoteSet.proposal = proposal;
   
@@ -1208,6 +1208,7 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
       VotableCoins(nVoteTime,votableCoins);
 
       // Create one transaction per votable input
+      // otherwise we won't no which input to trace back to find stake age
       BOOST_FOREACH(COutput output, votableCoins)
 	{
 	  CTxOut utxoToVoteWith = output.tx->vout[output.i];
@@ -1219,11 +1220,19 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  
 	  int64 nValue = utxoToVoteWith.nValue;
 	  nValue -= txNew.GetMinFee();
-	  
+
 	  //we send the money back exactly where we got it, except that we prepend the voting instruction
 	  //We do this in this way to allow us to find these looped transactions easily, so that we can
 	  //prevent unclaimed staking rewards to reset when these voting transactions occur
-	  CScript scriptWithVote = CreateVoteScript(proposal) + utxoToVoteWith.scriptPubKey;
+	  CScript scriptWithVote = CreateVoteScript(proposal);
+
+	  //we must remove the inner vote preamble if any (in the case the vote was replaced),
+	  // or script will be marked nonstandard
+	  if(IsVoteScript(utxoToVoteWith.scriptPubKey))
+	    scriptWithVote += CScript(utxoToVoteWith.scriptPubKey.begin()+VOTE_PREAMBLE_SIZE,
+				      utxoToVoteWith.scriptPubKey.end());
+	  else
+	    scriptWithVote += utxoToVoteWith.scriptPubKey;
 	  
 	  CTxOut txOut(nValue, scriptWithVote );
 	  txNew.vout.push_back(txOut);
