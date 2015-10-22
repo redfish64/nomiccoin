@@ -6,6 +6,7 @@
 
 #include "constants.h"
 #include "macros.h"
+#include "main.h"
 #include "irc.h"
 #include "db.h"
 #include "net.h"
@@ -890,10 +891,14 @@ void ThreadMapPort2(void* parg)
 #ifndef UPNPDISCOVER_SUCCESS
     /* miniupnpc 1.5 */
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0);
-#else
+#elif MINIUPNPC_API_VERSION < 14
     /* miniupnpc 1.6 */
     int error = 0;
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, &error);
+#else
+    /* miniupnpc 1.9 */
+    int error = 0;
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0, 0, 2, &error);
 #endif
 
     struct UPNPUrls urls;
@@ -1758,3 +1763,17 @@ public:
     }
 }
 instance_of_cnetcleanup;
+
+void RelayBlock(const CBlock& block, const uint256& hash)
+{
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss.reserve(10000);
+    ss << block;
+    RelayBlock(block, hash, ss);
+}
+
+void RelayBlock(const CBlock& tx, const uint256& hash, const CDataStream& ss)
+{
+    CInv inv(MSG_BLOCK, hash);
+    RelayMessage(inv, ss);
+}

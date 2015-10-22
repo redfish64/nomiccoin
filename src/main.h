@@ -199,6 +199,12 @@ public:
     void SetNull() { hash = 0; n = static_cast<unsigned int>(-1); }
     bool IsNull() const { return (hash == 0 && n == static_cast<unsigned int>(-1)); }
 
+    /**
+     * Used for a transaction that redeems a pass vote proposal
+     */
+    void SetVoteRedeeming() { hash = 0; n = static_cast<unsigned int>(-2); }
+    bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
+
     friend bool operator<(const COutPoint& a, const COutPoint& b)
     {
         return (a.hash < b.hash || (a.hash == b.hash && a.n < b.n));
@@ -517,6 +523,11 @@ public:
     {
         // ppcoin: the coin stake transaction is marked with the first output empty
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
+    }
+
+    bool IsProposal() const
+    {
+        return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
     }
 
     /**

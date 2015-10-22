@@ -82,7 +82,7 @@ uint32_t                          MAX_BLOCK_SIZE              = 1000000;
 //                                Maximal number of PoW blocks, after which their reward become null
 //                                You can use std::numeric_limits< blockheight_t >::max( ) to disable this parameter
 
-blockheight_t                     POW_MAX_BLOCK               = 1;
+blockheight_t                     POW_MAX_BLOCK              = std::numeric_limits< blockheight_t >::max();
 
 //                                Initial network targets
 
@@ -135,6 +135,16 @@ uint32_t                          MODIFIER_INTERVAL_RATIO     = 18;
 money_t                           STAKE_COIN_STEP             = 1 * COIN;
 timestamp_t                       STAKE_AGE_STEP              = 1 * DAY;
 
+//                                The client will try to aggregate multiple inputs when staking until the coin amount exceed the COMBINE_THRESHOLD
+//                                Note that this number is a divider : the higher it is, the less coins will be combined in a single pass
+
+uint64_t                          STAKE_COMBINE_THRESHOLD     = 3;
+
+//                                The client will try to split the utxo as much as possible until they stake at most every STAKE_SPLIT_AGE
+//                                You probably want to limit this variable to the STAKE_MAX_AGE, or you will end up losing compound interest (thanks timengler for the heads-up)
+
+timestamp_t                       STAKE_SPLIT_AGE             = STAKE_MAX_AGE;
+
 //                                The target doesn't change immediately to take the new work difficulty in account - it is actually spread over an amount of time, the TARGET_TIMESPAN
 
 timestamp_t                       TARGET_TIMESPAN             = 2 * HOUR;
@@ -150,6 +160,7 @@ std::string                       CHECKPOINT_PRIVATE_KEY      = ""; // Do NOT se
 std::string                       CALERT_PUBLIC_KEY           = "046cad722ce2f38f6bd434d64423fc9613c7cb360dd4f957ae56f140a8c65882857c3436f3004733b56560e43e677744b557d471de132b48363fafcb0e18b8b0f6";
 
 // -- These variables should probably not be modified, since they rely on the previous ones
+// -- Don't forget that the testnet code also has to change them if it changes the variables they depend from
 
 money_t                           MIN_TXOUT_AMOUNT            = MIN_TX_FEES;
 

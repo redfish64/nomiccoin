@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" ID="ID_652303042" MODIFIED="1444990338398" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445503237233" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -789,6 +789,26 @@
 <node CREATED="1445167588000" ID="ID_1697677648" MODIFIED="1445167589588" TEXT="FUTURE"/>
 </node>
 </node>
+<node CREATED="1445160080411" ID="ID_1381558090" MODIFIED="1445160695731" TEXT="Should we allow someone to vote for two proposals at the same time?">
+<node CREATED="1445160602243" ID="ID_1580442743" MODIFIED="1445160625391" TEXT="As long as the deadlines differ, they&apos;d be able to do this anyway">
+<node CREATED="1445160686795" ID="ID_1100260026" MODIFIED="1445160693351" TEXT="But if the deadlines are the same, they would not"/>
+</node>
+<node CREATED="1445160626075" ID="ID_905585254" MODIFIED="1445160658479" TEXT="But it&apos;s someone complicated, because it prevents a user from reverting their vote, unless they move funds"/>
+<node CREATED="1445160663107" ID="ID_1225697076" MODIFIED="1445160697180" TEXT="Maybe better to only allow to dedicate coins to one proposal">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445410698446" ID="ID_1307502137" MODIFIED="1445410703794" TEXT="Should we allow a partial vote?">
+<node CREATED="1445410705950" ID="ID_932884072" MODIFIED="1445410720753" TEXT="Help with testing. No need to vote all coins at once"/>
+<node CREATED="1445410722063" ID="ID_1695876266" MODIFIED="1445410757635" TEXT="Won&apos;t matter for staking except that it would split staking up, which is good for network"/>
+<node CREATED="1445410761606" ID="ID_1225482478" MODIFIED="1445415947180" TEXT="Easy to do">
+<node CREATED="1445415056616" ID="ID_260861529" MODIFIED="1445415958124" TEXT="If there is any change, we handle it by creating a null vote"/>
+</node>
+<node CREATED="1445410769894" ID="ID_494428060" MODIFIED="1445416089292" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445416099545" ID="ID_1299293618" MODIFIED="1445416133700" TEXT="It&apos;s not useful to the user. If they want to vote on two things, they should vote all their coins on one, then after the deadline of the first, vote all their coins on the second"/>
+</node>
+</node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
@@ -1202,26 +1222,6 @@
 </node>
 <node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
 <node COLOR="#cc3300" CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445041663466" TEXT="Cannot take place for the first few blocks... to give people a chance to register"/>
-<node CREATED="1445160080411" ID="ID_1381558090" MODIFIED="1445160695731" TEXT="Should we allow someone to vote for two proposals at the same time?">
-<node CREATED="1445160602243" ID="ID_1580442743" MODIFIED="1445160625391" TEXT="As long as the deadlines differ, they&apos;d be able to do this anyway">
-<node CREATED="1445160686795" ID="ID_1100260026" MODIFIED="1445160693351" TEXT="But if the deadlines are the same, they would not"/>
-</node>
-<node CREATED="1445160626075" ID="ID_905585254" MODIFIED="1445160658479" TEXT="But it&apos;s someone complicated, because it prevents a user from reverting their vote, unless they move funds"/>
-<node CREATED="1445160663107" ID="ID_1225697076" MODIFIED="1445160697180" TEXT="Maybe better to only allow to dedicate coins to one proposal">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-<node CREATED="1445410698446" ID="ID_1307502137" MODIFIED="1445410703794" TEXT="Should we allow a partial vote?">
-<node CREATED="1445410705950" ID="ID_932884072" MODIFIED="1445410720753" TEXT="Help with testing. No need to vote all coins at once"/>
-<node CREATED="1445410722063" ID="ID_1695876266" MODIFIED="1445410757635" TEXT="Won&apos;t matter for staking except that it would split staking up, which is good for network"/>
-<node CREATED="1445410761606" ID="ID_1225482478" MODIFIED="1445415947180" TEXT="Easy to do">
-<node CREATED="1445415056616" ID="ID_260861529" MODIFIED="1445415958124" TEXT="If there is any change, we handle it by creating a null vote"/>
-</node>
-<node CREATED="1445410769894" ID="ID_494428060" MODIFIED="1445416089292" TEXT="No">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1445416099545" ID="ID_1299293618" MODIFIED="1445416133700" TEXT="It&apos;s not useful to the user. If they want to vote on two things, they should vote all their coins on one, then after the deadline of the first, vote all their coins on the second"/>
-</node>
-</node>
 <node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
 <node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
 <node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
@@ -1273,6 +1273,16 @@
 <node CREATED="1445170914945" ID="ID_432060281" MODIFIED="1445170959614" TEXT="The above 2 fields should calculate the votersInVotePeriod properly"/>
 </node>
 </node>
+<node CREATED="1445502574963" ID="ID_1788275487" MODIFIED="1445502850171" TEXT="How do we deal with amounts so small they are less than the minimum txn amount?">
+<node CREATED="1445502610059" ID="ID_2554190" MODIFIED="1445502638791" TEXT="We could just let them through if they&apos;re vote transactions, but then there is this weird zero output txn, and I don&apos;t know how it might effect the wallet code"/>
+<node CREATED="1445502771195" ID="ID_1813375873" MODIFIED="1445502797967" TEXT="I think we may be better off refusing to vote with UTXO&apos;s that small">
+<node CREATED="1445502799851" ID="ID_208378298" MODIFIED="1445502816768" TEXT="It will cause an annoyance, since not all the user&apos;s funds will be voted to the new proposal"/>
+<node CREATED="1445502817275" ID="ID_527260292" MODIFIED="1445502840542" TEXT="But it should happen so rarely, that I don&apos;t think it makes much of a difference, and isn&apos;t worth spending time on right now"/>
+</node>
+<node CREATED="1445502845643" ID="ID_902400812" MODIFIED="1445502848211" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 <node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
 <node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
@@ -1296,6 +1306,25 @@
 <node COLOR="#ff0000" CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445163722126" TEXT="But how does the redeeming txn get to unlock the funds?">
 <node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445163728762" TEXT="Something special in its txnIn I guess????"/>
 </node>
+</node>
+<node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
+<node COLOR="#ff0000" CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445502500579" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445502505363" ID="ID_1734967915" MODIFIED="1445502528631" TEXT="Staking always falls through to the previous transaction if the current txn is a vote"/>
+</node>
+<node CREATED="1445504345683" ID="ID_1389366058" MODIFIED="1445504351247" TEXT="proposal txn">
+<node CREATED="1445504352708" ID="ID_580089223" MODIFIED="1445504360391" TEXT="This is the txn used when creating a proposal"/>
+<node CREATED="1445504360836" ID="ID_860343474" MODIFIED="1445504378160" TEXT="It has a null input, like a coin base, but a index of -2, rather than -1"/>
+<node COLOR="#ff0000" CREATED="1445504379204" ID="ID_1389536906" MODIFIED="1445504383860" TEXT="TODO">
+<node CREATED="1445504385996" ID="ID_1968195892" MODIFIED="1445504407096" TEXT="Search for all instances of IsNull() and determine if a proposal check needs to be done"/>
+<node CREATED="1445504407611" ID="ID_341981322" MODIFIED="1445504431728" TEXT="Search for all instances of IsCoin* ..."/>
+</node>
+</node>
+</node>
+<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445505326920" POSITION="right" TEXT="testing">
+<node CREATED="1445505328564" ID="ID_586147613" MODIFIED="1445505335176" TEXT="Take a look at: test/test-double-stake-punishment.js">
+<node CREATED="1445505338677" ID="ID_44908685" MODIFIED="1445505359392" TEXT="It does some interesting things that may help us test voting"/>
 </node>
 </node>
 <node CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445334541018" POSITION="right" TEXT="distribution">

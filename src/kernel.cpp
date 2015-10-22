@@ -4,11 +4,54 @@
 
 #include <boost/assign/list_of.hpp>
 
+#include <map>
+#include <set>
+#include <utility>
+
+#include "StakeStats.h"
 #include "constants.h"
-#include "kernel.h"
 #include "db.h"
+#include "kernel.h"
 
 using namespace std;
+
+static std::map<pos_kernel_t, std::set<hash_t> > gBlacklistedProofOfStakeKernels;
+static std::map<hash_t, pos_kernel_t> gBlacklistedProofOfStakeBlocks;
+
+void BlacklistProofOfStake(pos_kernel_t const & proofOfStake, hash_t const & blockHash)
+{
+    gBlacklistedProofOfStakeKernels[proofOfStake].insert(blockHash);
+    gBlacklistedProofOfStakeBlocks.insert(std::make_pair(blockHash, proofOfStake));
+}
+
+void CleanProofOfStakeBlacklist(pos_kernel_t const & proofOfStake)
+{
+    if (!IsProofOfStakeBlacklisted(proofOfStake))
+        return ;
+
+    BOOST_FOREACH(hash_t const & hash, gBlacklistedProofOfStakeKernels.at(proofOfStake))
+        gBlacklistedProofOfStakeBlocks.erase(hash);
+
+    gBlacklistedProofOfStakeKernels.erase(proofOfStake);
+}
+
+void CleanProofOfStakeBlacklist(hash_t const & blockHash)
+{
+    if (!IsProofOfStakeBlacklisted(blockHash))
+        return ;
+
+    CleanProofOfStakeBlacklist(gBlacklistedProofOfStakeBlocks[blockHash]);
+}
+
+bool IsProofOfStakeBlacklisted(pos_kernel_t const & proofOfStake)
+{
+    return gBlacklistedProofOfStakeKernels.count(proofOfStake) > 0;
+}
+
+bool IsProofOfStakeBlacklisted(hash_t const & blockHash)
+{
+    return gBlacklistedProofOfStakeBlocks.count(blockHash) > 0;
+}
 
 // Get the last stake modifier and its generation time from a given block
 static bool GetLastStakeModifier(const CBlockIndex* pindex, uint64& nStakeModifier, int64& nModifierTime)
@@ -231,15 +274,8 @@ CBigNum MAX_HASH(1);
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 //
-bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, CBigNum * targetHash, int64 * coinsStaked)
+bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, StakeStats *stakeStats)
 {
-  //TODO tim put this in a proper place
-  if(MAX_HASH == (CBigNum(1)))
-    {
-      for(int i = 0; i < 256; i++)
-	MAX_HASH *= (CBigNum(2));
-    }
-
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
         return error("CheckStakeKernelHash() : nTime violation");
     unsigned int nTimeBlockFrom = blockFrom.GetBlockTime();
@@ -250,16 +286,14 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
     bnTargetPerCoinDay.SetCompact(nBits);
 
     int64 nValueIn = txPrev.vout[prevout.n].nValue;
-
-    if(coinsStaked)
-      *coinsStaked = nValueIn;
-
+    
     int64 nTimeWeight = min((int64)nTimeTx - txPrev.nTime, (int64)STAKE_MAX_AGE) - STAKE_MIN_AGE;
 
-    if ( STAKE_MIN_AGE == STAKE_MAX_AGE )
+    if (STAKE_MIN_AGE == STAKE_MAX_AGE)
         nTimeWeight = STAKE_AGE_STEP;
 
     CBigNum bnCoinDayWeight = CBigNum(nValueIn) * nTimeWeight / STAKE_COIN_STEP / STAKE_AGE_STEP;
+    CBigNum bnTarget = bnCoinDayWeight * bnTargetPerCoinDay;
 
     uint64 nStakeModifier = pindexPrev->nStakeModifier;
     int nStakeModifierHeight = pindexPrev->nHeight;
@@ -276,43 +310,25 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
 
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
-    if(targetHash)
-      *targetHash = bnCoinDayWeight * bnTargetPerCoinDay;
-
     if (fPrintProofOfStake)
     {
-        printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
-               nStakeModifier, nStakeModifierHeight,
-               DateTimeStrFormat(nStakeModifierTime).c_str(),
-               mapBlockIndex.at(blockFrom.GetHash())->nHeight,
-               DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
-        printf("CheckStakeKernelHash() : check protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n",
-               "0.3",
-               nStakeModifier,
-               nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx,
-               hashProofOfStake.ToString().c_str());
-	int odds = (MAX_HASH / (bnCoinDayWeight * bnTargetPerCoinDay)).getint();
-	printf("CheckStakeKernelHash(): odds approximately %d to 1 MAX_HASH %s TARGET %s\n", odds, MAX_HASH.GetHex().c_str(),  (bnCoinDayWeight * bnTargetPerCoinDay).GetHex().c_str());
+        printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n", nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime).c_str(), mapBlockIndex.at(blockFrom.GetHash())->nHeight, DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
+        printf("CheckStakeKernelHash() : check protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString().c_str());
     }
 
+    if (stakeStats)
+        stakeStats->PushChancesToMint(bnTarget);
 
     // Now check if proof-of-stake hash meets target protocol
-    if (CBigNum(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay)
+    if (CBigNum(hashProofOfStake) > bnTarget)
         return false;
 
     if (fDebug && !fPrintProofOfStake)
     {
-        printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
-               nStakeModifier, nStakeModifierHeight,
-               DateTimeStrFormat(nStakeModifierTime).c_str(),
-               mapBlockIndex.at(blockFrom.GetHash())->nHeight,
-               DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
-        printf("CheckStakeKernelHash() : pass protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n",
-               "0.3",
-               nStakeModifier,
-               nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx,
-               hashProofOfStake.ToString().c_str());
+        printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n", nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime).c_str(), mapBlockIndex.at(blockFrom.GetHash())->nHeight, DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
+        printf("CheckStakeKernelHash() : pass protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString().c_str());
     }
+
     return true;
 }
 
@@ -341,6 +357,10 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
     CBlock block;
     if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
         return fDebug? error("CheckProofOfStake() : read block failed") : false; // unable to read block of previous transaction
+
+    // Check that the proof-of-stake hasn't been blacklisted
+    if (IsProofOfStakeBlacklisted(block.GetProofOfStake()))
+        return tx.DoS(100, error("CheckProofOfStake() : Blacklisted Proof-of-Stake"));
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, txPrev, txin.prevout, tx.nTime, hashProofOfStake, fDebug))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s", tx.GetHash().ToString().c_str(), hashProofOfStake.ToString().c_str())); // may occur during initial download or if behind on block chain sync

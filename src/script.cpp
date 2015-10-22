@@ -1347,7 +1347,7 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
     return true;
 }
 
-bool IsVoteScript(const CScript& scriptPubKey)
+bool IsVoteScript(const CScript& scriptPubKey, int& votePreambleSize)
 {
   CScript::const_iterator iter = scriptPubKey.begin();
   
@@ -1368,12 +1368,15 @@ bool IsVoteScript(const CScript& scriptPubKey)
   if(*iter != OP_VOTE)
     return false;
 
+  votePreambleSize = iter - scriptPubKey.begin() +1;
+
   return true;
 }
 
 bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash, timestamp_t& deadline)
 {
-  if(!IsVoteScript( scriptPubKey))
+  int preambleSize;
+  if(!IsVoteScript( scriptPubKey, preambleSize))
     return false;
 
   CScript::const_iterator iter = scriptPubKey.begin();
@@ -1385,7 +1388,7 @@ bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash, timesta
   //now get the txn hash
   
   scriptPubKey.GetOp(iter, opcode,vch);
-  txnHash = CastToBigNum(vch).getuint256();
+  txnHash = uint256(vch);
 
   return true;
 }
@@ -1400,10 +1403,11 @@ bool SolverInner(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector
 {
   if(!insideVotePreamble)
     {
-      if(IsVoteScript(scriptPubKey))
+      int votePreambleSize;
+      if(IsVoteScript(scriptPubKey, votePreambleSize))
 	{
 	  //verify the rest of the script is standard
-	  CScript::const_iterator first = scriptPubKey.begin() + VOTE_PREAMBLE_SIZE;
+	  CScript::const_iterator first = scriptPubKey.begin() + votePreambleSize;
 	  CScript::const_iterator last = scriptPubKey.end();
 	  CScript withoutVote(first, last);
 

@@ -35,10 +35,9 @@ void ApplyTestnetParameters(void)
 
     STAKE_MODIFIER_CHECKPOINTS = boost::assign::map_list_of(0, 234907403);
 
-    //POW_MAX_BLOCK              = std::numeric_limits< blockheight_t >::max();
-    POW_MAX_BLOCK              = 2;
+    POW_MAX_BLOCK              = std::numeric_limits< blockheight_t >::max();
 
-    COIN_PREMINE               = 0 * COIN;
+    COIN_PREMINE               = 1000000 * COIN;
 
     POW_INITIAL_TARGET         = target_t(~uint256(0) >> 10);
     POS_INITIAL_TARGET         = target_t(~uint256(0) >> 10);

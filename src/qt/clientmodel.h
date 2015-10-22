@@ -52,7 +52,6 @@ private:
     QString cachedStatusBar;
 
     int numBlocksAtStartup;
-    QString getStakingStatus() const;
 
 signals:
     void numConnectionsChanged(int count);

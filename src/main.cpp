@@ -1266,7 +1266,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 
       if(txPrev.IsVoteTxn(txnHash,deadline))
 	{
-	  money_t valueOut = GetValueOut();
+	  money_t valueOut = txPrev.GetValueOut();
 	  delta -= valueOut;
 
 	  //the prev vote gets subtracted if it got spent before the deadline
@@ -1568,7 +1568,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     //reset voting stuff
     pindex->votedCoinsDelta = 0;
-    pindex->votingPeriodVotedCoins = pindex->pprev->votingPeriodVotedCoins;
 
     std::map<std::pair<votehash_t, timestamp_t>,money_t> proposalVoteCounts;
     
@@ -1641,6 +1640,14 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
       return error("Connect() : WriteProposalVoteCounts failed");
 
     pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolDelta;
+    
+    pindex->votingPeriodVotedCoins = pindex->pprev->votingPeriodVotedCoins + pindex->votedCoinsDelta;
+
+    CBlockIndex *beginPeriodBlockIndex = GetPriorBlockIndex(pindex, VOTE_REG_PERIOD_BLOCKS);
+
+    if(beginPeriodBlockIndex)
+      pindex->votingPeriodVotedCoins -= beginPeriodBlockIndex->votedCoinsDelta;
+
     
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
         return error("Connect() : WriteBlockIndex for pindex failed");
@@ -2201,10 +2208,38 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("ProcessBlock() : already have block (orphan) %s", hash.ToString().substr(0,20).c_str());
 
     // ppcoin: check proof-of-stake
-    // Limited duplicity on stake: prevents block flood attack
-    // Duplicate stake allowed only when there is orphan child block
-    if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-        return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
+    if (pblock->IsProofOfStake())
+    {
+        std::pair<COutPoint, unsigned int> proofOfStake = pblock->GetProofOfStake();
+
+        if (pindexBest->IsProofOfStake() && proofOfStake.first == pindexBest->prevoutStake)
+        {
+            if (!pblock->CheckBlockSignature())
+            {
+                if (pfrom)
+                    pfrom->Misbehaving(100);
+
+                return error("ProcessBlock() : invalid signature in a duplicate Proof-of-Stake kernel");
+            }
+
+            RelayBlock(*pblock, hash);
+            BlacklistProofOfStake(proofOfStake, hash);
+
+            CTxDB txdb;
+
+            CBlock bestPrevBlock;
+            bestPrevBlock.ReadFromDisk(pindexBest->pprev);
+
+            if (!bestPrevBlock.SetBestChain(txdb, pindexBest->pprev))
+                return error("ProcessBlock() : Proof-of-stake rollback failed");
+
+            return error("ProcessBlock() : duplicate Proof-of-Stake kernel (%s, %d) in block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
+        }
+        else if (setStakeSeen.count(proofOfStake) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
+        {
+            return error("ProcessBlock() : duplicate Proof-of-Stake kernel (%s, %d) in block %s", proofOfStake.first.ToString().c_str(), proofOfStake.second, hash.ToString().c_str());
+        }
+    }
 
     // Preliminary checks
     if (!pblock->CheckBlock())
@@ -2232,6 +2267,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     if (!IsInitialBlockDownload())
         Checkpoints::AskForPendingSyncCheckpoint(pfrom);
 
+    // We remove the previous block from the blacklisted kernels, if needed
+    CleanProofOfStakeBlacklist(pblock->hashPrevBlock);
+
     // Find the previous block
     std::map<uint256, CBlockIndex*>::iterator parentBlockIt = mapBlockIndex.find(pblock->hashPrevBlock);
 
@@ -2244,21 +2282,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         // ppcoin: check proof-of-stake
         if (pblock2->IsProofOfStake())
-        {
-            // Limited duplicity on stake: prevents block flood attack
-            // Duplicate stake allowed only when there is orphan child block
-            if (setStakeSeenOrphan.count(pblock2->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-            {
-                error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for orphan block %s", pblock2->GetProofOfStake().first.ToString().c_str(), pblock2->GetProofOfStake().second, hash.ToString().c_str());
-                //pblock2 will not be needed, free it
-                delete pblock2;
-                return false;
-            }
-            else
-            {
-                setStakeSeenOrphan.insert(pblock2->GetProofOfStake());
-            }
-        }
+            setStakeSeenOrphan.insert(pblock2->GetProofOfStake());
 
         mapOrphanBlocks.insert(make_pair(hash, pblock2));
         mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrevBlock, pblock2));
@@ -4011,9 +4035,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
         int64 nSearchTime = txCoinStake.nTime; // search to current time
         if (nSearchTime > nLastCoinStakeSearchTime)
         {
-	  CoinStakeStatus css;
-
-	  if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake,&css))
+	  if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake))
             {
                 if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - MAX_CLOCK_DRIFT))
                 {   // make sure coinstake would meet timestamp protocol
@@ -4025,11 +4047,6 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             }
             nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
             nLastCoinStakeSearchTime = nSearchTime;
-	    {
-	      LOCK(cs_lastCoinStakeStatus);
-	      
-	      lastCoinStakeStatus = css;
-	    }
         }
     }
 
@@ -4557,13 +4574,4 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
             Sleep(10);
         }
     }
-    else
-      {
-	{
-	  LOCK(cs_lastCoinStakeStatus);
-	  lastCoinStakeStatus.init();
-	  lastCoinStakeStatus.state = NOT_MINTING;
-	}
-	
-      }
 }

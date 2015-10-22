@@ -4,7 +4,21 @@
 #ifndef PPCOIN_KERNEL_H
 #define PPCOIN_KERNEL_H
 
+#include "StakeStats.h"
 #include "main.h"
+
+typedef std::pair<COutPoint, unsigned int> pos_kernel_t;
+
+// Blacklist a kernel, and link a block hash to it
+void BlacklistProofOfStake(pos_kernel_t const & proofOfStake, hash_t const & blockHash);
+
+// Remove a kernel from the blacklist, with all its associated blocks
+void CleanProofOfStakeBlacklist(pos_kernel_t const & proofOfStake);
+void CleanProofOfStakeBlacklist(hash_t const & blockHash);
+
+// Check if a kernel or a block has been blacklisted
+bool IsProofOfStakeBlacklisted(pos_kernel_t const & proofOfStake);
+bool IsProofOfStakeBlacklisted(hash_t const & blockHash);
 
 int64 GetStakeModifierSelectionInterval(void);
 
@@ -13,9 +27,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64& nStakeMo
 
 // Check whether stake kernel meets hash target
 // Sets hashProofOfStake on success return
-//  targetHash : returns the target hash in this value if exists
-//  coinsStaked : returns the number of coins being staked in this value if exists
-bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake=false, CBigNum *targetHash = NULL, int64 *coinsStaked = NULL);
+bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake=false, StakeStats * stakeStats = NULL);
 
 // Check kernel hash target and coinstake signature
 // Sets hashProofOfStake on success return

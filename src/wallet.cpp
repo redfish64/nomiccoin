@@ -6,6 +6,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include "StakeStats.h"
 #include "main.h"
 #include "wallet.h"
 #include "walletdb.h"
@@ -13,8 +14,10 @@
 #include "ui_interface.h"
 #include "kernel.h"
 #include "base58.h"
+#include "constants.h"
 #include "macros.h"
 
+#include "GetNextTargetRequired.h"
 #include "GetProofOfWorkReward.h"
 #include "GetProofOfStakeReward.h"
 
@@ -966,30 +969,35 @@ void CWallet::AvailableCoins(unsigned int nSpendTime, vector<COutput>& vCoins, b
 
     {
         LOCK(cs_wallet);
+
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
             const CWalletTx* pcoin = &(*it).second;
 
             if (!pcoin->IsFinal())
-                continue;
+                continue ;
 
             if (fOnlyConfirmed && !pcoin->IsConfirmed())
-                continue;
+                continue ;
 
             if ((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetBlocksToMaturity() > 0)
-                continue;
+                continue ;
 
             for (size_t i = 0; i < pcoin->vout.size(); i++)
             {
                 if (pcoin->nTime > nSpendTime)
-                    continue;  // ppcoin: timestamp must not exceed spend time
+                    continue ; // ppcoin: timestamp must not exceed spend time
 
-                if (!(pcoin->IsSpent(i)) &&
-                    (fMintingOnly ? IsMineForMintingOnly(pcoin->vout[i]) : IsMine(pcoin->vout[i])) &&
-                    pcoin->vout[i].nValue > 0)
-                {
-                    vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
-                }
+                if (pcoin->IsSpent(i))
+                    continue ;
+
+                if (fMintingOnly ? !IsMineForMintingOnly(pcoin->vout[i]) : !IsMine(pcoin->vout[i]))
+                    continue ;
+
+                if (pcoin->vout[i].nValue <= 0)
+                    continue ;
+
+                vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
             }
         }
     }
@@ -1187,8 +1195,8 @@ void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins)
 CScript CreateVoteScript(CProposal proposal)
 {
   CScript outScript;
-  //PERF, should we force deadline to be 4 bytes to standardize the length of op_vite?
-  outScript << proposal.deadline << proposal.txnTemplate.GetHash() << OP_VOTE;
+  //PERF, should we force deadline to be 4 bytes to standardize the length of op_vote?
+  outScript << proposal.deadline << proposal.redeemTxn.GetHash() << OP_VOTE;
 
   return outScript;
 }
@@ -1214,22 +1222,27 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  CTxOut utxoToVoteWith = output.tx->vout[output.i];
 	  
 	  CWalletTx txNew;
+
+	  int64 nValue = utxoToVoteWith.nValue;
+	  nValue -= txNew.GetMinFee();
+
+	  if(nValue < MIN_TXOUT_AMOUNT)
+	    continue;
+	  
 	  txNew.BindWallet(this);
 	  
 	  txNew.vin.push_back(CTxIn(output.tx->GetHash(),output.i));
 	  
-	  int64 nValue = utxoToVoteWith.nValue;
-	  nValue -= txNew.GetMinFee();
-
 	  //we send the money back exactly where we got it, except that we prepend the voting instruction
 	  //We do this in this way to allow us to find these looped transactions easily, so that we can
 	  //prevent unclaimed staking rewards to reset when these voting transactions occur
 	  CScript scriptWithVote = CreateVoteScript(proposal);
 
+	  int preambleSize;
 	  //we must remove the inner vote preamble if any (in the case the vote was replaced),
 	  // or script will be marked nonstandard
-	  if(IsVoteScript(utxoToVoteWith.scriptPubKey))
-	    scriptWithVote += CScript(utxoToVoteWith.scriptPubKey.begin()+VOTE_PREAMBLE_SIZE,
+	  if(IsVoteScript(utxoToVoteWith.scriptPubKey, preambleSize))
+	    scriptWithVote += CScript(utxoToVoteWith.scriptPubKey.begin()+preambleSize,
 				      utxoToVoteWith.scriptPubKey.end());
 	  else
 	    scriptWithVote += utxoToVoteWith.scriptPubKey;
@@ -1237,11 +1250,11 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  CTxOut txOut(nValue, scriptWithVote );
 	  txNew.vout.push_back(txOut);
 	  
-	  wVoteSet.vtxn.push_back(txNew);
-
 	  // Sign
 	  if (!SignSignature(*this, *output.tx, txNew, 0))
 	    return false;
+
+ 	  wVoteSet.vtxn.push_back(txNew);
 	}
     }
   }
@@ -1253,7 +1266,8 @@ bool CWallet::VoteForProposal(CProposal prop)
 {
   CWalletVotingTxnSet wVoteSet;
 
-  CreateVotingTxnSet(GetAdjustedTime(), prop, wVoteSet);
+  if(!CreateVotingTxnSet(GetAdjustedTime(), prop, wVoteSet))
+    return error("VoteForProposal(): CreateVotingTxnSet failed");
 
   BOOST_FOREACH(CWalletTx txn, wVoteSet.vtxn)
     {
@@ -1401,13 +1415,32 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
 }
 
+
 static CoinStakeStatus coinStakeStatusTemp;
 
+timestamp_t CWallet::GetEstimatedStakeTime(void)
+{
+    if (!GetBoolArg("-stakegen", true))
+        return -1;
+
+    if (IsCrypted() && IsLocked())
+        return -1;
+
+    if (nEstimatedStakeTime == -1)
+    {
+        CTransaction txCoinStake;
+        this->CreateCoinStake(*this, GetNextTargetRequired(pindexBest, true), 1, txCoinStake);
+    }
+
+    return nEstimatedStakeTime;
+}
+
+
 // ppcoin: create coin stake transaction
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CoinStakeStatus *coinStakeStatus)
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
     CBlockIndex const * pLastBlockIndex = GetLastBlockIndex(pindexBest, false);
-    int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / COMBINE_THRESHOLD;
+    int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / STAKE_COMBINE_THRESHOLD;
 
 
     LOCK2(cs_main, cs_wallet);
@@ -1429,48 +1462,32 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     vector<const CWalletTx*> vwtxPrev;
     int64 nValueIn = 0;
 
-    //if status isn't asked for we just dump the data into a temp structure rather then
-    //checking for NULL in a gazillion places
-    if(coinStakeStatus == NULL)
-      {
-	coinStakeStatus = &coinStakeStatusTemp;
-      }
-
-    coinStakeStatus->init();
-    
     if (nBalance > nReserveBalance)
     {
       if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
-	{
-	  coinStakeStatus->state = NO_CONFIRMED_COINS_TO_STAKE;
 	  return false;
-        }
     }
 
     if (nMintingOnlyBalance > 0)
       {
         int64 nMintingOnlyValueIn = 0;
+
         if (!SelectMintingOnlyCoins(txNew.nTime, setCoins, nMintingOnlyValueIn))
-	  {
-	    coinStakeStatus->state = NO_CONFIRMED_MINTING_COINS_TO_STAKE;
             return false;
-	  }
         nValueIn += nMintingOnlyValueIn;
     }
 
       
     if (setCoins.empty())
-      {
-	coinStakeStatus->state = SET_COINS_EMPTY;
 	return false;
-      }
 
+    StakeStats stakeStats;
     bool nsmc = GetBoolArg("-nosplitmaxcombine", false);
-
 
     int64 nCredit = 0;
     CScript scriptPubKeyKernel;
     bool fMintingOnly = false;
+
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         CTxDB txdb("r");
@@ -1485,14 +1502,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         static int nMaxStakeSearchInterval = 60;
 
         if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
-	  {
-	    if (fDebug && GetBoolArg("-printcoinstake"))
-	      printf("CreateCoinStake : not passed min stake age, %d left\n",
-		     block.GetBlockTime() + STAKE_MIN_AGE - (txNew.nTime - nMaxStakeSearchInterval));
 	    continue; // only count coins meeting min age requirement
-	  }
 
-	coinStakeStatus->numUTXO++;
 	
         bool fKernelFound = false;
         for (unsigned int n=0; n<min(nSearchInterval,(int64)nMaxStakeSearchInterval) && !fKernelFound && !fShutdown; n++)
@@ -1502,16 +1513,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             uint256 hashProofOfStake = 0;
             COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
 
-	
-	    if (fDebug && GetBoolArg("-printcoinstake"))
-	      printf("CreateCoinStake : looking for kernel\n");
-	    CBigNum targetHash;
-	    
-	    int64 coinsIn;
-
-            if (CheckStakeKernelHash(pindexBest, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, fDebug && GetBoolArg("-printcoinstake"),
-				     &targetHash, &coinsIn))
-	      {
+            if (CheckStakeKernelHash(pindexBest, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
+            {
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : kernel found\n");
@@ -1586,33 +1589,15 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 fKernelFound = true;
                 break;
 	      }
-	    else {
-	      if (fDebug && GetBoolArg("-printcoinstake"))
-		printf("CreateCoinStake : didn't 'find' kernel\n");
 	    }
-
-	    //this innerloop will keep running for all the possible stakes within a given
-	    //timeframe. Since we only want stats from one iteration, we check that
-	    //we are at the first iteration here:
-	    if(n==0)
-	      {
-		coinStakeStatus->coinsMinting += coinsIn;
-		coinStakeStatus->totalTargetHash += targetHash;
-	      }
-	}
 	if (fKernelFound || fShutdown)
 	  break; // if kernel is found stop searching
     }
     
-    coinStakeStatus->state=OK;
+    nEstimatedStakeTime = stakeStats.GetEstimatedStakeTime();
 
     if (nCredit == 0 || (nCredit > nBalance - nReserveBalance && !fMintingOnly))
-      {
-	if (fDebug && GetBoolArg("-printcoinstake"))
-	  printf("CreateCoinStake : no credit to stake, nCredit %lf, nReserveBalance %lf\n",nCredit, nReserveBalance);
-	
         return false;
-      }
     
 
     //TODO 2 get rid of cold minting. It's dangerous 
@@ -2189,42 +2174,3 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress)
     }
 }
 
-#define TOTAL_HASH_BITS 256
-#define COIN_STAKE_STATUS_ODDS_PRECISION 30
-
-/**
- * Returns the odds that the coin will be staked for each try
- */
-double getMintingOdds(CBigNum targetHash)
-{
-  targetHash >>= TOTAL_HASH_BITS - COIN_STAKE_STATUS_ODDS_PRECISION;
-  return ((double)targetHash.getuint64()) / ((double) (1 << COIN_STAKE_STATUS_ODDS_PRECISION));
-}
-
-/**
- * Returns the expected number of stake days for the given target hash, or zero if practically impossible
- */
-double getExpectedStakeDaysForTarget(CBigNum targetHash)
-{
-  //WARNING assumes nomiccoin's 1 second per target
-  double mintingOdds = getMintingOdds(targetHash);
-  if(mintingOdds != 0)
-    return 1/ mintingOdds /3600./24.;
-  return 0;
-}
-
-CCriticalSection cs_lastCoinStakeStatus;
-
-CoinStakeStatus lastCoinStakeStatus;
-
-CoinStakeStatus getLastCoinStakeStatus()
-{
-  CoinStakeStatus localCoinStakeStatus;
-  
-  {
-    LOCK(cs_lastCoinStakeStatus);
-    localCoinStakeStatus = lastCoinStakeStatus;
-  }
-  
-  return localCoinStakeStatus;
-}

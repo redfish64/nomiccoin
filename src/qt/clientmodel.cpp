@@ -49,54 +49,6 @@ QDateTime ClientModel::getLastBlockDate() const
     return QDateTime::fromTime_t(pindexBest->GetBlockTime());
 }
 
-
-int hack = 0;
-
-
-/**
- We want to gather:
-
- Coins minting
- Time before all coins begin minting
- Current interest rate
- Expected next coinstake
-*/
-QString ClientModel::getStakingStatus() const
-{
-  json_spirit::Value v = getmintingstatus(json_spirit::Array(), false);
-
-  json_spirit::Object o = v.get_obj();
-  
-  QString out = "";
-
-  for(std::vector<json_spirit::Pair>::iterator it = o.begin(); it != o.end(); ++it) {
-    out += (*it).name_.c_str() + QString(" ");
-
-    json_spirit::Value v = (*it).value_;
-
-    switch (v.type())
-      {
-      case json_spirit::str_type :
-	out += v.get_str().c_str();
-	break;
-      case  json_spirit::bool_type:
-      	out += v.get_bool() ? "1" : "0";
-      	break;
-      case  json_spirit::int_type:
-      	out += QString::number(v.get_int());
-      	break;
-      case  json_spirit::real_type:
-      	out += QString("%1").arg(v.get_real(),0,'f',2);
-      	break;
-      default:
-	out += QString("??");
-      }
-    out += ". ";
-  }
-
-  return out;
-}
-
 void ClientModel::update()
 {
     int newNumConnections = getNumConnections();
@@ -138,7 +90,7 @@ int ClientModel::getNumBlocksOfPeers() const
 
 QString ClientModel::getStatusBarWarnings() const
 {
-  return (QString::fromStdString(GetWarnings("statusbar"))).append(" ").append(getStakingStatus());
+  return QString::fromStdString(GetWarnings("statusbar"));
 }
 
 OptionsModel *ClientModel::getOptionsModel() const

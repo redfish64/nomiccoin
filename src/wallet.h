@@ -15,12 +15,6 @@
 
 extern bool fWalletUnlockMintOnly;
 
-// -- The following split & combine thresholds are important to security
-// -- Should not be adjusted if you don't understand the consequences
-
-static const int64_t  COMBINE_THRESHOLD = 3;
-static const uint32_t STAKE_SPLIT_AGE   = 90 * DAY;
-
 class CWalletTx;
 class CReserveKey;
 class CWalletDB;
@@ -143,7 +137,7 @@ class CProposal
   int nVersion;
   timestamp_t deadline; //the voting deadline.
   std::vector<unsigned char> title; // a short title of the proposal
-  CTransaction txnTemplate; // txn with input missing. This is the action of the proposal if it passes.
+  CTransaction redeemTxn; // txn to run if proposal succeeds.
   uint256 selfHash; // a checksum basically
 
   CProposal()
@@ -158,7 +152,7 @@ class CProposal
      nVersion = this->nVersion;
      READWRITE(deadline);
      READWRITE(title);
-     READWRITE(txnTemplate);
+     READWRITE(redeemTxn);
      READWRITE(selfHash);
      )
     
@@ -167,7 +161,7 @@ class CProposal
       nVersion = 1;
       deadline = 0;
       title.clear();
-      txnTemplate = CTransaction();
+      redeemTxn = CTransaction();
       selfHash = 0;
     }
 
@@ -234,6 +228,7 @@ public:
     {
         nWalletVersion = FEATURE_BASE;
         nWalletMaxVersion = FEATURE_BASE;
+        nEstimatedStakeTime = -1;
         fFileBacked = false;
         nMasterKeyMaxID = 0;
         pwalletdbEncryption = NULL;
@@ -242,11 +237,14 @@ public:
     {
         nWalletVersion = FEATURE_BASE;
         nWalletMaxVersion = FEATURE_BASE;
+        nEstimatedStakeTime = -1;
         strWalletFile = strWalletFileIn;
         fFileBacked = true;
         nMasterKeyMaxID = 0;
         pwalletdbEncryption = NULL;
     }
+
+    timestamp_t nEstimatedStakeTime;
 
     std::map<uint256, CWalletTx> mapWallet;
     std::vector<uint256> vWalletUpdated;
@@ -259,6 +257,8 @@ public:
 
     bool CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal, CWalletVotingTxnSet & wVoteSet );
     
+    timestamp_t GetEstimatedStakeTime(void);
+
     // check whether we are allowed to upgrade (or already support) to the named feature
     bool CanSupportFeature(enum WalletFeature wf) { return nWalletMaxVersion >= wf; }
 
@@ -302,7 +302,7 @@ public:
     int64 GetNewMint() const;
     bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
-    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew, CoinStakeStatus *coinStakeStatusOut = NULL);
+    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew);
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey *reservekey);
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
@@ -956,8 +956,4 @@ public:
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-extern CCriticalSection cs_lastCoinStakeStatus;
-extern CoinStakeStatus lastCoinStakeStatus;  
-
-CoinStakeStatus getLastCoinStakeStatus();
 #endif

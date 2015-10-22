@@ -15,8 +15,6 @@
 #include "keystore.h"
 #include "bignum.h"
 
-#define VOTE_PREAMBLE_SIZE 31
-
 typedef std::vector<unsigned char> valtype;
 
 class CTransaction;
@@ -627,7 +625,7 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
-bool IsVoteScript(const CScript& scriptPubKey);
+bool IsVoteScript(const CScript& scriptPubKey,int& votePreambleSize);
 bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash, money_t& deadline);
 
 #endif
