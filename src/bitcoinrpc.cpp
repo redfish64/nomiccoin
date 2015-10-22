@@ -652,8 +652,6 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
     obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
-    obj.push_back(Pair("mintingonly",   ValueFromAmount(pwalletMain->GetMintingOnlyBalance())));
-    obj.push_back(Pair("newmint",       ValueFromAmount(pwalletMain->GetNewMint())));
     obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
@@ -977,10 +975,8 @@ Value createproposal(const Array& params, bool fHelp)
 
     //TODO 2 parse deadline from a date into an estimated block height
     CTransaction tx;
-    txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetVoteRedeeming();
-    txNew.vout.resize(1);
-    txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
+    tx.vin.resize(1);
+    tx.vin[0].prevout.SetProposal();
 
     int64 currAmt = 0;
     CScript currScript;
@@ -3522,7 +3518,7 @@ VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 	for (size_t i = 0; i < pcoin->vout.size(); i++)
 	  {
 	    if (!(pcoin->IsSpent(i)) &&
-		(IsMineForMintingOnly(*pwalletMain,pcoin->vout[i].scriptPubKey) || IsMine(*pwalletMain,pcoin->vout[i].scriptPubKey)) &&
+		IsMine(*pwalletMain,pcoin->vout[i].scriptPubKey) &&
 		pcoin->vout[i].nValue > 0)
 	      {
 		const COutput output = COutput(pcoin, i, pcoin->GetDepthInMainChain());

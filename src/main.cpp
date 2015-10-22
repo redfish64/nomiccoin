@@ -2408,8 +2408,6 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
             return false;
         if (!Solver(subscript, whichType, vSolutions))
             return false;
-        if (whichType != TX_COLDMINTING)
-            return false;
         CKey key;
         if (!keystore.GetKey(uint160(vSolutions[0]), key))
             return false;
@@ -2465,8 +2463,6 @@ bool CBlock::CheckBlockSignature() const
         const valtype& scriptSerialized = stack.back();
         CScript script(scriptSerialized.begin(), scriptSerialized.end());
         if (!Solver(script, whichType, vSolutions))
-            return false;
-        if (whichType != TX_COLDMINTING)
             return false;
 
         // Verify the scriptSig pubkey matches the minting key

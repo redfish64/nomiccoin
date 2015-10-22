@@ -202,7 +202,7 @@ public:
     /**
      * Used for a transaction that redeems a pass vote proposal
      */
-    void SetVoteRedeeming() { hash = 0; n = static_cast<unsigned int>(-2); }
+    void SetProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
     bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
 
     friend bool operator<(const COutPoint& a, const COutPoint& b)

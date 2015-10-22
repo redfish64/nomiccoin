@@ -89,7 +89,6 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
     case TX_NULL_DATA: return "nulldata";
-    case TX_COLDMINTING: return "coldminting";
     }
     return NULL;
 }
@@ -1423,9 +1422,6 @@ bool SolverInner(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector
         // Standard tx, sender provides pubkey, receiver adds signature
         mTemplates.insert(make_pair(TX_PUBKEY, CScript() << OP_PUBKEY << OP_CHECKSIG));
 
-        // Cold minting script
-        mTemplates.insert(make_pair(TX_COLDMINTING, CScript() << OP_DUP << OP_HASH160 << OP_MINT << OP_IF << OP_PUBKEYHASH << OP_ELSE << OP_PUBKEYHASH << OP_ENDIF << OP_EQUALVERIFY << OP_CHECKSIG));
-
         // Bitcoin address tx, sender provides hash of pubkey, receiver provides signature and pubkey
         mTemplates.insert(make_pair(TX_PUBKEYHASH, CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH << OP_EQUALVERIFY << OP_CHECKSIG));
 
@@ -1617,16 +1613,6 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     case TX_MULTISIG:
         scriptSigRet << OP_0; // workaround CHECKMULTISIG bug
         return (SignN(vSolutions, keystore, hash, nHashType, scriptSigRet));
-    case TX_COLDMINTING:
-        keyID = CKeyID(uint160(vSolutions[fCoinStake ? 0 : 1]));
-        if (Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
-        {
-            CPubKey vch;
-            keystore.GetPubKey(keyID, vch);
-            scriptSigRet << vch;
-            return true;
-        }
-        return false;
     }
     return false;
 }
@@ -1641,7 +1627,6 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
     case TX_PUBKEY:
         return 1;
     case TX_PUBKEYHASH:
-    case TX_COLDMINTING:
         return 2;
     case TX_MULTISIG:
         if (vSolutions.size() < 1 || vSolutions[0].size() < 1)
@@ -1739,48 +1724,8 @@ bool IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
         vector<valtype> keys(vSolutions.begin()+1, vSolutions.begin()+vSolutions.size()-1);
         return HaveKeys(keys, keystore) == keys.size();
     }
-    case TX_COLDMINTING:
-    {
-        CKeyID spendingKeyID = CKeyID(uint160(vSolutions[1]));
-        return keystore.HaveKey(spendingKeyID);
-    }
     }
     return false;
-}
-
-bool IsMineForMintingOnly(const CKeyStore & keystore, const CScript& scriptPubKey)
-{
-    std::vector<valtype> vSolutions;
-    txnouttype whichType;
-
-    if (!Solver(scriptPubKey, whichType, vSolutions))
-        return false;
-
-    switch (whichType)
-    {
-    case TX_SCRIPTHASH:
-    {
-        CScript subscript;
-
-        if (!keystore.GetCScript(CScriptID(uint160(vSolutions[0])), subscript))
-            return false;
-
-        return IsMineForMintingOnly(keystore, subscript);
-    }
-    case TX_COLDMINTING:
-    {
-        CKeyID mintingKeyID = CKeyID(uint160(vSolutions[0]));
-        CKeyID spendingKeyID = CKeyID(uint160(vSolutions[1]));
-	if(fDebug)
-	  printf("IsMineForMintingOnly : mintingkeyid %s spendingkeyid %s\n",
-		 CBitcoinAddress(mintingKeyID).ToString().c_str(),
-		 CBitcoinAddress(spendingKeyID).ToString().c_str());
-	
-        return keystore.HaveKey(mintingKeyID) && !keystore.HaveKey(spendingKeyID);
-    }
-    default:
-        return false;
-    }
 }
 
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
@@ -2018,7 +1963,6 @@ static CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo,
         return PushAll(sigs2);
     case TX_PUBKEY:
     case TX_PUBKEYHASH:
-    case TX_COLDMINTING:
         // Signatures are bigger than placeholders or empty scripts:
         if (sigs1.empty() || sigs1[0].empty())
             return PushAll(sigs2);
