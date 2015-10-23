@@ -135,7 +135,7 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
     }
 
     BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
+      pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
 }
 
 // notify wallets about a new best chain
@@ -455,7 +455,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
     CBlockIndex* pindex = (*mi).second;
     if (!pindex || !pindex->IsInMainChain())
         return 0;
-
+    
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
@@ -465,6 +465,8 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 
 bool CTransaction::IsRestrictedCoinStake() const
 {
+  //TODO 2 what about vote transactions here? do they count as a restricted coin stake if they are
+  //created from a restricted coin stake?
     if (!IsCoinStake())
         return false;
 
@@ -807,6 +809,7 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
+  //TODO 2 what about voting transactions, they may not have matured yet
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
 
@@ -1243,7 +1246,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
   timestamp_t deadline;
   votehash_t txnHash;
 
-  if (IsCoinBase())
+  if (IsCoinBase() || IsCoinStake())
     return true;
   
   if(IsVoteTxn(txnHash,deadline))
@@ -1300,6 +1303,8 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %d %d prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
 
+	    //TODO 2 must check if vote txns are matured as well
+	    
             // If prev is coinbase/coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < COINBASE_MATURITY; pindex = pindex->pprev)
@@ -1676,7 +1681,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     // Watch for transactions paying to me
     BOOST_FOREACH(CTransaction& tx, vtx)
-        SyncWithWallets(tx, this, true);
+      SyncWithWallets(tx, this, true);
 
     return true;
 }

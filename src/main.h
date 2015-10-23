@@ -461,11 +461,26 @@ public:
         return SerializeHash(*this);
     }
 
-    bool IsVoteTxn(votehash_t& txnHash, money_t& deadline)
+    bool IsVoteTxn()
+    {
+      int preambleSize;
+      votehash_t txnHash;
+      money_t deadline;
+      
+      return GetVoteTxnData(vout[0].scriptPubKey, preambleSize, txnHash, deadline);
+    }
+
+    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash, money_t& deadline)
     {
       if(vout.size() != 1)
 	return false;
-      return GetVoteScriptData(vout[0].scriptPubKey, txnHash, deadline);
+      if(vin.size() != 1)
+	return false;
+      if(!GetVoteScriptData(vout[0].scriptPubKey, txnHash, deadline))
+	return false;
+
+      //TODO 2 verify the vote comes and goes to the same address
+      return true;
     }
 
     bool IsFinal(int nBlockHeight=0, int64 nBlockTime=0) const
@@ -694,7 +709,9 @@ public:
     std::string ToString() const
     {
         std::string str;
-        str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
+        str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" :
+					   (IsVoteTxn()? "Vote" :
+					    "CTransaction"));
         str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%d, vout.size=%d, nLockTime=%d)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,

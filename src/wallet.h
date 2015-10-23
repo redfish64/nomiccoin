@@ -472,6 +472,8 @@ public:
     char fFromMe;
     std::string strFromAccount;
     std::vector<char> vfSpent; // which outputs are already spent
+    blockheight_t coinBaseBlockHeight; // the time the original coin base/coin stake transaction occurred
+    //Only valid for voting and coinbase/coinstake transactions
 
     // memory only
     mutable bool fDebitCached;
@@ -522,6 +524,7 @@ public:
         nCreditCached = 0;
         nAvailableCreditCached = 0;
         nChangeCached = 0;
+	coinBaseBlockHeight = 0;
     }
 
     IMPLEMENT_SERIALIZE
@@ -553,6 +556,7 @@ public:
         READWRITE(nTimeReceived);
         READWRITE(fFromMe);
         READWRITE(fSpent);
+        READWRITE(coinBaseBlockHeight);
 
         if (fRead)
         {
@@ -649,10 +653,15 @@ public:
         return nDebitCached;
     }
 
+    bool IsMature() const
+    {
+      return coinBaseBlockHeight == 0 || coinBaseBlockHeight + COINBASE_MATURITY  < pindexBest->nHeight;
+    }
+
     int64 GetCredit(bool fUseCache=true) const
     {
         // Must wait until coinbase is safely deep enough in the chain before valuing it
-        if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+        if (!IsMature())
             return 0;
 
         // GetBalance can assume transactions in mapWallet won't change
@@ -666,7 +675,7 @@ public:
     int64 GetAvailableCredit(bool fUseCache=true) const
     {
         // Must wait until coinbase is safely deep enough in the chain before valuing it
-        if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+        if (!IsMature())
             return 0;
 
         if (fUseCache && fAvailableCreditCached)

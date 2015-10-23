@@ -1794,6 +1794,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
             entry.push_back(Pair("category", wtx.GetDepthInMainChain() ? "immature" : "orphan"));
             entry.push_back(Pair("amount", ValueFromAmount(nGeneratedImmature)));
         }
+	//TODO 2 what about voting here
         else if (wtx.IsCoinStake())
         {
             entry.push_back(Pair("category", "stake"));

@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445503237233" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445509353990" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -1207,6 +1207,12 @@
 <node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
 <node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
 <node CREATED="1444998643158" ID="ID_1501782191" MODIFIED="1444998651274" TEXT="poll deadline is in epoch seconds"/>
+<node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
+<node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
+<node CREATED="1445510365751" ID="ID_343334720" MODIFIED="1445510392930" TEXT="FUTURE - we may want to remove this restriction, it reduces complexity in its explaination"/>
+</node>
+<node CREATED="1445510451886" ID="ID_552019510" MODIFIED="1445510495866" TEXT="Forget it... it&apos;s too much trouble. Available credit is shown based on maturity. So that means whenever someone votes, their balance appears to go to zero for 8 hours. It&apos;s just too complex from a UI perspective"/>
+</node>
 </node>
 </node>
 <node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
@@ -1283,6 +1289,31 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node COLOR="#ff0000" CREATED="1445506035756" ID="ID_1866982165" MODIFIED="1445506043052" TEXT="What about multisig and voting?"/>
+<node CREATED="1445507643238" ID="ID_1522598173" MODIFIED="1445509581095" TEXT="Should we allow to vote with premature stakes/coinbase?">
+<node CREATED="1445507676853" ID="ID_1640787620" MODIFIED="1445509581095" TEXT="For coinbase, no">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445507682341" ID="ID_345537577" MODIFIED="1445509581095" TEXT="For stakes, the problem is that if the user stakes right before they wanted to vote, then they won&apos;t be able to vote until the staking confirms"/>
+<node CREATED="1445507719877" ID="ID_1822723908" MODIFIED="1445509581097" TEXT="It is complicated to do this, because we don&apos;t want the voting txn to be a way around the min maturity for the coinstake"/>
+<node CREATED="1445508539414" ID="ID_1721476046" MODIFIED="1445509581099" TEXT="The other problem is that the maturity factor is relevant to nomiccoin">
+<node CREATED="1445508558110" ID="ID_1833683050" MODIFIED="1445509581099" TEXT="Quote: Currently coins can be spend 30 blocks after they were mined. That is 30 minutes, much lower than the nearly 17 hours used by Bitcoin.  My understanding is that this time is mostly protection in case of a fork: Since transactions are relayed around the whole network, most transactions should end up in the blockchain on both sides of a fork. The notable exeption are block rewards which were mined on one side of the fork. They are invalid on the other side of the fork, since that block wasn&apos;t mined there. So if anybody knows that a long fork is happening, he can spend freshly mined coins and have a notable chance that that payment is confirmed but later marked as invalid when the fork is resolved.  "/>
+</node>
+<node CREATED="1445508580854" ID="ID_1228512341" MODIFIED="1445509581101" TEXT="I say no for coinstake also">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445508635710" ID="ID_1530331366" MODIFIED="1445509581101" TEXT="If someone wants to vote, they should have done so long enough before the deadline that this isn&apos;t an issue (500 blocks = around 8 hours currently)"/>
+<node CREATED="1445508678062" ID="ID_1654495927" MODIFIED="1445509581102" TEXT="If someone stakes while holding a vote, the stake automatically still holds onto the original vote"/>
+<node CREATED="1445508793327" ID="ID_689179141" MODIFIED="1445509581104" TEXT="I think that, in order to prevent a forked block because the staked vote pushed the election over the 51% required, and a fork would destroy it can be solved by not allowing the vote to redeem for 8 hours after it has won"/>
+</node>
+<node CREATED="1445509384350" ID="ID_1246543394" MODIFIED="1445509581105" TEXT="What if we made votes have to mature as well?">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445509432982" ID="ID_493897822" MODIFIED="1445509581105" TEXT="It would mean that we wouldn&apos;t have to search back through the txn history looking for a coinbase or coinstake"/>
+<node CREATED="1445509461270" ID="ID_1172560644" MODIFIED="1445509581107" TEXT="We could allow votes to occur right after a coinstake, it wouldn&apos;t be a big deal, because the coins still couldn&apos;t be moved (and spent with a merchant)"/>
+<node CREATED="1445509562422" ID="ID_769847997" MODIFIED="1445509581108" TEXT="Probably the easiest solution">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
 </node>
 <node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
 <node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
@@ -1316,10 +1347,15 @@
 <node CREATED="1445504345683" ID="ID_1389366058" MODIFIED="1445504351247" TEXT="proposal txn">
 <node CREATED="1445504352708" ID="ID_580089223" MODIFIED="1445504360391" TEXT="This is the txn used when creating a proposal"/>
 <node CREATED="1445504360836" ID="ID_860343474" MODIFIED="1445504378160" TEXT="It has a null input, like a coin base, but a index of -2, rather than -1"/>
+<node CREATED="1445508896534" ID="ID_1469687555" LINK="#ID_1522598173" MODIFIED="1445509644434" STYLE="fork" TEXT="It cannot be put into the block until after COINBASE_MATURITY"/>
 <node COLOR="#ff0000" CREATED="1445504379204" ID="ID_1389536906" MODIFIED="1445504383860" TEXT="TODO">
 <node CREATED="1445504385996" ID="ID_1968195892" MODIFIED="1445504407096" TEXT="Search for all instances of IsNull() and determine if a proposal check needs to be done"/>
 <node CREATED="1445504407611" ID="ID_341981322" MODIFIED="1445504431728" TEXT="Search for all instances of IsCoin* ..."/>
 </node>
+</node>
+<node CREATED="1445569997733" ID="ID_1581672533" MODIFIED="1445570008393" TEXT="Should we put the vote on the input rather than the output?">
+<node CREATED="1445570011005" ID="ID_261012601" MODIFIED="1445570047490" TEXT="If we do so, then the input script hash will match the output script hash exactly"/>
+<node CREATED="1445570049173" ID="ID_533375854" MODIFIED="1445570060010" TEXT="This will make it easier to verify that a vote is correct"/>
 </node>
 </node>
 <node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445505326920" POSITION="right" TEXT="testing">
@@ -1434,6 +1470,37 @@
 </node>
 <node CREATED="1445305467502" ID="ID_569286875" MODIFIED="1445309033623" TEXT="How do we get the previous txn to tell if its a voting txn?">
 <node CREATED="1445309035808" ID="ID_1928500006" MODIFIED="1445309045684" TEXT="ReadDiskTx with COutPoint from vin"/>
+</node>
+<node CREATED="1445559152149" ID="ID_61655943" MODIFIED="1445559178697" TEXT="CWalletTx">
+<node CREATED="1445566948812" ID="ID_1858055628" MODIFIED="1445566969223" TEXT="You can get the previous merkle transactions with vtxPrev"/>
+</node>
+<node CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445559181785" TEXT="CMerkleTx"/>
+<node CREATED="1445566515347" ID="ID_381341770" MODIFIED="1445566519023" TEXT="CBlockIndex">
+<node CREATED="1445566521931" ID="ID_1857117095" MODIFIED="1445566547343" TEXT="Can be retrieve from block with this code">
+<richcontent TYPE="NOTE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      map&lt;uint256, CBlockIndex*&gt;::iterator mi = mapBlockIndex.find(hashBlock);
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;if (mi == mapBlockIndex.end())
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;return 0;
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;CBlockIndex* pindex = (*mi).second;
+    </p>
+    <p>
+      &#160;&#160;&#160;
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

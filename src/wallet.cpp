@@ -431,13 +431,21 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
         if (fExisted || IsMine(tx) || IsFromMe(tx))
         {
             CWalletTx wtx(this,tx);
+
             // Get merkle branch if transaction was found in a block
             if (pblock)
-                wtx.SetMerkleBranch(pblock);
+	      {
+		int depth = wtx.SetMerkleBranch(pblock);
+		// return pindexBest->nHeight - pindex->nHeight + 1;
+		
+		if(wtx.IsCoinBase() || wtx.IsCoinStake())
+		  wtx.coinBaseBlockHeight = pindexBest->nHeight - depth + 1;
+		
+	      }
             return AddToWallet(wtx);
         }
         else
-            WalletUpdateSpent(tx);
+	  WalletUpdateSpent(tx);
     }
     return false;
 }
@@ -559,13 +567,18 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     listSent.clear();
     strSentAccount = strFromAccount;
 
+    //if a voting transaction, could still be sourced from an immature coinbase/stake txn
+    //This checks that case as well as the standard coinbase/coinstake
+    if(!IsMature())
+      {
+      nGeneratedImmature = pwallet->GetCredit(*this) - pwallet->GetDebit(*this);
+      return;
+      }
+    
     if (IsCoinBase() || IsCoinStake())
     {
-        if (GetBlocksToMaturity() > 0)
-            nGeneratedImmature = pwallet->GetCredit(*this) - pwallet->GetDebit(*this);
-        else
-            nGeneratedMature = GetCredit() - GetDebit();
-        return;
+      nGeneratedMature = GetCredit() - GetDebit();
+      return;
     }
 
     // Compute fee:
@@ -920,6 +933,7 @@ int64 CWallet::GetStake() const
     for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
     {
         const CWalletTx* pcoin = &(*it).second;
+	//TODO 2 we need to consider voting here
         if (pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
             nTotal += CWallet::GetCredit(*pcoin);
     }
@@ -944,7 +958,7 @@ void CWallet::AvailableCoins(unsigned int nSpendTime, vector<COutput>& vCoins, b
             if (fOnlyConfirmed && !pcoin->IsConfirmed())
                 continue ;
 
-            if ((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetBlocksToMaturity() > 0)
+            if (!pcoin->IsMature())
                 continue ;
 
             for (size_t i = 0; i < pcoin->vout.size(); i++)
@@ -1172,6 +1186,8 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  txNew.BindWallet(this);
 	  
 	  txNew.vin.push_back(CTxIn(output.tx->GetHash(),output.i));
+
+	  txNew.coinBaseBlockHeight = output.tx->coinBaseBlockHeight;
 	  
 	  //we send the money back exactly where we got it, except that we prepend the voting instruction
 	  //We do this in this way to allow us to find these looped transactions easily, so that we can
@@ -1379,6 +1395,8 @@ timestamp_t CWallet::GetEstimatedStakeTime(void)
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
+  //TODO 2 this is getting the last PoW block. It has no meaning when PoW won't hardly be used
+  //in our coin, we have to deal with this and combine threshold as well
     CBlockIndex const * pLastBlockIndex = GetLastBlockIndex(pindexBest, false);
     int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / STAKE_COMBINE_THRESHOLD;
 
