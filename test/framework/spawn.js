@@ -69,6 +69,8 @@ export async function spawnClient( options = { } ) {
         rpcpassword : RPC_PASSWORD,
         rpcallowip : '*',
 
+	delay : 40,
+
         gen : false,
         stakegen : false,
 
@@ -103,8 +105,11 @@ export async function spawnClient( options = { } ) {
 
     var client = spawn( CLIENT_PATH, commandLine );
 
-    var removeFromKillList = GLOBAL.addToKillList( client.pid );
-    client.on( 'exit', removeFromKillList );
+    if ( !options.keepalive )
+    {
+	var removeFromKillList = GLOBAL.addToKillList( client.pid );
+	client.on( 'exit', removeFromKillList );
+    }
 
     client.port = last( compact( flatten( [ options.port ] ) ) );
     client.rpcPort = last( compact( flatten( [ options.rpcport ] ) ) );
@@ -112,7 +117,7 @@ export async function spawnClient( options = { } ) {
     client.target = `127.0.0.1:${client.port}`;
 
     console.log( 'Client spawned. Delaying execution to leave it some time to boot' );
-    await delayExecution( 40 );
+    await delayExecution( options.delay );
     console.log( 'Done, thanks for waiting! Resuming test execution' );
 
     return client;
