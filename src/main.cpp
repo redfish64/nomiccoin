@@ -296,6 +296,8 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
     return ReadFromDisk(txdb, prevout, txindex);
 }
 
+#define MAX_VOTE_PROPOSAL_SIZE 39
+
 bool CTransaction::IsStandard() const
 {
     BOOST_FOREACH(const CTxIn& txin, vin)
@@ -303,9 +305,9 @@ bool CTransaction::IsStandard() const
         // Biggest 'standard' txin is a 3-signature 3-of-3 CHECKMULTISIG
         // pay-to-script-hash, which is 3 ~80-byte signatures, 3
         // ~65-byte public keys, plus a few script ops.
-        if (txin.scriptSig.size() > 500)
+        if (txin.scriptSig.size() > 500+MAX_VOTE_PROPOSAL_SIZE)
             return false;
-        if (!txin.scriptSig.IsPushOnly())
+        if (!txin.scriptSig.IsPushOrVoteOnly())
             return false;
     }
 
@@ -1243,13 +1245,14 @@ void AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<std::pair<vote
  */
 bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts)
 {
+  int preambleSize;
   timestamp_t deadline;
   votehash_t txnHash;
 
   if (IsCoinBase() || IsCoinStake())
     return true;
   
-  if(IsVoteTxn(txnHash,deadline))
+  if(GetVoteTxnData(preambleSize, txnHash,deadline))
     {
       money_t valueOut = GetValueOut();
       delta += valueOut;
@@ -1267,7 +1270,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
       //CTxIndex& txindex = inputs[prevout.hash].first;
       CTransaction& txPrev = inputs[prevout.hash].second;
 
-      if(txPrev.IsVoteTxn(txnHash,deadline))
+      if(txPrev.GetVoteTxnData(preambleSize, txnHash,deadline))
 	{
 	  money_t valueOut = txPrev.GetValueOut();
 	  delta -= valueOut;
@@ -1306,7 +1309,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
 	    //TODO 2 must check if vote txns are matured as well
 	    
             // If prev is coinbase/coinstake, check that it's matured
-            if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
+            if ((txPrev.IsCoinBase() || txPrev.IsCoinStake()) && !IsVoteTxn())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < COINBASE_MATURITY; pindex = pindex->pprev)
                     if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
                         return error("ConnectInputs() : tried to spend coinbase/coinstake at depth %d", pindexBlock->nHeight - pindex->nHeight);
@@ -1480,13 +1483,14 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
   // and update ProposalVoteCounts for disconnected block
   std::map<std::pair<votehash_t, timestamp_t>,money_t> proposalVoteCounts;
 
+  int preambleSize;
   timestamp_t deadline;
   votehash_t txnHash;
 
   for (int i = vtx.size()-1; i >= 0; i--)
       {
 	CTransaction& tx = vtx[i];
-	if(tx.IsVoteTxn(txnHash, deadline))
+	if(tx.GetVoteTxnData(preambleSize,txnHash, deadline))
 	  AddToVoteCount(txdb, pindex->nTime, proposalVoteCounts, txnHash, deadline, -tx.GetValueOut());
 	
 	//if any of the inputs were voting transactions, we have to recount those votes,
@@ -1498,7 +1502,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	    if(!txdb.ReadDiskTx(txin.prevout, txPrev))
 	      return error("UpdateVoteFieldsForConnectBlock() : ReadTxIndex failed");
 	    
-	    if(txPrev.IsVoteTxn(txnHash, deadline))
+	    if(txPrev.GetVoteTxnData(preambleSize, txnHash, deadline))
 	      AddToVoteCount(txdb, pindex->nTime, proposalVoteCounts, txnHash, deadline,
 			     txPrev.GetValueOut());
 	  }
@@ -2455,7 +2459,7 @@ bool CBlock::CheckBlockSignature() const
 
         // CoinStake scriptSig should contain 3 pushes: the signature, the pubkey and the cold minting script
         CScript scriptSig = vtx[1].vin[0].scriptSig;
-        if (!scriptSig.IsPushOnly())
+        if (!scriptSig.IsPushOrVoteOnly())
             return false;
 
         vector<vector<unsigned char> > stack;

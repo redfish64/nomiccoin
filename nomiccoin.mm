@@ -1353,10 +1353,12 @@
 <node CREATED="1445504407611" ID="ID_341981322" MODIFIED="1445504431728" TEXT="Search for all instances of IsCoin* ..."/>
 </node>
 </node>
-<node CREATED="1445569997733" ID="ID_1581672533" MODIFIED="1445570008393" TEXT="Should we put the vote on the input rather than the output?">
+<node COLOR="#ff0000" CREATED="1445569997733" ID="ID_1581672533" MODIFIED="1445570067430" TEXT="Should we put the vote on the input rather than the output?">
 <node CREATED="1445570011005" ID="ID_261012601" MODIFIED="1445570047490" TEXT="If we do so, then the input script hash will match the output script hash exactly"/>
 <node CREATED="1445570049173" ID="ID_533375854" MODIFIED="1445570060010" TEXT="This will make it easier to verify that a vote is correct"/>
+<node CREATED="1445583253630" ID="ID_127018036" MODIFIED="1445583276890" TEXT="It&apos;s a little odd though. The input script signature usually doesn&apos;t include itself. In this case it would have to."/>
 </node>
+<node COLOR="#ff0000" CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445581207457" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?"/>
 </node>
 <node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445505326920" POSITION="right" TEXT="testing">
 <node CREATED="1445505328564" ID="ID_586147613" MODIFIED="1445505335176" TEXT="Take a look at: test/test-double-stake-punishment.js">
@@ -1382,7 +1384,9 @@
 <node CREATED="1445392936602" ID="ID_517796839" MODIFIED="1445392944110" TEXT="faucet"/>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
-<node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
+<node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1">
+<node CREATED="1445679738177" ID="ID_787615589" MODIFIED="1445679748285" TEXT="non standard tx type from createproposal"/>
+</node>
 <node CREATED="1445137019409" ID="ID_1330490338" MODIFIED="1445137021301" TEXT="2">
 <node CREATED="1445136400097" ID="ID_1867873505" MODIFIED="1445136406237" TEXT="Why are blocks being mined every second?">
 <node CREATED="1445136411545" ID="ID_901737279" MODIFIED="1445136424605" TEXT="When we first start the network, everyone is mining every second"/>
@@ -1471,11 +1475,11 @@
 <node CREATED="1445305467502" ID="ID_569286875" MODIFIED="1445309033623" TEXT="How do we get the previous txn to tell if its a voting txn?">
 <node CREATED="1445309035808" ID="ID_1928500006" MODIFIED="1445309045684" TEXT="ReadDiskTx with COutPoint from vin"/>
 </node>
-<node CREATED="1445559152149" ID="ID_61655943" MODIFIED="1445559178697" TEXT="CWalletTx">
+<node COLOR="#ff0000" CREATED="1445559152149" ID="ID_61655943" MODIFIED="1445581457134" TEXT="CWalletTx">
 <node CREATED="1445566948812" ID="ID_1858055628" MODIFIED="1445566969223" TEXT="You can get the previous merkle transactions with vtxPrev"/>
 </node>
-<node CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445559181785" TEXT="CMerkleTx"/>
-<node CREATED="1445566515347" ID="ID_381341770" MODIFIED="1445566519023" TEXT="CBlockIndex">
+<node COLOR="#ff0000" CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445581456822" TEXT="CMerkleTx"/>
+<node CREATED="1445566515347" ID="ID_381341770" MODIFIED="1445581460853" TEXT="CBlockIndex">
 <node CREATED="1445566521931" ID="ID_1857117095" MODIFIED="1445566547343" TEXT="Can be retrieve from block with this code">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -1501,6 +1505,21 @@
 </html>
 </richcontent>
 </node>
+</node>
+<node CREATED="1445579870085" ID="ID_565226267" MODIFIED="1445579874465" TEXT="Signing transactions">
+<node CREATED="1445579892525" ID="ID_113960420" MODIFIED="1445582541830" TEXT="What is the hash type for">
+<node CREATED="1445579957709" ID="ID_1057903801" MODIFIED="1445579966745" TEXT="SIGHASH_ALL"/>
+<node CREATED="1445579950301" ID="ID_1740416562" MODIFIED="1445579974727" TEXT="SIGHASH_NONE"/>
+<node CREATED="1445579976261" ID="ID_793983312" MODIFIED="1445579985161" TEXT="SIGHASH_SINGLE"/>
+<node CREATED="1445579985549" ID="ID_1063200239" MODIFIED="1445579993129" TEXT="SIGHASH_ANYONECANPAY"/>
+<node CREATED="1445582535702" ID="ID_1783421190" MODIFIED="1445582538586" TEXT="https://bitcoin.org/en/developer-guide#signature-hash-types"/>
+</node>
+</node>
+<node CREATED="1445580657014" ID="ID_1221136736" MODIFIED="1445580665913" TEXT="How does Change work?">
+<node CREATED="1445580731686" ID="ID_1101048102" MODIFIED="1445581229057" TEXT="It does what we do for voting, just send the result back to the same script in the prior output"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445581438238" ID="ID_941280243" MODIFIED="1445581453053" TEXT="what are OP_CODE_SEPERATOR&apos;s for?">
+<node CREATED="1445583622359" ID="ID_848250017" MODIFIED="1445583631947" TEXT="They aren&apos;t used in the client"/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

@@ -963,9 +963,9 @@ Value createproposal(const Array& params, bool fHelp)
         throw runtime_error(
 			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max size 20)> [commands...]\n"
 			    "commands are:\n"
-			    "display_msg <msg (max size 140)>\n" //TODO 2 max message size?
-			    "upgrade_client <md5sum> <deadline(YYYY-MM-DD HH:MM:SS TZ)>\n" //TODO 2 max message size?
-			    "spend_pool <toaddress> <amt>\n"
+			    "displaymsg <msg (max size 140)>\n" //TODO 2 max message size?
+			    "upgradeclient <md5sum> <deadline(YYYY-MM-DD HH:MM:SS TZ)>\n" //TODO 2 max message size?
+			    "spendpool <toaddress> <amt>\n"
 			    );
 
     CProposal proposal;
@@ -986,7 +986,7 @@ Value createproposal(const Array& params, bool fHelp)
 
 	string command = params[i].get_str();
 
-	if(command.compare("display_msg")==0)
+	if(command.compare("displaymsg")==0)
 	  {
 	    string msg = params[i+1].get_str();
 
@@ -1001,7 +1001,7 @@ Value createproposal(const Array& params, bool fHelp)
 
 	    i+=2;
 	  }
-	else if (command.compare("upgrade_client")==0)
+	else if (command.compare("upgradeclient")==0)
 	  {
 	    string md5sum = params[i+1].get_str();
 	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[i+2].get_str());
@@ -1011,7 +1011,7 @@ Value createproposal(const Array& params, bool fHelp)
 
 	    i+=3;
 	  }
-	else if (command.compare("spend_pool")==0)
+	else if (command.compare("spendpool")==0)
 	  {
 	    string toaddress = params[i+1].get_str();
 	    Value amtVal = params[i+2];
@@ -1086,12 +1086,12 @@ Value vote(const Array& params, bool fHelp)
   return "ok";
 }
 
-Value getvotes(const Array& params, bool fHelp)
+Value getvoteinfo(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 1)
     throw runtime_error(
-			"getvotes <proposalblob>\n"
-			"Returns the total votes for the proposal.\n"
+			"getvoteinfo <proposalblob>\n"
+			"Returns the total votes for the proposal, and other information about it.\n"
 			);
   
   CProposal prop;
@@ -1102,10 +1102,23 @@ Value getvotes(const Array& params, bool fHelp)
   money_t totalVotes = 0;
 
   CTxDB txdb("r");
-  if(!txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.deadline, totalVotes))
-    return 0;
+  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.deadline, totalVotes); //if fails, then no votes were cast
 
-  return totalVotes;
+  Object obj;
+
+  std::string titleStr(prop.title.begin(),prop.title.end());
+
+  obj.push_back(Pair("proposalTitle", titleStr));
+  obj.push_back(Pair("votesForProposal",   ValueFromAmount(totalVotes)));
+  obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(pindexBest->votingPeriodVotedCoins)));
+  if(pindexBest->votingPeriodVotedCoins != 0)
+    obj.push_back(Pair("percentOfElectorate",  (double)
+		       totalVotes /
+		       (double) pindexBest->votingPeriodVotedCoins));
+  obj.push_back(Pair("deadline", DateTimeStrFormat(prop.deadline).c_str()));
+  TxToJSON(prop.redeemTxn, 0, obj);
+
+  return obj;
 }
 
 Value signmessage(const Array& params, bool fHelp)
@@ -3430,65 +3443,6 @@ Value getrawmempool(const Array& params, bool fHelp)
     return a;
 }
 
-Value addcoldmintingaddress(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 2 || params.size() > 3)
-        throw runtime_error(
-            "addcoldmintingaddress <minting address> <spending address> [account]\n"
-            "Add a cold minting address to the wallet.\n"
-            "The coins sent to this address will be mintable only with the minting private key.\n"
-            "And they will be spandable only with the spending private key.\n"
-            "If [account] is specified, assign address to [account].\n");
-
-    std::string strAccount;
-    if (params.size() > 2)
-        strAccount = AccountFromValue(params[2]);
-
-    CBitcoinAddress mintingAddress(params[0].get_str());
-    CBitcoinAddress spendingAddress(params[1].get_str());
-
-    if (!mintingAddress.IsValid() && !spendingAddress.IsValid())
-        throw JSONRPCError(-5, "Both keys are invalid");
-    if (!mintingAddress.IsValid())
-        throw JSONRPCError(-5, "Invalid minting address");
-    if (!spendingAddress.IsValid())
-        throw JSONRPCError(-5, "Invalid spending address");
-
-    CKeyID mintingKeyID;
-    CKeyID spendingKeyID;
-
-    bool mintingKeyIDOk = mintingAddress.GetKeyID(mintingKeyID);
-    bool spendingKeyIDOk = spendingAddress.GetKeyID(spendingKeyID);
-
-    if (!mintingKeyIDOk && !spendingKeyIDOk)
-        throw JSONRPCError(-5, "None of your addresses refer to a key");
-    if (!mintingKeyIDOk)
-        throw JSONRPCError(-5, "The minting address doesn't refer to a key");
-    if (!spendingKeyIDOk)
-        throw JSONRPCError(-5, "The spending address doesn't refer to a key");
-
-    CScript script;
-    script.SetColdMinting(mintingKeyID, spendingKeyID);
-
-    CScriptID scriptID = script.GetID();
-    {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-
-        pwalletMain->MarkDirty();
-
-        if (!pwalletMain->AddCScript(script))
-            throw JSONRPCError(-4, "Failed to add script to wallet");
-
-        if (!pwalletMain->SetAddressBookName(scriptID, strAccount))
-            throw JSONRPCError(-4, "Failed to set the account");
-
-        pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
-        pwalletMain->ReacceptWalletTransactions();
-    }
-
-    return CBitcoinAddress(scriptID).ToString();
-}
-
 VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 {
   VirtualCoinStakeStatus vcss;
@@ -3738,11 +3692,10 @@ static const CRPCCommand vRPCCommands[] =
     { "signrawtransaction",     &signrawtransaction,     false},
     { "sendrawtransaction",     &sendrawtransaction,     false},
     { "getrawmempool",          &getrawmempool,          true },
-    { "addcoldmintingaddress",  &addcoldmintingaddress,  false},
     { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
     { "createproposal",   &createproposal,   false },
     { "vote",   &vote,   false },
-    { "getvotes",   &getvotes,   false },
+    { "getvoteinfo",   &getvoteinfo,   false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },

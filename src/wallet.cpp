@@ -1189,25 +1189,17 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 
 	  txNew.coinBaseBlockHeight = output.tx->coinBaseBlockHeight;
 	  
-	  //we send the money back exactly where we got it, except that we prepend the voting instruction
-	  //We do this in this way to allow us to find these looped transactions easily, so that we can
+	  //we send the money back exactly where we got it, except that we add  the voting instruction
+	  //to the scriptsig
+	  //We do this in this way to allow us to identify these vote transactions easily, so that we can
 	  //prevent unclaimed staking rewards to reset when these voting transactions occur
-	  CScript scriptWithVote = CreateVoteScript(proposal);
-
-	  int preambleSize;
-	  //we must remove the inner vote preamble if any (in the case the vote was replaced),
-	  // or script will be marked nonstandard
-	  if(IsVoteScript(utxoToVoteWith.scriptPubKey, preambleSize))
-	    scriptWithVote += CScript(utxoToVoteWith.scriptPubKey.begin()+preambleSize,
-				      utxoToVoteWith.scriptPubKey.end());
-	  else
-	    scriptWithVote += utxoToVoteWith.scriptPubKey;
-	  
-	  CTxOut txOut(nValue, scriptWithVote );
+	  CTxOut txOut(nValue, utxoToVoteWith.scriptPubKey);
 	  txNew.vout.push_back(txOut);
+
+	  votehash_t txnHash = proposal.redeemTxn.GetHash();
 	  
 	  // Sign
-	  if (!SignSignature(*this, *output.tx, txNew, 0))
+	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash, &proposal.deadline))
 	    return false;
 
  	  wVoteSet.vtxn.push_back(txNew);

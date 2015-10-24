@@ -134,11 +134,12 @@ double getExpectedStakeDaysForTarget(CBigNum targetHash);
 class CProposal
 {
  public:
+  uint256 selfHash; // a checksum basically.. we put this first, so the base58 compacted version looks different for every subtle change.
+  //TODO 2 we need to compress proposals, I think. They are really long
   int nVersion;
   timestamp_t deadline; //the voting deadline.
   std::vector<unsigned char> title; // a short title of the proposal
   CTransaction redeemTxn; // txn to run if proposal succeeds.
-  uint256 selfHash; // a checksum basically
 
   CProposal()
     {

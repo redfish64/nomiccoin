@@ -461,22 +461,22 @@ public:
         return SerializeHash(*this);
     }
 
-    bool IsVoteTxn()
+    bool IsVoteTxn() const
     {
       int preambleSize;
       votehash_t txnHash;
       money_t deadline;
       
-      return GetVoteTxnData(vout[0].scriptPubKey, preambleSize, txnHash, deadline);
+      return GetVoteTxnData(preambleSize, txnHash, deadline);
     }
 
-    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash, money_t& deadline)
+    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash, money_t& deadline) const
     {
       if(vout.size() != 1)
 	return false;
       if(vin.size() != 1)
 	return false;
-      if(!GetVoteScriptData(vout[0].scriptPubKey, txnHash, deadline))
+      if(!GetVoteScriptData(vin[0].scriptSig, preambleSize, txnHash, deadline))
 	return false;
 
       //TODO 2 verify the vote comes and goes to the same address
@@ -1321,6 +1321,9 @@ public:
         if (bnTarget <= 0)
             return 0;
         return (IsProofOfStake()? (CBigNum(1)<<256) / (bnTarget+1) : 1);
+	//TODO 2 do we really want trust of 1 for PoW blocks? Neucoin kind of showed what a
+	//fiasco this can become when their server hiccup'ed and erased 11 PoW blocks
+	//(which mine once every 10 minutes). I wonder why it's here....
     }
 
     bool IsInMainChain() const

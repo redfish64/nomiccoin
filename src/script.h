@@ -191,9 +191,6 @@ enum opcodetype
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
 
-    // proof-of-stake
-    OP_MINT = 0xc0,
-
     //
     // ** voting **
     //
@@ -250,7 +247,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 
 
 
-
+bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize);
 
 
 
@@ -547,9 +544,11 @@ public:
     bool IsPayToScriptHash() const;
 
     // Called by CTransaction::IsStandard
-    bool IsPushOnly() const
+    bool IsPushOrVoteOnly() const
     {
-        const_iterator pc = begin();
+      int preambleSize = 0;
+      IsVoteScript(*this, preambleSize); //allow vote op's in scriptSig
+        const_iterator pc = begin() + preambleSize;
         while (pc < end())
         {
             opcodetype opcode;
@@ -564,7 +563,6 @@ public:
 
     void SetDestination(const CTxDestination& address);
     void SetMultisig(int nRequired, const std::vector<CKey>& keys);
-    void SetColdMinting(const CKeyID& mintingKey, const CKeyID& spendingKey);
 
     void PrintHex() const
     {
@@ -617,13 +615,13 @@ bool IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
 bool IsMine(const CKeyStore& keystore, const CTxDestination &dest);
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);
-bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL);
-bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL);
+bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t *voteDeadline = 0);
+bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t *voteDeadline = 0);
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
 bool IsVoteScript(const CScript& scriptPubKey,int& votePreambleSize);
-bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash, money_t& deadline);
+bool GetVoteScriptData(const CScript& scriptPubKey, int&  preambleSize, votehash_t& txnHash, money_t& deadline);
 
 #endif
