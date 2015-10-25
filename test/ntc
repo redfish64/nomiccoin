@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+if(@ARGV==0)
+{
+    print qq{
+Usage $0 <commands...> <client number from zero> 
+
+Runs test client with the given commands
+};
+    exit 1;
+}
+
+$c = pop @ARGV;
+
+$port = 5100+$c;
+$rpcport = 6100+$c;
+
+if($port != 5100)
+{
+    $an_str = " -addnode=127.0.0.1:5100";
+}
+
+$stuff = qq{/home/tim/projects/nomiccoin/test/../src/nomiccoind -v -datadir=/tmp//coin-datadir-$c/ -port=$port -rpcport=$rpcport -rpcuser=user -rpcpassword=password -rpcallowip=* -gen=0 -stakegen=0 -dnsseed=0 $an_str }.join(" ",@ARGV);
+
+print "Running: $stuff\n";
+
+system($stuff);
+

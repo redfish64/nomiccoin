@@ -1223,7 +1223,9 @@ void ThreadOpenConnections2(void* parg)
 
         int64 nANow = GetAdjustedTime();
 
-        int nTries = 0;
+	//TIMHACK our test network uses a bunch of nonstandard ports and the cpu usage from 50 connection tries is bothersome
+        //int nTries = 0;
+        int nTries = 51;
 
         INFINITE_LOOP
         {
@@ -1236,9 +1238,6 @@ void ThreadOpenConnections2(void* parg)
 
             nTries++;
 
-#ifdef TIMHACK
-	    //our test network uses a bunch of nonstandard ports and the cpu usage from 50 connection tries is bothersome
-
             // only consider very recently tried nodes after 30 failed attempts
             if (nANow - addr.nLastTry < 600 && nTries < 30)
                 continue;
@@ -1246,7 +1245,6 @@ void ThreadOpenConnections2(void* parg)
             // do not allow non-default ports, unless after 50 invalid addresses selected already
             if (addr.GetPort() != GetDefaultPort() && nTries < 50)
                 continue;
-#endif
 	    
             addrConnect = addr;
             break;

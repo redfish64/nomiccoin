@@ -134,12 +134,11 @@ double getExpectedStakeDaysForTarget(CBigNum targetHash);
 class CProposal
 {
  public:
-  uint256 selfHash; // a checksum basically.. we put this first, so the base58 compacted version looks different for every subtle change.
-  //TODO 2 we need to compress proposals, I think. They are really long
   int nVersion;
-  timestamp_t deadline; //the voting deadline.
   std::vector<unsigned char> title; // a short title of the proposal
-  CTransaction redeemTxn; // txn to run if proposal succeeds.
+  CTransaction redeemTxn; // txn to run if proposal succeeds. The time of this transaction
+  //is the deadline of the voting period for the proposal
+  uint256 selfHash; // a checksum basically.. 
 
   CProposal()
     {
@@ -149,22 +148,27 @@ class CProposal
 
   IMPLEMENT_SERIALIZE
     (
+     //we put this first, so the base58 compacted version looks different for every subtle change.
+     //TODO 2 we need to compress proposals, I think. They are really long
+     READWRITE(selfHash);
      READWRITE(this->nVersion);
      nVersion = this->nVersion;
-     READWRITE(deadline);
      READWRITE(title);
      READWRITE(redeemTxn);
-     READWRITE(selfHash);
      )
     
     void SetNull()
     {
       nVersion = 1;
-      deadline = 0;
       title.clear();
       redeemTxn = CTransaction();
       selfHash = 0;
     }
+
+  timestamp_t GetDeadline()
+  {
+    return redeemTxn.nTime;
+  }
 
   bool VerifyHash()
   {
@@ -295,6 +299,8 @@ public:
     int ScanForWalletTransaction(const uint256& hashTx);
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
+
+    int64 GetVotingBalance() const;
     int64 GetBalance() const;
     int64 GetUnconfirmedBalance() const;
     int64 GetStake() const;

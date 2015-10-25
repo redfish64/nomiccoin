@@ -892,6 +892,13 @@ void CWallet::ResendWalletTransactions()
 //
 
 
+//coins that can be voted with, includes immature coinstake/coinbase
+//TODO 2: make sure that voting transactions also have a maturity
+int64 CWallet::GetVotingBalance() const
+{
+  return GetBalance() + GetUnconfirmedBalance();
+}
+
 int64 CWallet::GetBalance() const
 {
     int64 nTotal = 0;
@@ -1150,7 +1157,7 @@ CScript CreateVoteScript(CProposal proposal)
 {
   CScript outScript;
   //PERF, should we force deadline to be 4 bytes to standardize the length of op_vote?
-  outScript << proposal.deadline << proposal.redeemTxn.GetHash() << OP_VOTE;
+  outScript << proposal.GetDeadline() << proposal.redeemTxn.GetHash() << OP_VOTE;
 
   return outScript;
 }
@@ -1199,7 +1206,7 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  votehash_t txnHash = proposal.redeemTxn.GetHash();
 	  
 	  // Sign
-	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash, &proposal.deadline))
+	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash, proposal.GetDeadline()))
 	    return false;
 
  	  wVoteSet.vtxn.push_back(txNew);

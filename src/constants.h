@@ -107,3 +107,5 @@ extern money_t GENESIS_SHARED_POOL_FUNDS;
 
 
 extern int VOTE_REG_PERIOD_BLOCKS;
+
+extern int PROPOSAL_MATURITY_BLOCKS;

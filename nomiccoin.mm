@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445509353990" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445736529800" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -809,6 +809,262 @@
 <node CREATED="1445416099545" ID="ID_1299293618" MODIFIED="1445416133700" TEXT="It&apos;s not useful to the user. If they want to vote on two things, they should vote all their coins on one, then after the deadline of the first, vote all their coins on the second"/>
 </node>
 </node>
+<node CREATED="1445569997733" ID="ID_1581672533" MODIFIED="1445724330592" TEXT="Should we put the vote on the input rather than the output?">
+<node CREATED="1445570011005" ID="ID_261012601" MODIFIED="1445570047490" TEXT="If we do so, then the input script hash will match the output script hash exactly"/>
+<node CREATED="1445570049173" ID="ID_533375854" MODIFIED="1445570060010" TEXT="This will make it easier to verify that a vote is correct"/>
+<node CREATED="1445583253630" ID="ID_127018036" MODIFIED="1445583276890" TEXT="It&apos;s a little odd though. The input script signature usually doesn&apos;t include itself. In this case it would have to."/>
+<node CREATED="1445724333751" ID="ID_1015013963" MODIFIED="1445724336306" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445691131839" ID="ID_515587099" MODIFIED="1445691173563" TEXT="Does the final vote participation tallly count from the last block before/on the deadline or the first block after it?">
+<node CREATED="1445691184791" ID="ID_1102666322" MODIFIED="1445691221347" TEXT="I say block before/on, it prevents people from trying to revert out a vote at the last second"/>
+<node CREATED="1445691221711" ID="ID_574868604" MODIFIED="1445691237387" TEXT="6 of one, half dozen of the other"/>
+<node CREATED="1445691237999" ID="ID_272611385" MODIFIED="1445730591979" TEXT="before or equal">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445507643238" ID="ID_1522598173" MODIFIED="1445509581095" TEXT="Should we allow to vote with premature stakes/coinbase?">
+<node CREATED="1445507676853" ID="ID_1640787620" MODIFIED="1445509581095" TEXT="For coinbase, no">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445507682341" ID="ID_345537577" MODIFIED="1445509581095" TEXT="For stakes, the problem is that if the user stakes right before they wanted to vote, then they won&apos;t be able to vote until the staking confirms"/>
+<node CREATED="1445507719877" ID="ID_1822723908" MODIFIED="1445509581097" TEXT="It is complicated to do this, because we don&apos;t want the voting txn to be a way around the min maturity for the coinstake"/>
+<node CREATED="1445508539414" ID="ID_1721476046" MODIFIED="1445509581099" TEXT="The other problem is that the maturity factor is relevant to nomiccoin">
+<node CREATED="1445508558110" ID="ID_1833683050" MODIFIED="1445509581099" TEXT="Quote: Currently coins can be spend 30 blocks after they were mined. That is 30 minutes, much lower than the nearly 17 hours used by Bitcoin.  My understanding is that this time is mostly protection in case of a fork: Since transactions are relayed around the whole network, most transactions should end up in the blockchain on both sides of a fork. The notable exeption are block rewards which were mined on one side of the fork. They are invalid on the other side of the fork, since that block wasn&apos;t mined there. So if anybody knows that a long fork is happening, he can spend freshly mined coins and have a notable chance that that payment is confirmed but later marked as invalid when the fork is resolved.  "/>
+</node>
+<node CREATED="1445508580854" ID="ID_1228512341" MODIFIED="1445509581101" TEXT="I say no for coinstake also">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445508635710" ID="ID_1530331366" MODIFIED="1445509581101" TEXT="If someone wants to vote, they should have done so long enough before the deadline that this isn&apos;t an issue (500 blocks = around 8 hours currently)"/>
+<node CREATED="1445508678062" ID="ID_1654495927" MODIFIED="1445509581102" TEXT="If someone stakes while holding a vote, the stake automatically still holds onto the original vote"/>
+<node CREATED="1445508793327" ID="ID_689179141" MODIFIED="1445509581104" TEXT="I think that, in order to prevent a forked block because the staked vote pushed the election over the 51% required, and a fork would destroy it can be solved by not allowing the vote to redeem for 8 hours after it has won"/>
+</node>
+<node CREATED="1445509384350" ID="ID_1246543394" MODIFIED="1445733798693" TEXT="What if we made votes have to mature as well?">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445509432982" ID="ID_493897822" MODIFIED="1445509581105" TEXT="It would mean that we wouldn&apos;t have to search back through the txn history looking for a coinbase or coinstake"/>
+<node CREATED="1445509461270" ID="ID_1172560644" MODIFIED="1445509581107" TEXT="We could allow votes to occur right after a coinstake, it wouldn&apos;t be a big deal, because the coins still couldn&apos;t be moved (and spent with a merchant)"/>
+<node CREATED="1445509562422" ID="ID_769847997" MODIFIED="1445733792936" TEXT="Probably the easiest solution and it seems fair enough. I doubt there will be many complaints">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
+<node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
+<node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1444696747076" TEXT="prefix">
+<node CREATED="1444694513152" ID="ID_1286198681" MODIFIED="1444696316651" TEXT="The version is the most significant digit in the actual encoding"/>
+<node CREATED="1444696455472" ID="ID_803860895" MODIFIED="1444696596067" TEXT="Since &apos;1&apos; in base58 is 0 the &apos;1&apos; digit is created by prepending &apos;1&apos; explicitly. It&apos;s the equivalent of 004 for the value 4."/>
+<node CREATED="1444696630848" ID="ID_493437405" MODIFIED="1444696677621" TEXT="The size for the input matters then, as far as choosing the digit"/>
+<node CREATED="1444696678745" ID="ID_1687249484" MODIFIED="1444696733740" TEXT="The output size is always (input *138/100+1)"/>
+<node CREATED="1444696999633" ID="ID_1958082517" MODIFIED="1444697016261" TEXT="For a bitcoin address, the raw data to encode is always 25 bytes"/>
+<node CREATED="1444697017169" ID="ID_1738457801" MODIFIED="1444697041164" TEXT="So the output must be 35 bytes"/>
+<node CREATED="1444697053848" ID="ID_1232710707" MODIFIED="1444698809132" TEXT="So given a 25 byte number, where the first byte is the version, what value do we need to use for the version to get &apos;E&apos;?">
+<node CREATED="1444698820528" ID="ID_1677928971" MODIFIED="1444698866037" TEXT="We take (2 ** (8 * 25)) % 58 = 32"/>
+<node CREATED="1444698873448" ID="ID_1328467363" MODIFIED="1444698888157" TEXT="Then take the base58 rep and find the number we want"/>
+</node>
+<node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
+</node>
+</node>
+<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
+<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
+<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
+</node>
+<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
+<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
+</node>
+<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
+<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
+</node>
+<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
+<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
+</node>
+<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
+<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
+</node>
+</node>
+<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
+<node CREATED="1444787387823" ID="ID_1097637190" MODIFIED="1444804778917" TEXT="OP_FUNDS_POOL_UNLOCKED">
+<node CREATED="1444787429639" ID="ID_1021862128" MODIFIED="1444804793805" TEXT="Used by pool address. Returns 1 when the pool is unlocked"/>
+</node>
+<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
+<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1444804836870" TEXT="Causes the client to upgrade. md5sum is of the source code"/>
+</node>
+<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
+<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445068793111" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
+<node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
+<node CREATED="1445068913043" ID="ID_257750203" MODIFIED="1445068957145" TEXT="Vote is only valid if it appears in a block where the block&apos;s epoch time &lt;= the deadline"/>
+<node CREATED="1445068957748" ID="ID_1675412541" MODIFIED="1445068987833" TEXT="txn hash is the partial proposal transaction without input UTXO&apos;s specified"/>
+</node>
+</node>
+<node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1444811830459" TEXT="new rpc commands">
+<node CREATED="1444811832655" ID="ID_536155444" MODIFIED="1444997746588" TEXT="createproposal &lt;poll deadline&gt; [commands...]">
+<node CREATED="1444811867511" ID="ID_1627882680" MODIFIED="1444811870516" TEXT="commands are:">
+<node CREATED="1444811871543" ID="ID_1550214091" MODIFIED="1444811880348" TEXT="display_msg &lt;message&gt;">
+<node CREATED="1444960272645" ID="ID_827995741" MODIFIED="1444990436979" TEXT="What is the max message size?">
+<node CREATED="1444990439658" ID="ID_608735069" MODIFIED="1444990441727" TEXT="140 chars"/>
+</node>
+</node>
+<node CREATED="1444811881535" ID="ID_1712691062" MODIFIED="1444811895475" TEXT="upgrade_client &lt;md5 sum&gt; &lt;deadline&gt;"/>
+<node CREATED="1444811896263" ID="ID_572978824" MODIFIED="1444811911099" TEXT="spend_pool &lt;to_address&gt; &lt;amt&gt;"/>
+</node>
+<node CREATED="1444811955303" ID="ID_1721155090" MODIFIED="1444812072032" TEXT="returns">
+<node CREATED="1444812057719" ID="ID_765820127" MODIFIED="1444812061019" TEXT="vote blob">
+<node CREATED="1444811975423" ID="ID_1281186894" MODIFIED="1444811979500" TEXT="blob contains:">
+<node CREATED="1444811981079" ID="ID_1680189055" MODIFIED="1444811991011" TEXT="raw txn"/>
+<node CREATED="1444811991711" ID="ID_1530000969" MODIFIED="1444812054651" TEXT="poll_deadline"/>
+</node>
+</node>
+<node CREATED="1444812191544" ID="ID_1286388180" MODIFIED="1444999073426" TEXT="raw txn"/>
+<node COLOR="#cc3300" CREATED="1445041735594" ID="ID_224169535" MODIFIED="1445041742945" TEXT="txn hash with checksum"/>
+</node>
+<node CREATED="1444981940827" ID="ID_951734612" MODIFIED="1444981943750" TEXT="txn">
+<node CREATED="1444981945274" ID="ID_1982869491" MODIFIED="1444990422583" TEXT="txn will have no source (to be filled in by minter)"/>
+<node CREATED="1444981956514" ID="ID_1177631655" MODIFIED="1444981966255" TEXT="it will not attempt to compute fees or give change">
+<node CREATED="1444981968514" ID="ID_183370469" MODIFIED="1444982003718" TEXT="The money not spent will be dumped back into the pool (all transactions send fees to the pool so this will be automatic)"/>
+</node>
+<node CREATED="1444982499714" ID="ID_176325989" MODIFIED="1444990594638" TEXT="Txn will be partial, it will not have any inputs">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1444982554275" ID="ID_408601384" MODIFIED="1444990076805" TEXT="The presence of a vote unlock will cause the vote to be marked as received. This prevents the same proposal transaction from running twice. Since we need to cache votes to various blocks anyway, this shouldn&apos;t be a big deal.">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1444998602615" ID="ID_680113161" MODIFIED="1444998604602" TEXT="args">
+<node CREATED="1444998605566" ID="ID_533375239" MODIFIED="1444998607203" TEXT="deadline"/>
+</node>
+</node>
+<node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
+<node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
+<node CREATED="1444998643158" ID="ID_1501782191" MODIFIED="1444998651274" TEXT="poll deadline is in epoch seconds"/>
+<node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
+<node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
+<node CREATED="1445510365751" ID="ID_343334720" MODIFIED="1445510392930" TEXT="FUTURE - we may want to remove this restriction, it reduces complexity in its explaination"/>
+</node>
+<node CREATED="1445510451886" ID="ID_552019510" MODIFIED="1445510495866" TEXT="Forget it... it&apos;s too much trouble. Available credit is shown based on maturity. So that means whenever someone votes, their balance appears to go to zero for 8 hours. It&apos;s just too complex from a UI perspective"/>
+</node>
+</node>
+</node>
+<node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
+<node CREATED="1444904518467" ID="ID_1505124101" MODIFIED="1444904531199" TEXT="PoW is activated if PoS takes over 5 minutes"/>
+<node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1444904544207" TEXT="For each PoW block found, 1 coin is rewarded"/>
+<node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
+<node CREATED="1444904569803" ID="ID_257967512" MODIFIED="1444904596008" TEXT="Blocks generated with PoW get very low trust (inherited from Peercoin)"/>
+</node>
+<node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
+<node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1444990174646" TEXT="vote transacation are added up as they are received"/>
+<node CREATED="1444990175634" ID="ID_462319390" MODIFIED="1444990207030" TEXT="when vote proposal txn is posted, proposal is marked redeemed"/>
+<node CREATED="1444990244843" ID="ID_1390760131" MODIFIED="1444990269278" TEXT="addresses which participate in voting are cached with a timestamp indicating the last time they voted. This is used to determine the vote total"/>
+</node>
+<node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
+<node COLOR="#cc3300" CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445041663466" TEXT="Cannot take place for the first few blocks... to give people a chance to register"/>
+<node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
+<node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
+<node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
+<node CREATED="1445168257760" ID="ID_616330575" MODIFIED="1445168284380" TEXT="When we get a vote, we add/update the corresponding record"/>
+<node CREATED="1445168284967" ID="ID_1817559673" MODIFIED="1445169545885" TEXT="When we get a txn that has a prior input that is a vote, we delete the vote from the record. If the record is empty, we delete it">
+<node CREATED="1445168364104" ID="ID_642445228" MODIFIED="1445168414651" TEXT="Note that if a stake is done, and combined, then votes will automatically be recast"/>
+</node>
+</node>
+<node CREATED="1445168420168" ID="ID_153145017" MODIFIED="1445168424939" TEXT="After the deadline">
+<node CREATED="1445168477663" ID="ID_1283390177" MODIFIED="1445169414725" TEXT="We reject any vote txn after deadline, regardless of timestamp"/>
+<node CREATED="1445168882256" ID="ID_679658431" MODIFIED="1445169367428" TEXT="Vote count is frozen and never changes"/>
+<node CREATED="1445169013416" ID="ID_1964754817" MODIFIED="1445169357477" TEXT="Note that because of forks, and possible reorgs, we can not delete vote count entries ">
+<node CREATED="1445169124785" ID="ID_1906495321" MODIFIED="1445169145541" TEXT="If we have a checkpoint, we can prune out old data items, but that would include txns, too. ">
+<node CREATED="1445169162064" ID="ID_1807194911" MODIFIED="1445169163869" TEXT="FUTURE"/>
+</node>
+</node>
+</node>
+<node CREATED="1445169437505" ID="ID_1653078411" MODIFIED="1445328764877" TEXT="Rewinding for a reorg">
+<node COLOR="#009999" CREATED="1445328821294" FOLDED="true" ID="ID_1872478295" MODIFIED="1445328843870" TEXT="old">
+<node CREATED="1445169463233" ID="ID_997560439" MODIFIED="1445328831763" TEXT="Before deadline">
+<node CREATED="1445168284967" ID="ID_749629396" MODIFIED="1445169506084" TEXT="When we get a txn that has a prior input that is a vote, we add the vote to the record"/>
+<node CREATED="1445168257760" ID="ID_1090237758" MODIFIED="1445169525621" TEXT="When we get a vote, we delete the vote from the corresponding record. If the record is empty, we delete it"/>
+</node>
+<node CREATED="1445169449105" ID="ID_1217967193" MODIFIED="1445169455477" TEXT="After deadline">
+<node CREATED="1445169456849" ID="ID_75679471" MODIFIED="1445169460581" TEXT="Vote count never changes"/>
+</node>
+</node>
+<node CREATED="1445328768269" ID="ID_1208645903" MODIFIED="1445328819327" TEXT="We don&apos;t need to worry about this. Since we aren&apos;t affecting past blocks, it doesn&apos;t matter what the block index for the disconnected block contains">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445690993967" ID="ID_922502430" MODIFIED="1445691032746" TEXT="Votes within a block before or on the deadline counts towards it. Votes within a block after the deadline does not"/>
+</node>
+<node CREATED="1445169906217" ID="ID_1314047598" MODIFIED="1445169912317" TEXT="voting participation counting">
+<node CREATED="1445170696890" ID="ID_1878022510" MODIFIED="1445170707277" TEXT="BlockIndex contains">
+<node CREATED="1445170709096" ID="ID_381771334" MODIFIED="1445170713558" TEXT="voteDelta">
+<node CREATED="1445170715752" ID="ID_271545280" MODIFIED="1445170722309" TEXT="Change in voting transactions">
+<node CREATED="1445170789010" ID="ID_1666088884" MODIFIED="1445170802926" TEXT="When a voting txn is created, delta is increased"/>
+<node CREATED="1445170803442" ID="ID_1291636438" MODIFIED="1445305465827" TEXT="When a voting txn is replaced, delta is decreased"/>
+<node CREATED="1445170821384" ID="ID_1381255416" MODIFIED="1445170838076" TEXT="Voting deadline has no effect"/>
+<node CREATED="1445170838537" ID="ID_882353901" MODIFIED="1445170876956" TEXT="The above will find the current active voters changes that this block effects"/>
+</node>
+</node>
+<node CREATED="1445170723273" ID="ID_1298636252" MODIFIED="1445170737894" TEXT="votersInVotePeriod">
+<node CREATED="1445170740594" ID="ID_1162547574" MODIFIED="1445170756661" TEXT="Rolling total voters in voting period (2 weeks or so)">
+<node CREATED="1445170886593" ID="ID_295574145" MODIFIED="1445170904837" TEXT="The block exactly VOTING_PERIOD ago has it&apos;s delta subtracted from the total"/>
+</node>
+</node>
+<node CREATED="1445170935601" ID="ID_616272666" MODIFIED="1445170943845" TEXT="Reorg just does the opposite"/>
+<node CREATED="1445170914945" ID="ID_432060281" MODIFIED="1445170959614" TEXT="The above 2 fields should calculate the votersInVotePeriod properly"/>
+</node>
+</node>
+<node CREATED="1445502574963" ID="ID_1788275487" MODIFIED="1445502850171" TEXT="How do we deal with amounts so small they are less than the minimum txn amount?">
+<node CREATED="1445502610059" ID="ID_2554190" MODIFIED="1445502638791" TEXT="We could just let them through if they&apos;re vote transactions, but then there is this weird zero output txn, and I don&apos;t know how it might effect the wallet code"/>
+<node CREATED="1445502771195" ID="ID_1813375873" MODIFIED="1445502797967" TEXT="I think we may be better off refusing to vote with UTXO&apos;s that small">
+<node CREATED="1445502799851" ID="ID_208378298" MODIFIED="1445502816768" TEXT="It will cause an annoyance, since not all the user&apos;s funds will be voted to the new proposal"/>
+<node CREATED="1445502817275" ID="ID_527260292" MODIFIED="1445502840542" TEXT="But it should happen so rarely, that I don&apos;t think it makes much of a difference, and isn&apos;t worth spending time on right now"/>
+</node>
+<node CREATED="1445502845643" ID="ID_902400812" MODIFIED="1445502848211" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1445506035756" ID="ID_1866982165" MODIFIED="1445506043052" TEXT="What about multisig and voting?"/>
+<node COLOR="#ff0000" CREATED="1445736539117" ID="ID_853020845" MODIFIED="1445736553893" TEXT="Should we allow voting for different entities with different accounts?">
+<node CREATED="1445736557125" ID="ID_284316600" MODIFIED="1445736569161" TEXT="People might share a wallet and use different accounts for each of them"/>
+</node>
+</node>
+<node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
+<node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
+<node CREATED="1445328928830" ID="ID_602214935" MODIFIED="1445333839142" TEXT="Should we just use transactions after the fact?">
+<node CREATED="1445328959926" ID="ID_1964564743" MODIFIED="1445328977074" TEXT="It may be simpler than trying to change the code, affecting money supply, etc."/>
+<node CREATED="1445328981062" ID="ID_1818362765" MODIFIED="1445328999882" TEXT="But we need an initial amount, anyway, I suppose we could do the standard first mined block gets a huge payout"/>
+<node CREATED="1445329053678" ID="ID_1659295338" MODIFIED="1445329069049" TEXT="We also wouldn&apos;t need to keep changing the genesis block everytime"/>
+<node CREATED="1445333855782" ID="ID_1697435562" MODIFIED="1445333867258" TEXT="For spending pool, we&apos;ll just create a transaction with a huge fee"/>
+<node CREATED="1445333834734" ID="ID_823427773" MODIFIED="1445333837615" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
+<node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
+<node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
+<node CREATED="1445163707470" ID="ID_1920250947" MODIFIED="1445163718894" TEXT="I&apos;m going to go ahead and do this, it solves a lot of problems">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445724260727" TEXT="But how does the redeeming txn get to unlock the funds?">
+<node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445724253891" TEXT="The redeeming txn is a special type, much like coinbase, except its prev pointer is -2 rather than -1"/>
+</node>
+</node>
+<node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
+<node COLOR="#ff0000" CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445502500579" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445502505363" ID="ID_1734967915" MODIFIED="1445502528631" TEXT="Staking always falls through to the previous transaction if the current txn is a vote"/>
+</node>
+<node CREATED="1445504345683" ID="ID_1389366058" MODIFIED="1445504351247" TEXT="proposal txn">
+<node CREATED="1445504352708" ID="ID_580089223" MODIFIED="1445504360391" TEXT="This is the txn used when creating a proposal"/>
+<node CREATED="1445504360836" ID="ID_860343474" MODIFIED="1445504378160" TEXT="It has a null input, like a coin base, but a index of -2, rather than -1"/>
+<node CREATED="1445508896534" ID="ID_1469687555" LINK="#ID_1522598173" MODIFIED="1445509644434" STYLE="fork" TEXT="It cannot be put into the block until after COINBASE_MATURITY"/>
+<node COLOR="#ff0000" CREATED="1445504379204" ID="ID_1389536906" MODIFIED="1445504383860" TEXT="TODO">
+<node CREATED="1445504385996" ID="ID_1968195892" MODIFIED="1445504407096" TEXT="Search for all instances of IsNull() and determine if a proposal check needs to be done"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445724377071" ID="ID_177161868" MODIFIED="1445724517103" TEXT="It&apos;s timestamp is the deadline.">
+<node CREATED="1445724399607" ID="ID_889850540" MODIFIED="1445724512515" TEXT="This is necessary because there is nothing that prevents the same proposal from being voted on and passed twice. If it&apos;s represented by the exact same transaction, then the second time it passes it would be ignored"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445581207457" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?"/>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
@@ -1120,249 +1376,50 @@
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1444694505083" POSITION="right" TEXT="coding">
-<node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
-<node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1444696747076" TEXT="prefix">
-<node CREATED="1444694513152" ID="ID_1286198681" MODIFIED="1444696316651" TEXT="The version is the most significant digit in the actual encoding"/>
-<node CREATED="1444696455472" ID="ID_803860895" MODIFIED="1444696596067" TEXT="Since &apos;1&apos; in base58 is 0 the &apos;1&apos; digit is created by prepending &apos;1&apos; explicitly. It&apos;s the equivalent of 004 for the value 4."/>
-<node CREATED="1444696630848" ID="ID_493437405" MODIFIED="1444696677621" TEXT="The size for the input matters then, as far as choosing the digit"/>
-<node CREATED="1444696678745" ID="ID_1687249484" MODIFIED="1444696733740" TEXT="The output size is always (input *138/100+1)"/>
-<node CREATED="1444696999633" ID="ID_1958082517" MODIFIED="1444697016261" TEXT="For a bitcoin address, the raw data to encode is always 25 bytes"/>
-<node CREATED="1444697017169" ID="ID_1738457801" MODIFIED="1444697041164" TEXT="So the output must be 35 bytes"/>
-<node CREATED="1444697053848" ID="ID_1232710707" MODIFIED="1444698809132" TEXT="So given a 25 byte number, where the first byte is the version, what value do we need to use for the version to get &apos;E&apos;?">
-<node CREATED="1444698820528" ID="ID_1677928971" MODIFIED="1444698866037" TEXT="We take (2 ** (8 * 25)) % 58 = 32"/>
-<node CREATED="1444698873448" ID="ID_1328467363" MODIFIED="1444698888157" TEXT="Then take the base58 rep and find the number we want"/>
-</node>
-<node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
-</node>
-</node>
-<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
-<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
-<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
-</node>
-<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
-<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
-</node>
-<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
-<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
-</node>
-<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
-<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
-</node>
-<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
-<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
-</node>
-</node>
-<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
-<node CREATED="1444787387823" ID="ID_1097637190" MODIFIED="1444804778917" TEXT="OP_FUNDS_POOL_UNLOCKED">
-<node CREATED="1444787429639" ID="ID_1021862128" MODIFIED="1444804793805" TEXT="Used by pool address. Returns 1 when the pool is unlocked"/>
-</node>
-<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
-<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1444804836870" TEXT="Causes the client to upgrade. md5sum is of the source code"/>
-</node>
-<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
-<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445068793111" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
-<node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
-<node CREATED="1445068913043" ID="ID_257750203" MODIFIED="1445068957145" TEXT="Vote is only valid if it appears in a block where the block&apos;s epoch time &lt;= the deadline"/>
-<node CREATED="1445068957748" ID="ID_1675412541" MODIFIED="1445068987833" TEXT="txn hash is the partial proposal transaction without input UTXO&apos;s specified"/>
-</node>
-</node>
-<node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1444811830459" TEXT="new rpc commands">
-<node CREATED="1444811832655" ID="ID_536155444" MODIFIED="1444997746588" TEXT="createproposal &lt;poll deadline&gt; [commands...]">
-<node CREATED="1444811867511" ID="ID_1627882680" MODIFIED="1444811870516" TEXT="commands are:">
-<node CREATED="1444811871543" ID="ID_1550214091" MODIFIED="1444811880348" TEXT="display_msg &lt;message&gt;">
-<node CREATED="1444960272645" ID="ID_827995741" MODIFIED="1444990436979" TEXT="What is the max message size?">
-<node CREATED="1444990439658" ID="ID_608735069" MODIFIED="1444990441727" TEXT="140 chars"/>
-</node>
-</node>
-<node CREATED="1444811881535" ID="ID_1712691062" MODIFIED="1444811895475" TEXT="upgrade_client &lt;md5 sum&gt; &lt;deadline&gt;"/>
-<node CREATED="1444811896263" ID="ID_572978824" MODIFIED="1444811911099" TEXT="spend_pool &lt;to_address&gt; &lt;amt&gt;"/>
-</node>
-<node CREATED="1444811955303" ID="ID_1721155090" MODIFIED="1444812072032" TEXT="returns">
-<node CREATED="1444812057719" ID="ID_765820127" MODIFIED="1444812061019" TEXT="vote blob">
-<node CREATED="1444811975423" ID="ID_1281186894" MODIFIED="1444811979500" TEXT="blob contains:">
-<node CREATED="1444811981079" ID="ID_1680189055" MODIFIED="1444811991011" TEXT="raw txn"/>
-<node CREATED="1444811991711" ID="ID_1530000969" MODIFIED="1444812054651" TEXT="poll_deadline"/>
-</node>
-</node>
-<node CREATED="1444812191544" ID="ID_1286388180" MODIFIED="1444999073426" TEXT="raw txn"/>
-<node COLOR="#cc3300" CREATED="1445041735594" ID="ID_224169535" MODIFIED="1445041742945" TEXT="txn hash with checksum"/>
-</node>
-<node CREATED="1444981940827" ID="ID_951734612" MODIFIED="1444981943750" TEXT="txn">
-<node CREATED="1444981945274" ID="ID_1982869491" MODIFIED="1444990422583" TEXT="txn will have no source (to be filled in by minter)"/>
-<node CREATED="1444981956514" ID="ID_1177631655" MODIFIED="1444981966255" TEXT="it will not attempt to compute fees or give change">
-<node CREATED="1444981968514" ID="ID_183370469" MODIFIED="1444982003718" TEXT="The money not spent will be dumped back into the pool (all transactions send fees to the pool so this will be automatic)"/>
-</node>
-<node CREATED="1444982499714" ID="ID_176325989" MODIFIED="1444990594638" TEXT="Txn will be partial, it will not have any inputs">
-<font NAME="SansSerif" SIZE="12"/>
-<node CREATED="1444982554275" ID="ID_408601384" MODIFIED="1444990076805" TEXT="The presence of a vote unlock will cause the vote to be marked as received. This prevents the same proposal transaction from running twice. Since we need to cache votes to various blocks anyway, this shouldn&apos;t be a big deal.">
-<font NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
-<node CREATED="1444998602615" ID="ID_680113161" MODIFIED="1444998604602" TEXT="args">
-<node CREATED="1444998605566" ID="ID_533375239" MODIFIED="1444998607203" TEXT="deadline"/>
-</node>
-</node>
-<node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
-<node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
-<node CREATED="1444998643158" ID="ID_1501782191" MODIFIED="1444998651274" TEXT="poll deadline is in epoch seconds"/>
-<node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
-<node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
-<node CREATED="1445510365751" ID="ID_343334720" MODIFIED="1445510392930" TEXT="FUTURE - we may want to remove this restriction, it reduces complexity in its explaination"/>
-</node>
-<node CREATED="1445510451886" ID="ID_552019510" MODIFIED="1445510495866" TEXT="Forget it... it&apos;s too much trouble. Available credit is shown based on maturity. So that means whenever someone votes, their balance appears to go to zero for 8 hours. It&apos;s just too complex from a UI perspective"/>
-</node>
-</node>
-</node>
-<node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
-<node CREATED="1444904518467" ID="ID_1505124101" MODIFIED="1444904531199" TEXT="PoW is activated if PoS takes over 5 minutes"/>
-<node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1444904544207" TEXT="For each PoW block found, 1 coin is rewarded"/>
-<node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
-<node CREATED="1444904569803" ID="ID_257967512" MODIFIED="1444904596008" TEXT="Blocks generated with PoW get very low trust (inherited from Peercoin)"/>
-</node>
-<node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
-<node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1444990174646" TEXT="vote transacation are added up as they are received"/>
-<node CREATED="1444990175634" ID="ID_462319390" MODIFIED="1444990207030" TEXT="when vote proposal txn is posted, proposal is marked redeemed"/>
-<node CREATED="1444990244843" ID="ID_1390760131" MODIFIED="1444990269278" TEXT="addresses which participate in voting are cached with a timestamp indicating the last time they voted. This is used to determine the vote total"/>
-</node>
-<node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
-<node COLOR="#cc3300" CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445041663466" TEXT="Cannot take place for the first few blocks... to give people a chance to register"/>
-<node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
-<node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
-<node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
-<node CREATED="1445168257760" ID="ID_616330575" MODIFIED="1445168284380" TEXT="When we get a vote, we add/update the corresponding record"/>
-<node CREATED="1445168284967" ID="ID_1817559673" MODIFIED="1445169545885" TEXT="When we get a txn that has a prior input that is a vote, we delete the vote from the record. If the record is empty, we delete it">
-<node CREATED="1445168364104" ID="ID_642445228" MODIFIED="1445168414651" TEXT="Note that if a stake is done, and combined, then votes will automatically be recast"/>
-</node>
-</node>
-<node CREATED="1445168420168" ID="ID_153145017" MODIFIED="1445168424939" TEXT="After the deadline">
-<node CREATED="1445168477663" ID="ID_1283390177" MODIFIED="1445169414725" TEXT="We reject any vote txn after deadline, regardless of timestamp"/>
-<node CREATED="1445168882256" ID="ID_679658431" MODIFIED="1445169367428" TEXT="Vote count is frozen and never changes"/>
-<node CREATED="1445169013416" ID="ID_1964754817" MODIFIED="1445169357477" TEXT="Note that because of forks, and possible reorgs, we can not delete vote count entries ">
-<node CREATED="1445169124785" ID="ID_1906495321" MODIFIED="1445169145541" TEXT="If we have a checkpoint, we can prune out old data items, but that would include txns, too. ">
-<node CREATED="1445169162064" ID="ID_1807194911" MODIFIED="1445169163869" TEXT="FUTURE"/>
-</node>
-</node>
-</node>
-<node CREATED="1445169437505" ID="ID_1653078411" MODIFIED="1445328764877" TEXT="Rewinding for a reorg">
-<node COLOR="#009999" CREATED="1445328821294" FOLDED="true" ID="ID_1872478295" MODIFIED="1445328843870" TEXT="old">
-<node CREATED="1445169463233" ID="ID_997560439" MODIFIED="1445328831763" TEXT="Before deadline">
-<node CREATED="1445168284967" ID="ID_749629396" MODIFIED="1445169506084" TEXT="When we get a txn that has a prior input that is a vote, we add the vote to the record"/>
-<node CREATED="1445168257760" ID="ID_1090237758" MODIFIED="1445169525621" TEXT="When we get a vote, we delete the vote from the corresponding record. If the record is empty, we delete it"/>
-</node>
-<node CREATED="1445169449105" ID="ID_1217967193" MODIFIED="1445169455477" TEXT="After deadline">
-<node CREATED="1445169456849" ID="ID_75679471" MODIFIED="1445169460581" TEXT="Vote count never changes"/>
-</node>
-</node>
-<node CREATED="1445328768269" ID="ID_1208645903" MODIFIED="1445328819327" TEXT="We don&apos;t need to worry about this. Since we aren&apos;t affecting past blocks, it doesn&apos;t matter what the block index for the disconnected block contains">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
-<node CREATED="1445169906217" ID="ID_1314047598" MODIFIED="1445169912317" TEXT="voting participation counting">
-<node CREATED="1445170696890" ID="ID_1878022510" MODIFIED="1445170707277" TEXT="BlockIndex contains">
-<node CREATED="1445170709096" ID="ID_381771334" MODIFIED="1445170713558" TEXT="voteDelta">
-<node CREATED="1445170715752" ID="ID_271545280" MODIFIED="1445170722309" TEXT="Change in voting transactions">
-<node CREATED="1445170789010" ID="ID_1666088884" MODIFIED="1445170802926" TEXT="When a voting txn is created, delta is increased"/>
-<node CREATED="1445170803442" ID="ID_1291636438" MODIFIED="1445305465827" TEXT="When a voting txn is replaced, delta is decreased"/>
-<node CREATED="1445170821384" ID="ID_1381255416" MODIFIED="1445170838076" TEXT="Voting deadline has no effect"/>
-<node CREATED="1445170838537" ID="ID_882353901" MODIFIED="1445170876956" TEXT="The above will find the current active voters changes that this block effects"/>
-</node>
-</node>
-<node CREATED="1445170723273" ID="ID_1298636252" MODIFIED="1445170737894" TEXT="votersInVotePeriod">
-<node CREATED="1445170740594" ID="ID_1162547574" MODIFIED="1445170756661" TEXT="Rolling total voters in voting period (2 weeks or so)">
-<node CREATED="1445170886593" ID="ID_295574145" MODIFIED="1445170904837" TEXT="The block exactly VOTING_PERIOD ago has it&apos;s delta subtracted from the total"/>
-</node>
-</node>
-<node CREATED="1445170935601" ID="ID_616272666" MODIFIED="1445170943845" TEXT="Reorg just does the opposite"/>
-<node CREATED="1445170914945" ID="ID_432060281" MODIFIED="1445170959614" TEXT="The above 2 fields should calculate the votersInVotePeriod properly"/>
-</node>
-</node>
-<node CREATED="1445502574963" ID="ID_1788275487" MODIFIED="1445502850171" TEXT="How do we deal with amounts so small they are less than the minimum txn amount?">
-<node CREATED="1445502610059" ID="ID_2554190" MODIFIED="1445502638791" TEXT="We could just let them through if they&apos;re vote transactions, but then there is this weird zero output txn, and I don&apos;t know how it might effect the wallet code"/>
-<node CREATED="1445502771195" ID="ID_1813375873" MODIFIED="1445502797967" TEXT="I think we may be better off refusing to vote with UTXO&apos;s that small">
-<node CREATED="1445502799851" ID="ID_208378298" MODIFIED="1445502816768" TEXT="It will cause an annoyance, since not all the user&apos;s funds will be voted to the new proposal"/>
-<node CREATED="1445502817275" ID="ID_527260292" MODIFIED="1445502840542" TEXT="But it should happen so rarely, that I don&apos;t think it makes much of a difference, and isn&apos;t worth spending time on right now"/>
-</node>
-<node CREATED="1445502845643" ID="ID_902400812" MODIFIED="1445502848211" TEXT="FUTURE">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-<node COLOR="#ff0000" CREATED="1445506035756" ID="ID_1866982165" MODIFIED="1445506043052" TEXT="What about multisig and voting?"/>
-<node CREATED="1445507643238" ID="ID_1522598173" MODIFIED="1445509581095" TEXT="Should we allow to vote with premature stakes/coinbase?">
-<node CREATED="1445507676853" ID="ID_1640787620" MODIFIED="1445509581095" TEXT="For coinbase, no">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1445507682341" ID="ID_345537577" MODIFIED="1445509581095" TEXT="For stakes, the problem is that if the user stakes right before they wanted to vote, then they won&apos;t be able to vote until the staking confirms"/>
-<node CREATED="1445507719877" ID="ID_1822723908" MODIFIED="1445509581097" TEXT="It is complicated to do this, because we don&apos;t want the voting txn to be a way around the min maturity for the coinstake"/>
-<node CREATED="1445508539414" ID="ID_1721476046" MODIFIED="1445509581099" TEXT="The other problem is that the maturity factor is relevant to nomiccoin">
-<node CREATED="1445508558110" ID="ID_1833683050" MODIFIED="1445509581099" TEXT="Quote: Currently coins can be spend 30 blocks after they were mined. That is 30 minutes, much lower than the nearly 17 hours used by Bitcoin.  My understanding is that this time is mostly protection in case of a fork: Since transactions are relayed around the whole network, most transactions should end up in the blockchain on both sides of a fork. The notable exeption are block rewards which were mined on one side of the fork. They are invalid on the other side of the fork, since that block wasn&apos;t mined there. So if anybody knows that a long fork is happening, he can spend freshly mined coins and have a notable chance that that payment is confirmed but later marked as invalid when the fork is resolved.  "/>
-</node>
-<node CREATED="1445508580854" ID="ID_1228512341" MODIFIED="1445509581101" TEXT="I say no for coinstake also">
-<font NAME="SansSerif" SIZE="12"/>
-<node CREATED="1445508635710" ID="ID_1530331366" MODIFIED="1445509581101" TEXT="If someone wants to vote, they should have done so long enough before the deadline that this isn&apos;t an issue (500 blocks = around 8 hours currently)"/>
-<node CREATED="1445508678062" ID="ID_1654495927" MODIFIED="1445509581102" TEXT="If someone stakes while holding a vote, the stake automatically still holds onto the original vote"/>
-<node CREATED="1445508793327" ID="ID_689179141" MODIFIED="1445509581104" TEXT="I think that, in order to prevent a forked block because the staked vote pushed the election over the 51% required, and a fork would destroy it can be solved by not allowing the vote to redeem for 8 hours after it has won"/>
-</node>
-<node CREATED="1445509384350" ID="ID_1246543394" MODIFIED="1445509581105" TEXT="What if we made votes have to mature as well?">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1445509432982" ID="ID_493897822" MODIFIED="1445509581105" TEXT="It would mean that we wouldn&apos;t have to search back through the txn history looking for a coinbase or coinstake"/>
-<node CREATED="1445509461270" ID="ID_1172560644" MODIFIED="1445509581107" TEXT="We could allow votes to occur right after a coinstake, it wouldn&apos;t be a big deal, because the coins still couldn&apos;t be moved (and spent with a merchant)"/>
-<node CREATED="1445509562422" ID="ID_769847997" MODIFIED="1445509581108" TEXT="Probably the easiest solution">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
-</node>
-<node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
-<node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
-<node CREATED="1445328928830" ID="ID_602214935" MODIFIED="1445333839142" TEXT="Should we just use transactions after the fact?">
-<node CREATED="1445328959926" ID="ID_1964564743" MODIFIED="1445328977074" TEXT="It may be simpler than trying to change the code, affecting money supply, etc."/>
-<node CREATED="1445328981062" ID="ID_1818362765" MODIFIED="1445328999882" TEXT="But we need an initial amount, anyway, I suppose we could do the standard first mined block gets a huge payout"/>
-<node CREATED="1445329053678" ID="ID_1659295338" MODIFIED="1445329069049" TEXT="We also wouldn&apos;t need to keep changing the genesis block everytime"/>
-<node CREATED="1445333855782" ID="ID_1697435562" MODIFIED="1445333867258" TEXT="For spending pool, we&apos;ll just create a transaction with a huge fee"/>
-<node CREATED="1445333834734" ID="ID_823427773" MODIFIED="1445333837615" TEXT="Yes">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
-</node>
-<node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
-<node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
-<node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
-<node CREATED="1445163707470" ID="ID_1920250947" MODIFIED="1445163718894" TEXT="I&apos;m going to go ahead and do this, it solves a lot of problems">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node COLOR="#ff0000" CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445163722126" TEXT="But how does the redeeming txn get to unlock the funds?">
-<node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445163728762" TEXT="Something special in its txnIn I guess????"/>
-</node>
-</node>
-<node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
-<node COLOR="#ff0000" CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445502500579" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
-<font NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1445502505363" ID="ID_1734967915" MODIFIED="1445502528631" TEXT="Staking always falls through to the previous transaction if the current txn is a vote"/>
-</node>
-<node CREATED="1445504345683" ID="ID_1389366058" MODIFIED="1445504351247" TEXT="proposal txn">
-<node CREATED="1445504352708" ID="ID_580089223" MODIFIED="1445504360391" TEXT="This is the txn used when creating a proposal"/>
-<node CREATED="1445504360836" ID="ID_860343474" MODIFIED="1445504378160" TEXT="It has a null input, like a coin base, but a index of -2, rather than -1"/>
-<node CREATED="1445508896534" ID="ID_1469687555" LINK="#ID_1522598173" MODIFIED="1445509644434" STYLE="fork" TEXT="It cannot be put into the block until after COINBASE_MATURITY"/>
-<node COLOR="#ff0000" CREATED="1445504379204" ID="ID_1389536906" MODIFIED="1445504383860" TEXT="TODO">
-<node CREATED="1445504385996" ID="ID_1968195892" MODIFIED="1445504407096" TEXT="Search for all instances of IsNull() and determine if a proposal check needs to be done"/>
-<node CREATED="1445504407611" ID="ID_341981322" MODIFIED="1445504431728" TEXT="Search for all instances of IsCoin* ..."/>
-</node>
-</node>
-<node COLOR="#ff0000" CREATED="1445569997733" ID="ID_1581672533" MODIFIED="1445570067430" TEXT="Should we put the vote on the input rather than the output?">
-<node CREATED="1445570011005" ID="ID_261012601" MODIFIED="1445570047490" TEXT="If we do so, then the input script hash will match the output script hash exactly"/>
-<node CREATED="1445570049173" ID="ID_533375854" MODIFIED="1445570060010" TEXT="This will make it easier to verify that a vote is correct"/>
-<node CREATED="1445583253630" ID="ID_127018036" MODIFIED="1445583276890" TEXT="It&apos;s a little odd though. The input script signature usually doesn&apos;t include itself. In this case it would have to."/>
-</node>
-<node COLOR="#ff0000" CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445581207457" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?"/>
-</node>
-<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445505326920" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445725518478" POSITION="right" TEXT="testing">
 <node CREATED="1445505328564" ID="ID_586147613" MODIFIED="1445505335176" TEXT="Take a look at: test/test-double-stake-punishment.js">
 <node CREATED="1445505338677" ID="ID_44908685" MODIFIED="1445505359392" TEXT="It does some interesting things that may help us test voting"/>
+</node>
+<node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
+<node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
+<node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
+<node CREATED="1445725697168" ID="ID_1816636427" MODIFIED="1445725699596" TEXT="Before deadline"/>
+</node>
+<node CREATED="1445725703472" ID="ID_1076873766" MODIFIED="1445725708948" TEXT="Voting before deadline">
+<node CREATED="1445729780394" ID="ID_1337503731" MODIFIED="1445729783958" TEXT="Vote should change">
+<node CREATED="1445729786034" ID="ID_855614879" MODIFIED="1445729789790" TEXT="test-simple-vote.js"/>
+</node>
+</node>
+<node CREATED="1445725709552" ID="ID_607577579" MODIFIED="1445725713412" TEXT="Voting after deadline">
+<node CREATED="1445725717009" ID="ID_165427420" MODIFIED="1445725725588" TEXT="Vote shouldn&apos;t change">
+<node CREATED="1445729786034" ID="ID_1190754048" MODIFIED="1445729789790" TEXT="test-simple-vote.js"/>
+</node>
+</node>
+<node CREATED="1445725728072" ID="ID_1233534168" MODIFIED="1445725736957" TEXT="Redeeming txn">
+<node COLOR="#ff0000" CREATED="1445725739201" ID="ID_1040153395" MODIFIED="1445729776018" TEXT="displaymsg"/>
+<node COLOR="#ff0000" CREATED="1445725749521" ID="ID_400011997" MODIFIED="1445729775426" TEXT="spendpool"/>
+<node COLOR="#ff0000" CREATED="1445725755632" ID="ID_1006167259" MODIFIED="1445729774626" TEXT="upgradeclient"/>
+<node COLOR="#ff0000" CREATED="1445725778000" ID="ID_1970580655" MODIFIED="1445729774306" TEXT="Test redeeming txn without passed vote"/>
+<node COLOR="#ff0000" CREATED="1445725786017" ID="ID_1578521516" MODIFIED="1445729774050" TEXT="Test invalid redeeming txn, too big?"/>
+<node COLOR="#ff0000" CREATED="1445726293968" ID="ID_829798202" MODIFIED="1445729773730" TEXT="Test redeeming txn before mature period after deadline"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445725827088" ID="ID_1276050024" MODIFIED="1445729773146" TEXT="Staking and voting immediately"/>
+<node CREATED="1445726222920" ID="ID_326360939" MODIFIED="1445741680056" TEXT="Mining and voting immediately">
+<node CREATED="1445741671896" ID="ID_688613190" MODIFIED="1445741678380" TEXT="test-simple-vote.js"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445726229041" ID="ID_1122443971" MODIFIED="1445729772578" TEXT="Trying to spend a vote txn from a stake/coinbase that didn&apos;t mature yet"/>
+<node COLOR="#ff0000" CREATED="1445726334344" ID="ID_479107935" MODIFIED="1445729772298" TEXT="Voting twice should delete prior vote"/>
+<node COLOR="#ff0000" CREATED="1445726347369" ID="ID_861537804" MODIFIED="1445729772018" TEXT="Spending should delete prior vote"/>
+<node COLOR="#ff0000" CREATED="1445726354256" ID="ID_533586146" MODIFIED="1445729771690" TEXT="Staking should reinstate vote"/>
+<node CREATED="1445726392488" ID="ID_306965743" MODIFIED="1445729768690" TEXT="Reorg">
+<node COLOR="#ff0000" CREATED="1445726406896" ID="ID_1664913648" MODIFIED="1445729771098" TEXT="Check voting participation adjusts"/>
+<node COLOR="#ff0000" CREATED="1445726428066" ID="ID_344371147" MODIFIED="1445729770810" TEXT="Check votes adjust"/>
+<node COLOR="#ff0000" CREATED="1445726453321" ID="ID_416983723" MODIFIED="1445729770490" TEXT="Check upgradeclient turns on/off properly"/>
+<node COLOR="#ff0000" CREATED="1445726468256" ID="ID_1237885544" MODIFIED="1445729770122" TEXT="spendpool"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445728040137" ID="ID_329287652" MODIFIED="1445729765450" TEXT="Voting with wrong deadline for a txn hash"/>
+<node COLOR="#ff0000" CREATED="1445729731914" ID="ID_765920006" MODIFIED="1445729764970" TEXT="Staking and then voting does not change staking hash (to prevent grinding)"/>
+<node COLOR="#ff0000" CREATED="1445733518380" ID="ID_199510845" MODIFIED="1445733569850" TEXT="Actual bug: Voting, then voting again after acquiring more coin through mining doesn&apos;t seem to add to the original vote (all before deadline)"/>
 </node>
 </node>
 <node CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445334541018" POSITION="right" TEXT="distribution">
@@ -1384,9 +1441,7 @@
 <node CREATED="1445392936602" ID="ID_517796839" MODIFIED="1445392944110" TEXT="faucet"/>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
-<node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1">
-<node CREATED="1445679738177" ID="ID_787615589" MODIFIED="1445679748285" TEXT="non standard tx type from createproposal"/>
-</node>
+<node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
 <node CREATED="1445137019409" ID="ID_1330490338" MODIFIED="1445137021301" TEXT="2">
 <node CREATED="1445136400097" ID="ID_1867873505" MODIFIED="1445136406237" TEXT="Why are blocks being mined every second?">
 <node CREATED="1445136411545" ID="ID_901737279" MODIFIED="1445136424605" TEXT="When we first start the network, everyone is mining every second"/>
@@ -1401,6 +1456,9 @@
 </node>
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
+</node>
+<node CREATED="1445679752945" ID="ID_1262595952" MODIFIED="1445679755269" POSITION="right" TEXT="bugs">
+<node CREATED="1445679756465" ID="ID_740240627" MODIFIED="1445679757349" TEXT="non standard tx type from createproposal "/>
 </node>
 <node CREATED="1445397232564" ID="ID_75830749" MODIFIED="1445397235328" POSITION="right" TEXT="external stuff">
 <node CREATED="1445397236852" ID="ID_1563557230" MODIFIED="1445397239912" TEXT="whitepaper"/>

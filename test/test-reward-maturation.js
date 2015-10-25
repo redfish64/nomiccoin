@@ -23,7 +23,7 @@ export async function test( ) {
 
     expect( rpc.result ).to.equal( 0 );
 
-    await mineSomePowBlocks( client1, 4 );
+    await mineSomePowBlocks( client1, 5 );
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
 

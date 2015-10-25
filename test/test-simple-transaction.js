@@ -10,8 +10,9 @@ export async function test( ) {
 
     await compileWith( fastChain, smallChain );
 
-    var client1 = await spawnClient( { } );
-    var client2 = await spawnClient( { addnode : client1.target } );
+    var client1 = await spawnClient( { delay : 10, keepalive : false } );
+    var client2 = await spawnClient( { addnode : client1.target, delay : 10, keepalive : false
+				     } );
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
 
@@ -23,7 +24,7 @@ export async function test( ) {
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } ), balance = rpc.result;
 
-    expect( rpc.result ).to.be.equal( 10 );
+    expect( rpc.result ).to.be.equal( 9 );
 
     var { result : address } = await sendRpcQuery( client2, { method : 'getnewaddress' } );
     var rpc = await sendRpcQuery( client1, { method : 'sendtoaddress', params : [ address, 3 ] } );
@@ -33,7 +34,7 @@ export async function test( ) {
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
 
-    expect( rpc.result ).to.be.equal( 7 );
+    expect( rpc.result ).to.be.equal( 6 );
 
     await mineSomePowBlocks( client1, 1 ); // the block which will contain the transaction
     await mineSomePowBlocks( client1, 1 ); // the block which will confirm the transaction

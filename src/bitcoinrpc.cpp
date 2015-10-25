@@ -19,6 +19,8 @@
 #include "GetProofOfStakeReward.h"
 #include "GetNextTargetRequired.h"
 
+#include <time.h>
+
 #undef printf
 #include <boost/asio.hpp>
 #include <boost/assign/list_of.hpp>
@@ -929,9 +931,10 @@ int ConvertTimeishToEpochSecs(string timeish)
   if(!strptime(timeish.c_str(), "%Y-%m-%d %H:%M:%S %Z", &tm))
     return 0;
 
-  return mktime(&tm);
-  
-  
+  //co: converts to localtime
+  //  return mktime(&tm);
+  //TODO 3 timegm is not posix, so may not be available on all systems
+  return timegm(&tm);
 }
 
 bool ConvertBlobToProposal(std::string blob, CProposal& proposal)
@@ -969,12 +972,12 @@ Value createproposal(const Array& params, bool fHelp)
 			    );
 
     CProposal proposal;
-    proposal.deadline = ConvertTimeishToEpochSecs(params[0].get_str());
+    timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
     proposal.title = std::vector<unsigned char>(params[1].get_str().begin(), params[1].get_str().end());
 
-    //TODO 2 parse deadline from a date into an estimated block height
     CTransaction tx;
+    tx.nTime = deadline; //the tx time is the deadline. 
     tx.vin.resize(1);
     tx.vin[0].prevout.SetProposal();
 
@@ -1102,20 +1105,34 @@ Value getvoteinfo(const Array& params, bool fHelp)
   money_t totalVotes = 0;
 
   CTxDB txdb("r");
-  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.deadline, totalVotes); //if fails, then no votes were cast
+  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.GetDeadline(), totalVotes); //if fails, then no votes were cast
 
+  CBlockIndex *ourBlockIndex = pindexBest;
+
+  bool votingPeriodOver = false;
+
+  while(prop.GetDeadline() < ourBlockIndex->nTime && ourBlockIndex->pprev)
+    {
+      printf("checking: block deadline %ld prop deadline %ld\n", ourBlockIndex->nTime, prop.GetDeadline());
+      votingPeriodOver = true;
+      ourBlockIndex = ourBlockIndex->pprev;
+    }
+  printf("done: block deadline %ld prop deadline %ld\n", ourBlockIndex->nTime, prop.GetDeadline());
   Object obj;
 
   std::string titleStr(prop.title.begin(),prop.title.end());
 
   obj.push_back(Pair("proposalTitle", titleStr));
   obj.push_back(Pair("votesForProposal",   ValueFromAmount(totalVotes)));
-  obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(pindexBest->votingPeriodVotedCoins)));
+  obj.push_back(Pair("votingPeriodOver", votingPeriodOver));
+  if(votingPeriodOver)
+    obj.push_back(Pair("voteWon", IsVoteWon(totalVotes, ourBlockIndex->votingPeriodVotedCoins)));
+  obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(ourBlockIndex->votingPeriodVotedCoins)));
   if(pindexBest->votingPeriodVotedCoins != 0)
     obj.push_back(Pair("percentOfElectorate",  (double)
 		       totalVotes /
-		       (double) pindexBest->votingPeriodVotedCoins));
-  obj.push_back(Pair("deadline", DateTimeStrFormat(prop.deadline).c_str()));
+		       (double) ourBlockIndex->votingPeriodVotedCoins));
+  obj.push_back(Pair("deadline", DateTimeStrFormat(prop.GetDeadline()).c_str()));
   TxToJSON(prop.redeemTxn, 0, obj);
 
   return obj;
@@ -1320,6 +1337,16 @@ int64 GetAccountBalance(const string& strAccount, int nMinDepth)
     return GetAccountBalance(walletdb, strAccount, nMinDepth);
 }
 
+
+Value getvotingbalance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "getvotingbalance\n"
+            "Returns the balance available for voting. This include immature staking and coinbase funds\n");
+
+    return  ValueFromAmount(pwalletMain->GetBalance());
+}
 
 Value getbalance(const Array& params, bool fHelp)
 {
@@ -3660,6 +3687,7 @@ static const CRPCCommand vRPCCommands[] =
     { "encryptwallet",          &encryptwallet,          false },
     { "validateaddress",        &validateaddress,        true },
     { "getbalance",             &getbalance,             false },
+    { "getvotingbalance",       &getvotingbalance,       false },
     { "move",                   &movecmd,                false },
     { "sendfrom",               &sendfrom,               false },
     { "sendmany",               &sendmany,               false },

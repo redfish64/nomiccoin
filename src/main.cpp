@@ -4580,3 +4580,9 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
         }
     }
 }
+
+bool IsVoteWon(money_t totalVotes, money_t voterParticipation)
+{
+  return totalVotes > (voterParticipation >> 1) +1;
+}
+

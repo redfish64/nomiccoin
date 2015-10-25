@@ -1592,12 +1592,12 @@ bool SignN(const vector<valtype>& multisigdata, const CKeyStore& keystore, uint2
 //
 bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash, int nHashType,
             CScript& scriptSigRet, txnouttype& whichTypeRet, const votehash_t *voteTxnHash = 0,
-	    const timestamp_t *voteDeadline = 0)
+	    const timestamp_t voteDeadline = 0)
 {
     scriptSigRet.clear();
 
-    if(voteDeadline != NULL)
-      scriptSigRet << *voteDeadline << *voteTxnHash << OP_VOTE;
+    if(voteDeadline != 0)
+      scriptSigRet << voteDeadline << *voteTxnHash << OP_VOTE;
 
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
@@ -1845,8 +1845,8 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     return true;
 }
 
-//bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t *voteDeadline = 0)
-bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t *voteDeadline)
+//bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t voteDeadline = 0)
+bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t voteDeadline)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];
@@ -1883,7 +1883,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, true, 0);
 }
 
-bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t *voteDeadline)
+bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t voteDeadline)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];

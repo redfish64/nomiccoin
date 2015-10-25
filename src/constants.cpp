@@ -55,7 +55,9 @@ std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::m
 //                                The maturity is the number of block required for a coinbase/coinstake transaction to be confirmed by the network (excluding the block which embeds the transaction)
 //                                Since you need to include your transaction in a block, and the COINBASE_MATURITY cannot be lower than 1, you will always need at least two blocks before maturing
 //                                Note that the coinbase maturity is actually also applied to coinstakes. This constant should probably be renamed to reflect this fact
-
+//The reason for this is that when a fork happens, usually transactions will appear in both forks until
+//one wins, with exception to stake/coinbase, which can only exist in one fork. So we wait a number
+//of blocks to hopefully resolve any long term forks.
 blockheight_t                     COINBASE_MATURITY           = 500;
 
 //                                Some parameters about the coin amount itself
@@ -185,3 +187,15 @@ double                             SHARED_POOL_MINING_PERC   = .25;
  */
 int VOTE_REG_PERIOD_BLOCKS = 2 * WEEK / TARGET_SPACING;
 
+/**
+ * Number of blocks before a proposal result becomes permenant and can be redeemed. We don't want to go 
+ * about spending pool funds based on an election that might fork and go the other way.
+ * 
+ * The reason we're worried about the election forking is because even mined/staked coins can participate
+ * in voting before they mature (this prevents a minter from losing their chance to vote simply because 
+ * they staked at the wrong time). 
+ * 
+ * So for the same reason there is a coinbase/coinstake maturity, there is a proposal maturity. 
+ */
+//TODO 2 implement this!
+int PROPOSAL_MATURITY_BLOCKS = 500;

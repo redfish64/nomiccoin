@@ -1909,7 +1909,6 @@ class CProposalVoteCount
  public:
   int nVersion;
   uint256 txnHash; //hash of txn that redeems vote
-  timestamp_t deadline; //deadline of vote
   money_t totalVotes; //the current number of votes
 
   CProposalVoteCount()
@@ -1921,7 +1920,6 @@ class CProposalVoteCount
     (
      READWRITE(nVersion);
      READWRITE(txnHash);
-     READWRITE(deadline);
      READWRITE(totalVotes);
     )
 
@@ -1929,12 +1927,12 @@ class CProposalVoteCount
     {
       nVersion = 0;
       txnHash = 0;
-      deadline = 0;
       totalVotes = 0;
     }
 
 };
 
 
+extern bool IsVoteWon(money_t totalVotes, money_t voterParticipation);
 #endif
 

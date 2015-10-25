@@ -861,6 +861,15 @@ bool LoadAddresses()
     return CAddrDB("cr+").LoadAddresses();
 }
 
+//note that even though the txn contains the deadline, we need it anyway.
+//This is because from the txn hash, we can't tell what the deadline is, so if we just
+//totaled the vote by txnHash, rather than by txnHash and deadline, someone
+//could vote with a different deadline, causing the vote to spill over to 51% even though
+//the original deadline has passed.
+//
+//Conversely, we also need the deadline within the txn. Otherwise two votes could be done
+//on the same transaction twice. If both passed, the txn could still only be entered into
+//the blockchain once, so the second proposal would fail even though it should have passed.
 bool CTxDB::ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t &votecount)
 {
   tuple<string, votehash_t, timestamp_t> triple(string("votecount"), txnHash, deadline);
