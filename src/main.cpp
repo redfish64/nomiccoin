@@ -365,7 +365,7 @@ bool CTransaction::AreInputsStandard(const MapPrevTx& mapInputs) const
         // beside "push data" in the scriptSig the
         // IsStandard() call returns false
         vector<vector<unsigned char> > stack;
-        if (!EvalScript(stack, vin[i].scriptSig, *this, i, 0))
+        if (!EvalScript(stack, vin[i].scriptSig, this, i, 0))
             return false;
 
         if (whichType == TX_SCRIPTHASH)
@@ -602,9 +602,17 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
     if ((int64)tx.nLockTime > std::numeric_limits<int>::max())
         return error("CTxMemPool::accept() : not accepting nLockTime beyond 2038 yet");
 
+    if (tx.IsProposal())
+      {
+	//we don't check for "standard" proposals. If over 51% of the network voted on it,
+	//it's going in.
+
+	if(!tx.IsProposalReedemable(txdb))
+	    return error("CTxMemPool::accept() : proposal not redeemable");
+      }
     // Rather not work on nonstandard transactions
-    if (!tx.IsStandard())
-        return error("CTxMemPool::accept() : nonstandard transaction type");
+    else if (!tx.IsStandard())
+      return error("CTxMemPool::accept() : nonstandard transaction type");
 
     // Do we already have it?
     uint256 hash = tx.GetHash();
@@ -811,8 +819,7 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
-  //TODO 2 what about voting transactions, they may not have matured yet
-    if (!(IsCoinBase() || IsCoinStake()))
+  if (!(IsCoinBase() || IsCoinStake() || IsVoteTxn()))
         return 0;
 
     int depth = GetDepthInMainChain();
@@ -1377,6 +1384,11 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             if (nStakeReward > GetProofOfStakeReward(nCoinAge, pindexBlock->pprev->nHeight) - GetMinFee() + MIN_TX_FEES)
                 return DoS(100, error("ConnectInputs() : %s stake reward exceeded", GetHash().ToString().substr(0,10).c_str()));
         }
+	else if (IsProposal())
+	  {
+	    //no-op there are no inputs for a proposal (besides the sharedpoolfunds, but that is handled
+	    //)
+	  }
         else
         {
             if (nValueIn < GetValueOut())
@@ -1531,6 +1543,27 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     return true;
 }
 
+/**
+ * Runs a proposal as a regular user. Accumulates results in CProposalPublicData
+ */
+bool RunProposalForPublic(CTxDB& txdb, CTransaction *tx, CProposalPublicData & ppd)
+{
+
+  BOOST_FOREACH(CTxOut out, tx->vout)
+    {
+      std::vector<std::vector<unsigned char> > stack;
+
+      if(!IsPublicScript(out.scriptPubKey))
+	continue;
+	
+      if(!EvalScript(stack, out.scriptPubKey,
+		     NULL,
+		     0, 0, true, &ppd))
+	return error("RunProposalForPublic() : EvalScript failed");
+    }
+
+  return true;
+}
 
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
@@ -1575,6 +1608,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     int64 nValueOut = 0;
     unsigned int nSigOps = 0;
 
+    money_t remainingSharedPoolFunds = pindex->pprev->nSharedPoolFunds;
+
     //reset voting stuff
     pindex->votedCoinsDelta = 0;
 
@@ -1596,6 +1631,26 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	  {
             nValueOut += tx.GetValueOut();
 	    poolPerc = SHARED_POOL_MINING_PERC;
+	  }
+	else if (tx.IsProposal())
+	  {
+	    //we do this here rather than CheckBlock
+	    //we need to be on the main chain to check if all the votes have come in and
+	    //the proposal is redeemable
+	    if(!tx.IsProposalReedemable(txdb))
+	      return DoS(100, error("ConnectBlock() : proposal is not redeemable"));
+
+	    money_t txValueOut = tx.GetValueOut();
+	    
+	    if(remainingSharedPoolFunds < txValueOut)
+	      //this can't be a DoS, because the proposal's needed to have been voted on
+	      //and passed to be redeemable. It's just the result of bad fiscal policy
+	      return error("ConnectBlock() : out of shared pool funds");
+
+	    nValueOut +=  txValueOut;
+	    nValueIn += txValueOut;
+	    remainingSharedPoolFunds -= txValueOut;
+	    
 	  }
         else
         {
@@ -1639,16 +1694,16 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     //nomiccoin:
     //the shared pool gets awarded a percentage of minting/mining amount along with all the fees
-    money_t sharedPoolDelta =  nFees + (money_t)(pindex->nMint * poolPerc);
+    money_t sharedPoolEarned =  nFees + (money_t)(pindex->nMint * poolPerc);
     //calculate pool funds
-    pindex->nSharedPoolFunds = pindex->pprev->nSharedPoolFunds + nFees + sharedPoolDelta; //TODO 2 we need to subtract the pool funds whenever someone redeems a passed proposal which collects funds
+    pindex->nSharedPoolFunds = remainingSharedPoolFunds + nFees + sharedPoolEarned; 
 
     //write out all the votes.. since this is stored outside of CBlockIndex, we need to revert
     //these changes when we do a reorg in DisconnectBlock
     if(!WriteProposalVoteCounts(txdb, proposalVoteCounts))
       return error("Connect() : WriteProposalVoteCounts failed");
 
-    pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolDelta;
+    pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolEarned;
     
     pindex->votingPeriodVotedCoins = pindex->pprev->votingPeriodVotedCoins + pindex->votedCoinsDelta;
 
@@ -1673,6 +1728,23 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     if (fDebug && GetBoolArg("-printcreation"))
         printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
 
+    // Watch for transactions paying to me
+    BOOST_FOREACH(CTransaction& tx, vtx)
+      {
+	//we've already checked if any proposals are redeemable at this point, so now we just
+	//have to run them
+	if(tx.IsProposal())
+	  {
+	    //everyone evaluates the tx, in case it has operations for displaying a message
+	    //or upgrading the client
+	    RunProposalForPublic(txdb, &tx, pindex->ppd);
+	  }
+	
+      }
+
+    //save the ppd, we'll run it after were sure the block isn't going to be reverted
+    
+
     // Update block index on disk without changing it in memory.
     // The memory index structure will be changed after the db commits.
     if (pindex->pprev)
@@ -1685,7 +1757,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     // Watch for transactions paying to me
     BOOST_FOREACH(CTransaction& tx, vtx)
-      SyncWithWallets(tx, this, true);
+      {
+	SyncWithWallets(tx, this, true);
+      }
 
     return true;
 }
@@ -1950,6 +2024,22 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge
         printf("coin age bnCoinDay=%s\n", bnCoinDay.ToString().c_str());
     nCoinAge = bnCoinDay.getuint64();
     return true;
+}
+
+bool CTransaction::IsProposalReedemable(CTxDB& txdb) const
+{
+  money_t votesForProposal;
+  CBlockIndex * latestBeforeDeadlineBlockIndex;
+  bool isVoteWon;
+  bool isVotingPeriodOver;
+  int blocksBeforeRedeemable;
+  GetProposalTxnInfo(txdb,votesForProposal, latestBeforeDeadlineBlockIndex, isVoteWon, isVotingPeriodOver,
+		     blocksBeforeRedeemable);
+
+  if(!isVoteWon || !isVotingPeriodOver || blocksBeforeRedeemable > 0)
+    return false;
+
+  return true;
 }
 
 // ppcoin: total coin age spent in block, in the unit of coin-days.
@@ -2463,7 +2553,8 @@ bool CBlock::CheckBlockSignature() const
             return false;
 
         vector<vector<unsigned char> > stack;
-        if (!EvalScript(stack, scriptSig, CTransaction(), 0, 0))
+	CTransaction txTemp;
+        if (!EvalScript(stack, scriptSig, &txTemp, 0, 0))
             return false;
         if (stack.size() != 3)
             return false;
@@ -4584,5 +4675,38 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
 bool IsVoteWon(money_t totalVotes, money_t voterParticipation)
 {
   return totalVotes > (voterParticipation >> 1) +1;
+}
+
+//gets the kitchen sink of information about the proposal. Used to determine if proposal
+//won, whether it is redeemable yet, whether it can still be voted for, etc.
+void CTransaction::GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
+		       CBlockIndex *& latestBeforeDeadlineBlockIndex,
+		       bool& isVoteWon,
+		       bool& isVotingPeriodOver,
+		       int& blocksBeforeRedeemable 
+		       ) const
+{
+  votesForProposal = 0;
+  txdb.ReadProposalVoteCount(GetHash(), nTime, votesForProposal); //if fails, then no votes were cast
+
+  latestBeforeDeadlineBlockIndex = pindexBest;
+
+  isVotingPeriodOver = false;
+  
+  while(nTime < latestBeforeDeadlineBlockIndex->nTime
+	&& latestBeforeDeadlineBlockIndex->pprev)
+    {
+      isVotingPeriodOver = true;
+      latestBeforeDeadlineBlockIndex = latestBeforeDeadlineBlockIndex->pprev;
+    }
+
+  isVoteWon = IsVoteWon(votesForProposal, latestBeforeDeadlineBlockIndex->votingPeriodVotedCoins);
+
+  blocksBeforeRedeemable =  PROPOSAL_MATURITY_BLOCKS - (pindexBest->nHeight - latestBeforeDeadlineBlockIndex->nHeight);
+
+  if(blocksBeforeRedeemable < 0)
+    blocksBeforeRedeemable = 0;
+
+  
 }
 

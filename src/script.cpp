@@ -228,6 +228,7 @@ const char* GetOpName(opcodetype opcode)
     case OP_FUNDS_POOL_UNLOCKED    : return "OP_FUNDS_POOL_UNLOCKED"; 
     case OP_UPGRADE_CLIENT         : return "OP_UPGRADE_CLIENT";
     case OP_DISPLAY_MSG            : return "OP_DISPLAY_MSG";
+    case OP_PUBLIC_SCRIPT          : return "OP_PUBLIC_SCRIPT";
     case OP_VOTE                   : return "OP_VOTE";
 
     // template matching params
@@ -372,7 +373,11 @@ static bool IsValidPubKey(valtype const & vchPubKey)
     return true;
 }
 
-bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, const CTransaction& txTo, unsigned int nIn, int nHashType)
+bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
+		const CTransaction* txTo, //needed only if runningPublicScript is false
+		unsigned int nIn, int nHashType, bool runningPublicScript,
+		CProposalPublicData *ppd //needed only if runningPublicScript is true
+		)
 {
     CAutoBN_CTX pctx;
     CScript::const_iterator pc = script.begin();
@@ -460,7 +465,64 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
 	        popstack(stack);
 	        popstack(stack);
 	        break;
+
+	    case OP_DISPLAY_MSG:
+	      if(stack.size() < 1 || !runningPublicScript)
+		return false;
+	      ppd->messages.push_back(stack[0]);
+	      popstack(stack);
+	      break;
+
+	    case OP_UPGRADE_CLIENT:
+	      {
+	      //note that we don't do much verification on this, because since half the network
+	      //voted for it, we assume its good.
 	      
+	      if(stack.size() < 4 || !runningPublicScript)
+	      	return false;
+
+	      int currUpgradeVersion = CBigNum(stack[0]).getint();
+
+	      //we always use the earliest deadline
+	      uint64 currUpgradeDeadline = CBigNum(stack[1]).getuint64();
+	      if ((ppd->upgradeDeadline == 0) ||
+	      	  (ppd->upgradeDeadline > currUpgradeDeadline))
+	      	ppd->upgradeDeadline = currUpgradeDeadline;
+	      
+	      std::vector<unsigned char>& currUpgradeGitCommit = stack[2];
+	      int currUpgradeDistCount = CBigNum(stack[3]).getint();
+	      
+	      stack.erase(stack.end()-4, stack.end());
+
+	      //we don't upgrade if we are already at or above that version, and/or we have another
+	      //upgrade already that is higher
+	      if(currUpgradeVersion <= VERSION_SEQUENCE || currUpgradeVersion < ppd->nUpgradeVersion)
+	      	{
+	      	  if(stack.size() < (unsigned int)currUpgradeDistCount)
+	      	    return false;
+	      	  stack.erase(stack.end()-currUpgradeDistCount*2, stack.end());
+	      	}
+	      else
+	      	{
+	      	  ppd->nUpgradeVersion = currUpgradeVersion;
+	      	  ppd->upgradeDeadline = currUpgradeDeadline;
+		  ppd->upgradeGitCommit = currUpgradeGitCommit;
+	      	  ppd->upgradeDistData.clear();
+		  
+	      	  for(int i = 0; i< currUpgradeDistCount*2; i+=2)
+		    
+	      	    {
+	      	      int osId = CBigNum(stack[0]).getint();
+	      	      uint256 sha256hash = CBigNum(stack[1]).getuint256();
+		      
+	      	      popstack(stack);
+	      	      popstack(stack);
+		      
+	      	      ppd->upgradeDistData.push_back(make_pair(osId, sha256hash));
+	      	    }
+	      	}
+	      break;
+	      }
                 //
                 // Control
                 //
@@ -503,6 +565,12 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     vfExec.pop_back();
                 }
                 break;
+
+	    case OP_PUBLIC_SCRIPT:
+	      if(!runningPublicScript)
+		//public scripts can't be run as regular txn outputs (or inputs)
+		return false;
+	      break;
 
                 case OP_VERIFY:
                 {
@@ -1069,7 +1137,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // Drop the signature, since there's no way for a signature to sign itself
                     scriptCode.FindAndDelete(CScript(vchSig));
 
-                    bool fSuccess = CheckSig(vchSig, vchPubKey, scriptCode, txTo, nIn, nHashType);
+                    bool fSuccess = CheckSig(vchSig, vchPubKey, scriptCode, *txTo, nIn, nHashType);
 
                     popstack(stack);
                     popstack(stack);
@@ -1129,7 +1197,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         valtype& vchPubKey = stacktop(-ikey);
 
                         // Check signature
-                        if (CheckSig(vchSig, vchPubKey, scriptCode, txTo, nIn, nHashType))
+                        if (CheckSig(vchSig, vchPubKey, scriptCode, *txTo, nIn, nHashType))
                         {
                             isig++;
                             nSigsCount--;
@@ -1195,6 +1263,28 @@ void RemoveAllButVoteOp(CScript &scriptSig)
     scriptSig.clear();
 }
 
+bool IsPublicScript(const CScript& script)
+{
+  return script[0] == OP_PUBLIC_SCRIPT;
+}
+
+
+/**
+ * Evaluates a proposal txn on behalf of a regular (non-redeeming) client.
+ * This is where we display msgs and upgrade the os.
+ */
+void EvalProposalForPublic(CTxDB& txdb, CTransaction& tx)
+{
+  BOOST_FOREACH(CTxOut& txOut, tx.vout)
+    {
+      //there can be private components to a proposal (for distributing funds from the pool)
+      if(!IsPublicScript(txOut.scriptPubKey))
+	continue;
+
+      
+    }
+
+}
 
 
 
@@ -1410,23 +1500,8 @@ bool GetVoteScriptData(const CScript& scriptSig, int&  preambleSize, votehash_t&
 //
 // Return public keys or hashes from scriptPubKey, for 'standard' transaction types.
 //
-bool SolverInner(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet, bool insideVotePreamble)
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
 {
-  if(!insideVotePreamble)
-    {
-      int votePreambleSize;
-      if(IsVoteScript(scriptPubKey, votePreambleSize))
-	{
-	  //verify the rest of the script is standard
-	  CScript::const_iterator first = scriptPubKey.begin() + votePreambleSize;
-	  CScript::const_iterator last = scriptPubKey.end();
-	  CScript withoutVote(first, last);
-
-	  //we still treat the script as what it was without the vote preamble
-	  return SolverInner(withoutVote, typeRet, vSolutionsRet, true);
-	}
-    }
-  
     // Templates
     static multimap<txnouttype, CScript> mTemplates;
     if (mTemplates.empty())
@@ -1545,11 +1620,6 @@ bool SolverInner(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector
     vSolutionsRet.clear();
     typeRet = TX_NONSTANDARD;
     return false;
-}
-
-bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
-{
-  return SolverInner(scriptPubKey, typeRet, vSolutionsRet, false);
 }
 
 bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int nHashType, CScript& scriptSigRet)
@@ -1813,11 +1883,11 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
                   bool fValidatePayToScriptHash, int nHashType)
 {
     vector<vector<unsigned char> > stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, txTo, nIn, nHashType))
+    if (!EvalScript(stack, scriptSig, &txTo, nIn, nHashType))
         return false;
     if (fValidatePayToScriptHash)
         stackCopy = stack;
-    if (!EvalScript(stack, scriptPubKey, txTo, nIn, nHashType))
+    if (!EvalScript(stack, scriptPubKey, &txTo, nIn, nHashType))
         return false;
     if (stack.empty())
         return false;
@@ -1835,7 +1905,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stackCopy);
 
-        if (!EvalScript(stackCopy, pubKey2, txTo, nIn, nHashType))
+        if (!EvalScript(stackCopy, pubKey2, &txTo, nIn, nHashType))
             return false;
         if (stackCopy.empty())
             return false;
@@ -2026,9 +2096,10 @@ CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsign
     Solver(scriptPubKey, txType, vSolutions);
 
     vector<valtype> stack1;
-    EvalScript(stack1, scriptSig1, CTransaction(), 0, 0);
+    CTransaction tempTx;
+    EvalScript(stack1, scriptSig1, &tempTx, 0, 0);
     vector<valtype> stack2;
-    EvalScript(stack2, scriptSig2, CTransaction(), 0, 0);
+    EvalScript(stack2, scriptSig2, &tempTx, 0, 0);
 
     return CombineSignatures(scriptPubKey, txTo, nIn, txType, vSolutions, stack1, stack2);
 }

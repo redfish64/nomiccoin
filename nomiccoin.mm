@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1445736529800" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" ID="ID_652303042" MODIFIED="1445910359530" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -824,6 +824,201 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node CREATED="1445825173727" ID="ID_509861348" MODIFIED="1445825345804" TEXT="Proposal txn has a title, created with OP_PROPOSAL_TITLE?">
+<node CREATED="1445825217623" ID="ID_1349910809" MODIFIED="1445825301795" TEXT="Why store a title?">
+<node CREATED="1445825321687" ID="ID_1306282875" MODIFIED="1445825330811" TEXT="It doesn&apos;t seem like it needs to be in the block chain"/>
+</node>
+<node CREATED="1445825333191" ID="ID_686419771" MODIFIED="1445825335280" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445328928830" ID="ID_602214935" MODIFIED="1445333839142" TEXT="Should we just use transactions after the fact?">
+<node CREATED="1445328959926" ID="ID_1964564743" MODIFIED="1445328977074" TEXT="It may be simpler than trying to change the code, affecting money supply, etc."/>
+<node CREATED="1445328981062" ID="ID_1818362765" MODIFIED="1445328999882" TEXT="But we need an initial amount, anyway, I suppose we could do the standard first mined block gets a huge payout"/>
+<node CREATED="1445329053678" ID="ID_1659295338" MODIFIED="1445329069049" TEXT="We also wouldn&apos;t need to keep changing the genesis block everytime"/>
+<node CREATED="1445333855782" ID="ID_1697435562" MODIFIED="1445333867258" TEXT="For spending pool, we&apos;ll just create a transaction with a huge fee"/>
+<node CREATED="1445333834734" ID="ID_823427773" MODIFIED="1445333837615" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
+<node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1445912842332" TEXT="prefix">
+<node CREATED="1444694513152" ID="ID_1286198681" MODIFIED="1444696316651" TEXT="The version is the most significant digit in the actual encoding"/>
+<node CREATED="1444696455472" ID="ID_803860895" MODIFIED="1444696596067" TEXT="Since &apos;1&apos; in base58 is 0 the &apos;1&apos; digit is created by prepending &apos;1&apos; explicitly. It&apos;s the equivalent of 004 for the value 4."/>
+<node CREATED="1444696630848" ID="ID_493437405" MODIFIED="1444696677621" TEXT="The size for the input matters then, as far as choosing the digit"/>
+<node CREATED="1444696678745" ID="ID_1687249484" MODIFIED="1444696733740" TEXT="The output size is always (input *138/100+1)"/>
+<node CREATED="1444696999633" ID="ID_1958082517" MODIFIED="1444697016261" TEXT="For a bitcoin address, the raw data to encode is always 25 bytes"/>
+<node CREATED="1444697017169" ID="ID_1738457801" MODIFIED="1444697041164" TEXT="So the output must be 35 bytes"/>
+<node CREATED="1444697053848" ID="ID_1232710707" MODIFIED="1444698809132" TEXT="So given a 25 byte number, where the first byte is the version, what value do we need to use for the version to get &apos;E&apos;?">
+<node CREATED="1444698820528" ID="ID_1677928971" MODIFIED="1444698866037" TEXT="We take (2 ** (8 * 25)) % 58 = 32"/>
+<node CREATED="1444698873448" ID="ID_1328467363" MODIFIED="1444698888157" TEXT="Then take the base58 rep and find the number we want"/>
+</node>
+<node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
+</node>
+</node>
+<node CREATED="1445829597665" ID="ID_286982106" MODIFIED="1445835329043" TEXT="OP_CHECKPOINT???">
+<node CREATED="1445829607881" ID="ID_223558610" MODIFIED="1445829628885" TEXT="Creates a checkpoint"/>
+<node CREATED="1445829633241" ID="ID_1053626802" MODIFIED="1445829652813" TEXT="Interesting because people can now vote whether they trust a checkpoint or not"/>
+<node CREATED="1445830266040" ID="ID_203616311" MODIFIED="1445830295229" TEXT="But if checkpoint is in blockchain, how can it be used to verify the blockchain. An attacker could create their own checkpoints"/>
+<node CREATED="1445835332164" ID="ID_432824246" MODIFIED="1445835338069" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445829855017" ID="ID_946705461" MODIFIED="1445830170249" TEXT="Alternative: founders get written into genesis. That is the checkpoint">
+<node CREATED="1445830170737" ID="ID_997106242" MODIFIED="1445911129060" TEXT="Not good enough. Trust in the founders forever?">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
+<node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
+<node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
+<node CREATED="1445163707470" ID="ID_1920250947" MODIFIED="1445163718894" TEXT="I&apos;m going to go ahead and do this, it solves a lot of problems">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445724260727" TEXT="But how does the redeeming txn get to unlock the funds?">
+<node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445724253891" TEXT="The redeeming txn is a special type, much like coinbase, except its prev pointer is -2 rather than -1"/>
+</node>
+</node>
+<node CREATED="1445502574963" ID="ID_1788275487" MODIFIED="1445915269432" TEXT="How do we deal with vote amounts so small they are less than the minimum txn amount?">
+<node CREATED="1445502610059" ID="ID_2554190" MODIFIED="1445502638791" TEXT="We could just let them through if they&apos;re vote transactions, but then there is this weird zero output txn, and I don&apos;t know how it might effect the wallet code"/>
+<node CREATED="1445502771195" ID="ID_1813375873" MODIFIED="1445502797967" TEXT="I think we may be better off refusing to vote with UTXO&apos;s that small">
+<node CREATED="1445502799851" ID="ID_208378298" MODIFIED="1445502816768" TEXT="It will cause an annoyance, since not all the user&apos;s funds will be voted to the new proposal"/>
+<node CREATED="1445502817275" ID="ID_527260292" MODIFIED="1445502840542" TEXT="But it should happen so rarely, that I don&apos;t think it makes much of a difference, and isn&apos;t worth spending time on right now"/>
+</node>
+<node CREATED="1445502845643" ID="ID_902400812" MODIFIED="1445502848211" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
+<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
+<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
+<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
+</node>
+<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
+<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
+</node>
+<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
+<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
+</node>
+<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
+<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
+</node>
+<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
+<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
+</node>
+</node>
+<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
+<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
+<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1445910888567" TEXT="Causes the client to upgrade. md5sum is of the source code">
+<node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
+<node CREATED="1445835412844" ID="ID_1579658579" MODIFIED="1445910484146" TEXT="Should source code contain md5sums of prior versions?">
+<node CREATED="1445835433420" ID="ID_1160602152" MODIFIED="1445835454872" TEXT="This is to prevent the code from asking to be upgraded while reading the block chain"/>
+<node CREATED="1445910438866" ID="ID_928440310" MODIFIED="1445910482718" TEXT="No, we will use a version number to prevent asking for an upgrade to a prior version">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445835477356" ID="ID_1957285607" MODIFIED="1445910871395" TEXT="What about downgrading?">
+<node CREATED="1445835488251" ID="ID_890748329" MODIFIED="1445835498256" TEXT="The code would slightly change because it would have a new version number"/>
+<node CREATED="1445835500908" ID="ID_280125969" MODIFIED="1445835506144" TEXT="Version must always increase"/>
+</node>
+<node CREATED="1445835556548" ID="ID_1003054333" MODIFIED="1445910902691" TEXT="What if upgrade op had a version number as well?">
+<node CREATED="1445839711005" ID="ID_852705690" MODIFIED="1445839734602" TEXT="We could then only force an upgrade if our version is less than the upgrade"/>
+<node CREATED="1445910921715" ID="ID_1971858783" MODIFIED="1445910925005" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1445839748525" ID="ID_1057974861" MODIFIED="1445839782905" TEXT="What about md5sum of various binaries, so we&apos;d have args &lt;os code&gt; &lt;binary md5sum&gt; &lt;os code2&gt; &lt;binary md5sum&gt;...">
+<node CREATED="1445839786989" ID="ID_985489928" MODIFIED="1445908367309" TEXT="Then we could even download the upgrade from the network and automatically install it. Should we do this?">
+<node CREATED="1445908013529" ID="ID_1878758337" MODIFIED="1445908072592" TEXT="But how would we prevent people from storing arbritrary filles?">
+<node CREATED="1445908036217" ID="ID_208601543" MODIFIED="1445908068317" TEXT="Because the clients won&apos;t store anything they don&apos;t approve of"/>
+</node>
+<node CREATED="1445908079985" ID="ID_819114101" MODIFIED="1445908150105" TEXT="How would we download it? One peer just gives it to another? It&apos;s too big, like 50 megs">
+<node CREATED="1445908139441" ID="ID_1259873920" MODIFIED="1445908178933" TEXT="If we do a bittorrent chunks thing, this will be a lot of work"/>
+</node>
+<node CREATED="1445908368953" ID="ID_701345088" MODIFIED="1445908371771" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445908373417" ID="ID_962440996" MODIFIED="1445908409733" TEXT="It&apos;s too much work, and it&apos;s kind of weird. Trusting the blockchain so much that if it fails it can own your computer is kind of weird"/>
+</node>
+</node>
+<node CREATED="1445839811110" ID="ID_1352719483" MODIFIED="1445839840224" TEXT="For rare OS&apos;s, the user would have to compile it themselves"/>
+<node CREATED="1445910912442" ID="ID_724010565" MODIFIED="1445910917098" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445995747610" ID="ID_53798050" MODIFIED="1445995755742" TEXT="Can we use a git commit for this?">
+<node CREATED="1445995898498" ID="ID_481146801" MODIFIED="1445995922214" TEXT="git prepends &quot;blob &lt;num&gt;\0&quot; to the object before creating the hash"/>
+<node CREATED="1445995861418" ID="ID_1348621464" MODIFIED="1445995872686" TEXT="git uses sha-1, is it safe enough?">
+<node CREATED="1445996353210" ID="ID_1673851807" MODIFIED="1445998598807" TEXT="It seems safe enough for git, but I wouldn&apos;t use binaries placed into git (they don&apos;t make sense there anyway)"/>
+</node>
+</node>
+<node CREATED="1445998601467" ID="ID_1462153673" MODIFIED="1445998622261" TEXT="We create sha2 hashes for binaries and require a git commit for the source">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node COLOR="#ff0000" CREATED="1446001956997" ID="ID_983022076" MODIFIED="1446001959501" TEXT="TODO"/>
+</node>
+<node CREATED="1446001277557" ID="ID_1483312421" MODIFIED="1446001845623" TEXT="What happens if there are two upgrade clients calls in the same block?">
+<node CREATED="1446001451205" ID="ID_1133956769" MODIFIED="1446001467560" TEXT="The problem is that we are storing only one CPublicProposalData per block"/>
+<node CREATED="1446001508157" ID="ID_1034270459" MODIFIED="1446001517177" TEXT="The two upgrades may have conflicting deadlines"/>
+<node CREATED="1446001469173" ID="ID_1374086573" MODIFIED="1446001482400" TEXT="Its such a rare thing to occur I don&apos;t want to complicate the code for this."/>
+<node CREATED="1446001518085" ID="ID_635340999" MODIFIED="1446001533503" TEXT="We will use the earliest of the deadlines regardless of the upgrade that created it">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446001947141" ID="ID_203529055" MODIFIED="1446001949853" TEXT="TODO"/>
+</node>
+<node CREATED="1446001846933" ID="ID_1305752118" MODIFIED="1446001942353" TEXT="We can&apos;t delete prior upgrades, because we can&apos;t allow the client to be downgraded after it was upgraded. How do we handle this?">
+<node CREATED="1446001877229" ID="ID_371204405" MODIFIED="1446001892441" TEXT="If the user decides to go back to the prior version, we can&apos;t allow it to run"/>
+<node CREATED="1446001893685" ID="ID_1159605649" MODIFIED="1446001931341" TEXT="I think we can accomplish this by having a version stored in the db. If the client attempts to downgrade, it will not allow it based on the db.">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446001943788" ID="ID_1420747305" MODIFIED="1446001946277" TEXT="TODO"/>
+</node>
+<node CREATED="1446002008308" ID="ID_1446918280" MODIFIED="1446002018817" TEXT="Do we need to store messages somewhere?">
+<node CREATED="1446002021125" ID="ID_1980182557" MODIFIED="1446002044968" TEXT="Yes, we will store messages in some sort of bucket that can be read back later. Old messages will be deletable"/>
+<node COLOR="#ff0000" CREATED="1446002072589" ID="ID_1804253203" MODIFIED="1446002090341" TEXT="How do we store a bucket of messages?"/>
+<node COLOR="#ff0000" CREATED="1446002045645" ID="ID_1030039522" MODIFIED="1446002057109" TEXT="TODO">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1446028520171" ID="ID_1993156353" MODIFIED="1446028555568" TEXT="What happens if user is shown upgrade message, and then block chain reorgs?">
+<node CREATED="1446028557644" ID="ID_364778146" MODIFIED="1446028623664" TEXT="Maybe we should keep everything in the block index, and reference it from there">
+<node CREATED="1446028634876" ID="ID_548773268" MODIFIED="1446028660968" TEXT="This would cause bloat if we copied the messages and the upgrade client stuff to the future blocks as they connect"/>
+<node COLOR="#ff0000" CREATED="1446028698739" ID="ID_466996106" MODIFIED="1446028805764" TEXT="What if we had a link to the past block in the form of an index?">
+<node CREATED="1446028735820" ID="ID_10195509" MODIFIED="1446028770840" TEXT="If it&apos;s present, we go back to that block to find the upgrade necessary"/>
+<node CREATED="1446028772036" ID="ID_664915778" MODIFIED="1446028777984" TEXT="If it isn&apos;t we do nothing"/>
+<node COLOR="#ff0000" CREATED="1446028778980" ID="ID_1629381455" MODIFIED="1446028801771" TEXT="But how does that work for messages?"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446028806212" ID="ID_1697018565" MODIFIED="1446028831252" TEXT="Is there a better way?">
+<node CREATED="1446028848420" ID="ID_1893582068" MODIFIED="1446028855056" TEXT="I think we need to think relationally"/>
+<node CREATED="1446028855612" ID="ID_755440715" MODIFIED="1446028861887" TEXT="A seperate table for messages">
+<node CREATED="1446028870380" ID="ID_179762871" MODIFIED="1446028877664" TEXT="Each message has a &quot;read&quot; flag"/>
+</node>
+<node CREATED="1446028862356" ID="ID_1483000061" MODIFIED="1446028868328" TEXT="A separate table for client upgrades"/>
+<node CREATED="1446028895468" ID="ID_1656383780" MODIFIED="1446028918000" TEXT="The block chains then link to the appropriate messages and client upgrade">
+<node CREATED="1446029232157" ID="ID_448569910" MODIFIED="1446029246847" TEXT="Child block indexes will inherit parents"/>
+</node>
+<node CREATED="1446028942652" ID="ID_1024025281" MODIFIED="1446028970279" TEXT="When the system asks for the current upgrade, or messages, it will reference the current block index"/>
+<node CREATED="1446028980884" ID="ID_953273489" MODIFIED="1446029002392" TEXT="From there, for messages, it can mark them as read, delete them or whatever."/>
+<node CREATED="1446029003004" ID="ID_1266771692" MODIFIED="1446029021887" TEXT="For client upgrades, we just check the conditions of the upgrade"/>
+<node CREATED="1446029324396" ID="ID_425425220" MODIFIED="1446029364609" TEXT="If we reorg, we just leave the entries (this should happen rarely enough that we don&apos;t worry about deleting the objects"/>
+<node CREATED="1446029022572" ID="ID_1840283809" MODIFIED="1446029194519" TEXT="I wonder if we could simplify this into vector&lt;pair&lt;id,type&gt; &gt; to allow other types later on besides messages and client upgrades">
+<node CREATED="1446075526055" ID="ID_656492174" MODIFIED="1446075540274" TEXT="Nice, but we need to be able to combine upgrades into one, don&apos;t we?">
+<node CREATED="1446075566246" ID="ID_1362445130" MODIFIED="1446075596947" TEXT="We could do it after the fact, when we look at the current block index, we read all the upgrade objects, combine them and decide what to do"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;">
+<node COLOR="#ff0000" CREATED="1445912895490" ID="ID_370974018" MODIFIED="1445912903179" TEXT="TODO"/>
+<node CREATED="1445923032154" ID="ID_1815934047" MODIFIED="1445923037877" TEXT="There is no limit to msg size"/>
+</node>
+<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445913589636" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
+<node CREATED="1445068913043" ID="ID_257750203" MODIFIED="1445068957145" TEXT="Vote is only valid if it appears in a block where the block&apos;s epoch time &lt;= the deadline"/>
+<node CREATED="1445068957748" ID="ID_1675412541" MODIFIED="1445912922807" TEXT="txn is a proposal txn"/>
 <node CREATED="1445507643238" ID="ID_1522598173" MODIFIED="1445509581095" TEXT="Should we allow to vote with premature stakes/coinbase?">
 <node CREATED="1445507676853" ID="ID_1640787620" MODIFIED="1445509581095" TEXT="For coinbase, no">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -845,55 +1040,44 @@
 <node CREATED="1445509461270" ID="ID_1172560644" MODIFIED="1445509581107" TEXT="We could allow votes to occur right after a coinstake, it wouldn&apos;t be a big deal, because the coins still couldn&apos;t be moved (and spent with a merchant)"/>
 <node CREATED="1445509562422" ID="ID_769847997" MODIFIED="1445733792936" TEXT="Probably the easiest solution and it seems fair enough. I doubt there will be many complaints">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445913554723" ID="ID_748204266" MODIFIED="1445913577443" TEXT="Fallback if chasing the ancestors is too much of a pain">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445913577987" ID="ID_1927579689" MODIFIED="1445913580427" TEXT="TODO"/>
+</node>
+<node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
+<node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
+<node CREATED="1445510365751" ID="ID_343334720" MODIFIED="1445510392930" TEXT="FUTURE - we may want to remove this restriction, it reduces complexity in its explaination"/>
+</node>
+<node CREATED="1445510451886" ID="ID_552019510" MODIFIED="1445913550503" TEXT="But, available credit is shown based on maturity. So that means whenever someone votes, their balance appears to go to zero for 8 hours. It&apos;s complex from a UI perspective, and annoying to the user">
+<node CREATED="1445913370131" ID="ID_1773593501" MODIFIED="1445913382062" TEXT="We create spendable balance and balance to make this more clear"/>
 </node>
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
-<node CREATED="1444694509415" ID="ID_817034730" MODIFIED="1444696764204" TEXT="base58">
-<node CREATED="1444696745057" ID="ID_391636309" MODIFIED="1444696747076" TEXT="prefix">
-<node CREATED="1444694513152" ID="ID_1286198681" MODIFIED="1444696316651" TEXT="The version is the most significant digit in the actual encoding"/>
-<node CREATED="1444696455472" ID="ID_803860895" MODIFIED="1444696596067" TEXT="Since &apos;1&apos; in base58 is 0 the &apos;1&apos; digit is created by prepending &apos;1&apos; explicitly. It&apos;s the equivalent of 004 for the value 4."/>
-<node CREATED="1444696630848" ID="ID_493437405" MODIFIED="1444696677621" TEXT="The size for the input matters then, as far as choosing the digit"/>
-<node CREATED="1444696678745" ID="ID_1687249484" MODIFIED="1444696733740" TEXT="The output size is always (input *138/100+1)"/>
-<node CREATED="1444696999633" ID="ID_1958082517" MODIFIED="1444697016261" TEXT="For a bitcoin address, the raw data to encode is always 25 bytes"/>
-<node CREATED="1444697017169" ID="ID_1738457801" MODIFIED="1444697041164" TEXT="So the output must be 35 bytes"/>
-<node CREATED="1444697053848" ID="ID_1232710707" MODIFIED="1444698809132" TEXT="So given a 25 byte number, where the first byte is the version, what value do we need to use for the version to get &apos;E&apos;?">
-<node CREATED="1444698820528" ID="ID_1677928971" MODIFIED="1444698866037" TEXT="We take (2 ** (8 * 25)) % 58 = 32"/>
-<node CREATED="1444698873448" ID="ID_1328467363" MODIFIED="1444698888157" TEXT="Then take the base58 rep and find the number we want"/>
 </node>
-<node CREATED="1444701353482" ID="ID_159726860" MODIFIED="1444701357695" TEXT="Found by trial and error"/>
+<node CREATED="1445922620082" ID="ID_80061481" MODIFIED="1445922631190" TEXT="OP_PUBLIC_SCRIPT">
+<node CREATED="1445922635314" ID="ID_269153272" MODIFIED="1445922993502" TEXT="This is for a proposal that the public runs. For the public to run a script, this must be the first op code in a script, and must be in a redeemed proposal. If it is not present, the public won&apos;t run the script. If it is, it can&apos;t be run as a private script"/>
+<node CREATED="1445922930706" ID="ID_1474328782" MODIFIED="1445922955918" TEXT="If a script with OP_PUBLIC_SCRIPT is run by a private entity, it will always return false"/>
+<node CREATED="1445922665202" ID="ID_1804295920" MODIFIED="1445922693693" TEXT="A proposal txn may contain both public and private outputs">
+<node CREATED="1445922695433" ID="ID_1970408472" MODIFIED="1445922712749" TEXT="A public output everyone should run, and has display msg and upgrade client ops in it"/>
 </node>
+<node COLOR="#ff0000" CREATED="1445923078930" ID="ID_85123002" MODIFIED="1445923081721" TEXT="TODO"/>
 </node>
-<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
-<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
-<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
+<node COLOR="#ff0000" CREATED="1446002470581" ID="ID_859581316" MODIFIED="1446002552117" TEXT="OP_REGISTER_ALERT_PUBLIC_KEY????">
+<node CREATED="1446002482197" ID="ID_392360717" MODIFIED="1446002499097" TEXT="Allows a new user to send an alert to the network"/>
 </node>
-<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
-<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
-</node>
-<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
-<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
-</node>
-<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
-<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
-</node>
-<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
-<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
+<node COLOR="#ff0000" CREATED="1446002501453" ID="ID_1413491840" MODIFIED="1446002552405" TEXT="OP_REVOKE_ALERT_PUBLIC_KEY????">
+<node CREATED="1446002512205" ID="ID_1762033954" MODIFIED="1446002518345" TEXT="Revokes an alert public key"/>
 </node>
 </node>
-<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
-<node CREATED="1444787387823" ID="ID_1097637190" MODIFIED="1444804778917" TEXT="OP_FUNDS_POOL_UNLOCKED">
-<node CREATED="1444787429639" ID="ID_1021862128" MODIFIED="1444804793805" TEXT="Used by pool address. Returns 1 when the pool is unlocked"/>
+<node CREATED="1445911135323" ID="ID_1928758003" MODIFIED="1445911137415" TEXT="checkpoints">
+<node CREATED="1445829674457" ID="ID_875566654" MODIFIED="1445911148650" TEXT="Publish checkpoints to forums/public places">
+<node CREATED="1445829808817" ID="ID_1148533373" MODIFIED="1445911112423" TEXT="Add rpc to enforce checkpoint"/>
+<node COLOR="#ff0000" CREATED="1445912959042" ID="ID_1388228549" MODIFIED="1445912962131" TEXT="TODO"/>
 </node>
-<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
-<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1444804836870" TEXT="Causes the client to upgrade. md5sum is of the source code"/>
-</node>
-<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
-<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445068793111" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
-<node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
-<node CREATED="1445068913043" ID="ID_257750203" MODIFIED="1445068957145" TEXT="Vote is only valid if it appears in a block where the block&apos;s epoch time &lt;= the deadline"/>
-<node CREATED="1445068957748" ID="ID_1675412541" MODIFIED="1445068987833" TEXT="txn hash is the partial proposal transaction without input UTXO&apos;s specified"/>
+<node CREATED="1445829731113" ID="ID_1760783197" MODIFIED="1445911174386" TEXT="Checkpoint is harded coded into source and can be upgraded">
+<node COLOR="#ff0000" CREATED="1445912964722" ID="ID_1080183006" MODIFIED="1445912966763" TEXT="TODO"/>
 </node>
 </node>
 <node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1444811830459" TEXT="new rpc commands">
@@ -912,13 +1096,15 @@
 <node CREATED="1444811975423" ID="ID_1281186894" MODIFIED="1444811979500" TEXT="blob contains:">
 <node CREATED="1444811981079" ID="ID_1680189055" MODIFIED="1444811991011" TEXT="raw txn"/>
 <node CREATED="1444811991711" ID="ID_1530000969" MODIFIED="1444812054651" TEXT="poll_deadline"/>
+<node CREATED="1445910403250" ID="ID_1759899215" MODIFIED="1445910405502" TEXT="checksum"/>
 </node>
 </node>
 <node CREATED="1444812191544" ID="ID_1286388180" MODIFIED="1444999073426" TEXT="raw txn"/>
-<node COLOR="#cc3300" CREATED="1445041735594" ID="ID_224169535" MODIFIED="1445041742945" TEXT="txn hash with checksum"/>
 </node>
 <node CREATED="1444981940827" ID="ID_951734612" MODIFIED="1444981943750" TEXT="txn">
-<node CREATED="1444981945274" ID="ID_1982869491" MODIFIED="1444990422583" TEXT="txn will have no source (to be filled in by minter)"/>
+<node CREATED="1444981945274" ID="ID_1982869491" MODIFIED="1445912997343" TEXT="txn will have no source (its almost like a coinbase)">
+<node CREATED="1445912999083" ID="ID_942505510" MODIFIED="1445913003534" TEXT="money subtracted from pool"/>
+</node>
 <node CREATED="1444981956514" ID="ID_1177631655" MODIFIED="1444981966255" TEXT="it will not attempt to compute fees or give change">
 <node CREATED="1444981968514" ID="ID_183370469" MODIFIED="1444982003718" TEXT="The money not spent will be dumped back into the pool (all transactions send fees to the pool so this will be automatic)"/>
 </node>
@@ -933,30 +1119,40 @@
 <node CREATED="1444998605566" ID="ID_533375239" MODIFIED="1444998607203" TEXT="deadline"/>
 </node>
 </node>
-<node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1444812049420" TEXT="vote_poll &lt;txn hash&gt; &lt;poll deadline&gt;">
+<node CREATED="1444812008007" ID="ID_332911290" MODIFIED="1445914697104" TEXT="vote &lt;txn hash&gt; &lt;poll deadline&gt;">
 <node CREATED="1444812123687" ID="ID_1695647757" MODIFIED="1444812141203" TEXT="User votes with all funds. Splitting vote will be too tricky"/>
 <node CREATED="1444998643158" ID="ID_1501782191" MODIFIED="1444998651274" TEXT="poll deadline is in epoch seconds"/>
-<node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
-<node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
-<node CREATED="1445510365751" ID="ID_343334720" MODIFIED="1445510392930" TEXT="FUTURE - we may want to remove this restriction, it reduces complexity in its explaination"/>
 </node>
-<node CREATED="1445510451886" ID="ID_552019510" MODIFIED="1445510495866" TEXT="Forget it... it&apos;s too much trouble. Available credit is shown based on maturity. So that means whenever someone votes, their balance appears to go to zero for 8 hours. It&apos;s just too complex from a UI perspective"/>
+<node CREATED="1445911588699" ID="ID_1438884673" MODIFIED="1445911608358" TEXT="addcheckpoint &lt;checkpoint blob&gt;">
+<node CREATED="1445911609707" ID="ID_905862483" MODIFIED="1445912279566" TEXT="Adds a checkpoint (manually copied from the web)"/>
+<node COLOR="#ff0000" CREATED="1445914699084" ID="ID_1233201537" MODIFIED="1445914703076" TEXT="TODO"/>
 </node>
+<node CREATED="1445911627635" ID="ID_737243798" MODIFIED="1445912321370" TEXT="removecheckpoint &lt;checkpoint blob&gt;">
+<node CREATED="1445912263785" ID="ID_1787242606" MODIFIED="1445912274934" TEXT="Removes a checkpoint"/>
+<node COLOR="#ff0000" CREATED="1445914699084" ID="ID_1961142832" MODIFIED="1445914703076" TEXT="TODO"/>
 </node>
 </node>
 <node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
 <node CREATED="1444904518467" ID="ID_1505124101" MODIFIED="1444904531199" TEXT="PoW is activated if PoS takes over 5 minutes"/>
-<node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1444904544207" TEXT="For each PoW block found, 1 coin is rewarded"/>
+<node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1445914726392" TEXT="For each PoW block found, 1 coin is rewarded?">
+<node CREATED="1445914727948" ID="ID_1548353102" MODIFIED="1445914756544" TEXT="I think that PoW should have more strength, about the same as PoS. We can look at prior blocks and get an average strength, and then apply that to PoW"/>
+<node CREATED="1445914757020" ID="ID_113850323" MODIFIED="1445914765992" TEXT="Otherwise the chain can be forked too easily"/>
+<node CREATED="1445992952757" ID="ID_729082658" MODIFIED="1445992969983" TEXT="Except that, this opens up another option for anyone trying to attack the network"/>
+<node CREATED="1445993015676" ID="ID_929686800" MODIFIED="1445993029576" TEXT="Maybe it should depend on how far back the fork is?"/>
+<node CREATED="1445993031820" ID="ID_1969753691" MODIFIED="1445993034926" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 <node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
-<node CREATED="1444904569803" ID="ID_257967512" MODIFIED="1444904596008" TEXT="Blocks generated with PoW get very low trust (inherited from Peercoin)"/>
 </node>
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
-<node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1444990174646" TEXT="vote transacation are added up as they are received"/>
-<node CREATED="1444990175634" ID="ID_462319390" MODIFIED="1444990207030" TEXT="when vote proposal txn is posted, proposal is marked redeemed"/>
-<node CREATED="1444990244843" ID="ID_1390760131" MODIFIED="1444990269278" TEXT="addresses which participate in voting are cached with a timestamp indicating the last time they voted. This is used to determine the vote total"/>
+<node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
 <node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
-<node COLOR="#cc3300" CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445041663466" TEXT="Cannot take place for the first few blocks... to give people a chance to register"/>
+<node CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445912547983" TEXT="Cannot take place for the first few blocks... to give people a chance to register to vote">
+<node CREATED="1445912557723" ID="ID_514581827" MODIFIED="1445912615743" TEXT="A proposal can be created right away, but its deadline has to be a few weeks out"/>
+<node COLOR="#ff0000" CREATED="1445912527931" ID="ID_1714713472" MODIFIED="1445912530635" TEXT="TODO"/>
+</node>
 <node CREATED="1445166765950" ID="ID_89787394" MODIFIED="1445328758091" TEXT="vote counting">
 <node CREATED="1445166778663" ID="ID_15509234" MODIFIED="1445166790451" TEXT="new db record, based on best chain (like txn)"/>
 <node CREATED="1445168341927" ID="ID_180799741" MODIFIED="1445168346116" TEXT="Before the deadline">
@@ -1005,53 +1201,31 @@
 <node CREATED="1445170886593" ID="ID_295574145" MODIFIED="1445170904837" TEXT="The block exactly VOTING_PERIOD ago has it&apos;s delta subtracted from the total"/>
 </node>
 </node>
-<node CREATED="1445170935601" ID="ID_616272666" MODIFIED="1445170943845" TEXT="Reorg just does the opposite"/>
 <node CREATED="1445170914945" ID="ID_432060281" MODIFIED="1445170959614" TEXT="The above 2 fields should calculate the votersInVotePeriod properly"/>
 </node>
 </node>
-<node CREATED="1445502574963" ID="ID_1788275487" MODIFIED="1445502850171" TEXT="How do we deal with amounts so small they are less than the minimum txn amount?">
-<node CREATED="1445502610059" ID="ID_2554190" MODIFIED="1445502638791" TEXT="We could just let them through if they&apos;re vote transactions, but then there is this weird zero output txn, and I don&apos;t know how it might effect the wallet code"/>
-<node CREATED="1445502771195" ID="ID_1813375873" MODIFIED="1445502797967" TEXT="I think we may be better off refusing to vote with UTXO&apos;s that small">
-<node CREATED="1445502799851" ID="ID_208378298" MODIFIED="1445502816768" TEXT="It will cause an annoyance, since not all the user&apos;s funds will be voted to the new proposal"/>
-<node CREATED="1445502817275" ID="ID_527260292" MODIFIED="1445502840542" TEXT="But it should happen so rarely, that I don&apos;t think it makes much of a difference, and isn&apos;t worth spending time on right now"/>
-</node>
-<node CREATED="1445502845643" ID="ID_902400812" MODIFIED="1445502848211" TEXT="FUTURE">
+<node CREATED="1445506035756" ID="ID_1866982165" MODIFIED="1445912689538" TEXT="What about multisig and voting?">
+<node CREATED="1445912648442" ID="ID_541741698" MODIFIED="1445912671327" TEXT="It should work, but I think I&apos;ll official test this later"/>
+<node CREATED="1445912680603" ID="ID_1628718584" MODIFIED="1445912682069" TEXT="FUTURE">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
-<node COLOR="#ff0000" CREATED="1445506035756" ID="ID_1866982165" MODIFIED="1445506043052" TEXT="What about multisig and voting?"/>
 <node COLOR="#ff0000" CREATED="1445736539117" ID="ID_853020845" MODIFIED="1445736553893" TEXT="Should we allow voting for different entities with different accounts?">
 <node CREATED="1445736557125" ID="ID_284316600" MODIFIED="1445736569161" TEXT="People might share a wallet and use different accounts for each of them"/>
-</node>
-</node>
-<node CREATED="1445328873893" ID="ID_1109482065" MODIFIED="1445328880346" TEXT="genesis block">
-<node CREATED="1445328882461" ID="ID_326051960" MODIFIED="1445328887394" TEXT="initial funds">
-<node CREATED="1445328928830" ID="ID_602214935" MODIFIED="1445333839142" TEXT="Should we just use transactions after the fact?">
-<node CREATED="1445328959926" ID="ID_1964564743" MODIFIED="1445328977074" TEXT="It may be simpler than trying to change the code, affecting money supply, etc."/>
-<node CREATED="1445328981062" ID="ID_1818362765" MODIFIED="1445328999882" TEXT="But we need an initial amount, anyway, I suppose we could do the standard first mined block gets a huge payout"/>
-<node CREATED="1445329053678" ID="ID_1659295338" MODIFIED="1445329069049" TEXT="We also wouldn&apos;t need to keep changing the genesis block everytime"/>
-<node CREATED="1445333855782" ID="ID_1697435562" MODIFIED="1445333867258" TEXT="For spending pool, we&apos;ll just create a transaction with a huge fee"/>
-<node CREATED="1445333834734" ID="ID_823427773" MODIFIED="1445333837615" TEXT="Yes">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
-</node>
-<node CREATED="1445162731365" ID="ID_1355198042" MODIFIED="1445163705133" TEXT="what if we didn&apos;t use an address for the funds pool?">
-<node CREATED="1445162744253" ID="ID_529442147" MODIFIED="1445162811305" TEXT="If we just keep track of the funds received (just like peercoin is doing in ConnectBlock()) we won&apos;t need an address, and then we don&apos;t need to worry about the millions of tiny utxo&apos;s that would otherwise occur"/>
-<node CREATED="1445162878084" ID="ID_1317323724" MODIFIED="1445162896785" TEXT="We&apos;d also be able to freeze the vote txn beforehand. No more txn template with missing input"/>
-<node CREATED="1445163707470" ID="ID_1920250947" MODIFIED="1445163718894" TEXT="I&apos;m going to go ahead and do this, it solves a lot of problems">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node CREATED="1445163610446" ID="ID_578086084" MODIFIED="1445724260727" TEXT="But how does the redeeming txn get to unlock the funds?">
-<node CREATED="1445163667030" ID="ID_1853279045" MODIFIED="1445724253891" TEXT="The redeeming txn is a special type, much like coinbase, except its prev pointer is -2 rather than -1"/>
+<node CREATED="1445912701098" ID="ID_1816890497" MODIFIED="1445912706527" TEXT="Yes, as long as its easy"/>
+<node COLOR="#ff0000" CREATED="1445912707050" ID="ID_1673348619" MODIFIED="1445912709074" TEXT="TODO"/>
 </node>
 </node>
 <node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
-<node COLOR="#ff0000" CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445502500579" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
+<node CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445915141691" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
 <font NAME="SansSerif" SIZE="12"/>
+<node COLOR="#ff0000" CREATED="1445914699084" ID="ID_1522722423" MODIFIED="1445914703076" TEXT="TODO"/>
 </node>
 <node CREATED="1445502505363" ID="ID_1734967915" MODIFIED="1445502528631" TEXT="Staking always falls through to the previous transaction if the current txn is a vote"/>
+<node CREATED="1445915388988" ID="ID_19568538" MODIFIED="1445915400032" TEXT="After minting, the vote is reinstated in the same block">
+<node COLOR="#ff0000" CREATED="1445915401715" ID="ID_31971496" MODIFIED="1445915404836" TEXT="TODO"/>
+<node COLOR="#ff0000" CREATED="1445915409172" ID="ID_886312442" MODIFIED="1445915412500" TEXT="TODO test this"/>
+</node>
 </node>
 <node CREATED="1445504345683" ID="ID_1389366058" MODIFIED="1445504351247" TEXT="proposal txn">
 <node CREATED="1445504352708" ID="ID_580089223" MODIFIED="1445504360391" TEXT="This is the txn used when creating a proposal"/>
@@ -1060,11 +1234,79 @@
 <node COLOR="#ff0000" CREATED="1445504379204" ID="ID_1389536906" MODIFIED="1445504383860" TEXT="TODO">
 <node CREATED="1445504385996" ID="ID_1968195892" MODIFIED="1445504407096" TEXT="Search for all instances of IsNull() and determine if a proposal check needs to be done"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445724377071" ID="ID_177161868" MODIFIED="1445724517103" TEXT="It&apos;s timestamp is the deadline.">
+<node CREATED="1445724377071" ID="ID_177161868" MODIFIED="1445832887977" TEXT="It&apos;s timestamp is the deadline.">
 <node CREATED="1445724399607" ID="ID_889850540" MODIFIED="1445724512515" TEXT="This is necessary because there is nothing that prevents the same proposal from being voted on and passed twice. If it&apos;s represented by the exact same transaction, then the second time it passes it would be ignored"/>
 </node>
+<node CREATED="1445834975003" ID="ID_555961240" MODIFIED="1445909499506" TEXT="How do we get clients to execute it?">
+<node CREATED="1445834983298" ID="ID_1675621776" MODIFIED="1445835025192" TEXT="Do we make them just run the TxOut&apos;s that don&apos;t require to be signed?">
+<node CREATED="1445835092803" ID="ID_1741413661" MODIFIED="1445909493886" TEXT="Maybe just run all outputs. The ones that don&apos;t pass don&apos;t have any effect">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445581207457" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?"/>
+<node COLOR="#ff0000" CREATED="1445915440052" ID="ID_1018352704" MODIFIED="1445915442740" TEXT="TODO"/>
+<node CREATED="1445835115316" ID="ID_975719445" MODIFIED="1445835139575" TEXT="Or maybe even the ones that don&apos;t pass do have an effect. They just don&apos;t release funds">
+<node CREATED="1445835141194" ID="ID_112708052" MODIFIED="1445835160135" TEXT="This way, we don&apos;t need seperate outputs to display a msg and release funds at the same time"/>
+<node CREATED="1445909444425" ID="ID_1890819594" MODIFIED="1445909475141" TEXT="But it seems weird, since a transaction that requires itself to be signed is meant for an indivdual, not the collective"/>
+</node>
+</node>
+<node CREATED="1445835164787" ID="ID_1862491526" MODIFIED="1445909388233" TEXT="What if there is a Reorg? Do we have to retract msgs?">
+<node CREATED="1445909329642" ID="ID_341087467" MODIFIED="1445909383132" TEXT="Yes, but we&apos;ll wait a certain number of blocks before msgs are displayed or upgrade is asked for to minimize this"/>
+<node COLOR="#ff0000" CREATED="1445915447084" ID="ID_1645410723" MODIFIED="1445915449787" TEXT="TODO"/>
+</node>
+<node CREATED="1445835188620" ID="ID_283609612" MODIFIED="1445909319930" TEXT="How are msgs to be displayed?">
+<node CREATED="1445835204723" ID="ID_1130232903" MODIFIED="1445835239968" TEXT="Rpc call getmessages [mark_read=1]">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_477861024" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+<node CREATED="1445908968722" ID="ID_976326323" MODIFIED="1445908979116" TEXT="Rpc call getinfo will display latest message as well">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_1165790349" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+<node CREATED="1445835242572" ID="ID_1698459673" MODIFIED="1445835265134" TEXT="In the UI, we&apos;ll have a page for messages.">
+<node CREATED="1445835267155" ID="ID_544143617" MODIFIED="1445835278895" TEXT="Also, a bubble will pop up like when receiving funds">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_342393447" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_3981119" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+<node CREATED="1445835289420" ID="ID_533102546" MODIFIED="1445835305800" TEXT="Messages will only be displayed after X confirmations... a few minutes or so">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_186453955" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+</node>
+<node CREATED="1445835307643" ID="ID_550588289" MODIFIED="1445909320642" TEXT="Client upgrades?">
+<node CREATED="1445909036378" ID="ID_623486568" MODIFIED="1445909039206" TEXT="nomiccoind">
+<node CREATED="1445908991250" ID="ID_1421085117" MODIFIED="1445909032838" TEXT="Should work same as CAlerts. All RPC calls will stop working until client is upgraded. Will print out &quot;Please download and install new version, md5sum &quot;xxxx&quot;, run md5sum to check">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_989305112" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+</node>
+<node CREATED="1445909039706" ID="ID_662288964" MODIFIED="1445909044933" TEXT="nomiccoin-qt">
+<node CREATED="1445909047130" ID="ID_1450718540" MODIFIED="1445909073381" TEXT="Place on status bar to upgrade to new version and deadline time">
+<node COLOR="#ff0000" CREATED="1445915458764" ID="ID_130087727" MODIFIED="1445915460596" TEXT="TODO"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445910211426" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?">
+<node CREATED="1445910086563" ID="ID_1227024573" MODIFIED="1445910107446" TEXT="Here are a list of reasons: https://www.reddit.com/r/peercoin/comments/1s3y70/analysis_peercoin_01ppc_destroyed_when_a/"/>
+<node CREATED="1445910108330" ID="ID_316590205" MODIFIED="1445910180045" TEXT="I think that we should give it to the staker and let the pool take its cut from all of it">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1445910185058" ID="ID_848169588" MODIFIED="1445910186262" TEXT="It won&apos;t really effect the network until we are processing a gazillion txns per day, and at that time, the code will have voted through a lot of changes already "/>
+<node CREATED="1445910285298" ID="ID_1387131630" MODIFIED="1445910302301" TEXT="This will, however, give more to big minters that mint more often">
+<node CREATED="1445910312786" ID="ID_211725276" MODIFIED="1445910320070" TEXT="Although the effect initially will be tiny"/>
+<node CREATED="1445910324330" ID="ID_1075600388" MODIFIED="1445910346638" TEXT="This should be ok, because we the code will change through voting"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445913112131" ID="ID_1042284547" MODIFIED="1445913173907" TEXT="TODO">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1445910194746" ID="ID_710058765" MODIFIED="1445910210484" TEXT="We need a minimum fee or the whole thing can be swamped by a DoS">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1445910218921" ID="ID_1404743375" MODIFIED="1445910227982" TEXT="What should the minimum fee be?">
+<node CREATED="1445910229506" ID="ID_831929622" MODIFIED="1445910276550" TEXT="Lets go for about $1 per nomiccoin, and 0.1 cent per transaction">
+<node CREATED="1445915531795" ID="ID_1214188496" MODIFIED="1445915545192" TEXT="How much to distribute initially for this goal?">
+<node CREATED="1445915548188" ID="ID_437752166" MODIFIED="1445915643872" TEXT="Assume $10 million market cap then 10 million, initially"/>
+</node>
+</node>
+</node>
+</node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
@@ -1377,9 +1619,6 @@
 </node>
 </node>
 <node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445725518478" POSITION="right" TEXT="testing">
-<node CREATED="1445505328564" ID="ID_586147613" MODIFIED="1445505335176" TEXT="Take a look at: test/test-double-stake-punishment.js">
-<node CREATED="1445505338677" ID="ID_44908685" MODIFIED="1445505359392" TEXT="It does some interesting things that may help us test voting"/>
-</node>
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -1419,10 +1658,16 @@
 </node>
 <node COLOR="#ff0000" CREATED="1445728040137" ID="ID_329287652" MODIFIED="1445729765450" TEXT="Voting with wrong deadline for a txn hash"/>
 <node COLOR="#ff0000" CREATED="1445729731914" ID="ID_765920006" MODIFIED="1445729764970" TEXT="Staking and then voting does not change staking hash (to prevent grinding)"/>
-<node COLOR="#ff0000" CREATED="1445733518380" ID="ID_199510845" MODIFIED="1445733569850" TEXT="Actual bug: Voting, then voting again after acquiring more coin through mining doesn&apos;t seem to add to the original vote (all before deadline)"/>
+<node COLOR="#ff0000" CREATED="1445757702749" ID="ID_1053081013" MODIFIED="1445757747067" TEXT="Test liftoff pow code. Default set all clients to generate proof of work">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1445758986820" ID="ID_1890625477" MODIFIED="1445758998708" TEXT="Test voting and trying to spend before maturity"/>
+<node COLOR="#ff0000" CREATED="1446001054269" ID="ID_1990595523" MODIFIED="1446001068412" TEXT="Two proposals redeeming same block"/>
+<node COLOR="#ff0000" CREATED="1446001068931" ID="ID_1681261017" MODIFIED="1446001076773" TEXT="Reorg before proposal redeems"/>
+<node COLOR="#ff0000" CREATED="1446001077188" ID="ID_875072501" MODIFIED="1446001082380" TEXT="Reorg after proposal redeems"/>
 </node>
 </node>
-<node CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445334541018" POSITION="right" TEXT="distribution">
+<node COLOR="#ff0000" CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445833459121" POSITION="right" TEXT="distribution">
 <node CREATED="1445392911554" ID="ID_445087297" MODIFIED="1445392913518" TEXT="old">
 <node CREATED="1445334542478" ID="ID_787565242" MODIFIED="1445335182332" TEXT="Code contributers percentage"/>
 <node CREATED="1445334818975" ID="ID_1454056122" MODIFIED="1445334827594" TEXT="Give some to testnet participants"/>
@@ -1436,9 +1681,24 @@
 <node CREATED="1445335286991" ID="ID_586665549" MODIFIED="1445335344203" TEXT="Even if someone tries to stuff the vote, they have to take into account the value of the coin if they do so. In other words, if they vote 100% for people who just ask, then what will the result be?"/>
 </node>
 </node>
+<node CREATED="1445833436562" ID="ID_570500331" MODIFIED="1445833461553" TEXT="idea2">
 <node CREATED="1445392921442" ID="ID_968435967" MODIFIED="1445392928246" TEXT="Code contributers percentage"/>
 <node CREATED="1445392929122" ID="ID_1348176081" MODIFIED="1445392936022" TEXT="testnet helpers percentage"/>
 <node CREATED="1445392936602" ID="ID_517796839" MODIFIED="1445392944110" TEXT="faucet"/>
+</node>
+<node CREATED="1445833453330" ID="ID_962973068" MODIFIED="1445833457101" TEXT="idea3">
+<node CREATED="1445392921442" ID="ID_1938859502" MODIFIED="1445392928246" TEXT="Code contributers percentage"/>
+<node CREATED="1445392929122" ID="ID_194104252" MODIFIED="1445392936022" TEXT="testnet helpers percentage"/>
+<node CREATED="1445833472665" ID="ID_459396429" MODIFIED="1445833499405" TEXT="Potential founders must write blurb">
+<node CREATED="1445833506754" ID="ID_878921624" MODIFIED="1445833511525" TEXT="Ideas for the coin"/>
+<node CREATED="1445833500545" ID="ID_98735444" MODIFIED="1445833521981" TEXT="Past deeds, accomplishments">
+<node CREATED="1445833528298" ID="ID_254889554" MODIFIED="1445833530709" TEXT="Code written"/>
+<node CREATED="1445833531378" ID="ID_1943725411" MODIFIED="1445833534533" TEXT="Articles written"/>
+</node>
+<node CREATED="1445833534889" ID="ID_1581509191" MODIFIED="1445833555277" TEXT="Comments/etc. showing understanding of cryptocurrency"/>
+</node>
+<node CREATED="1445833571817" ID="ID_1682632704" MODIFIED="1445833599757" TEXT="Idea is that a good set of founders will lead the coin in a proper direction, and is very important early on"/>
+</node>
 </node>
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
 <node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
@@ -1504,10 +1764,15 @@
 </node>
 </node>
 </node>
-<node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1445236050165" TEXT="block chain">
+<node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1445829109343" TEXT="block chain">
 <node CREATED="1445162114093" ID="ID_352007369" MODIFIED="1445162137721" TEXT="Blocks in the best chain are connected using ConnectBlock()"/>
 <node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
 <node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310444869" TEXT="Whenever we add a block to the block chain, we call ConnectBlock(), regardless if we made it ourselves or not"/>
+<node CREATED="1445829109305" ID="ID_1571173489" MODIFIED="1445829258157" TEXT="ProcessMessage(gets block from other nodes)">
+<node CREATED="1445829080953" ID="ID_964915765" MODIFIED="1445829152684" TEXT="ProcessBlock">
+<linktarget COLOR="#b0b0b0" DESTINATION="ID_964915765" ENDARROW="Default" ENDINCLINATION="-114;33;" ID="Arrow_ID_859303402" SOURCE="ID_1240873214" STARTARROW="None" STARTINCLINATION="55;-1;"/>
+<node CREATED="1445829052581" ID="ID_469179920" MODIFIED="1445829064571" TEXT="AcceptBlock">
+<node CREATED="1445830678898" ID="ID_1988001231" MODIFIED="1445830688653" TEXT="Writes to disk (before AddToBlockIndex)"/>
 <node CREATED="1445236050159" ID="ID_359326903" MODIFIED="1445236063475" TEXT="AddToBlockIndex">
 <node CREATED="1445327810805" ID="ID_683237901" MODIFIED="1445327992362" TEXT="Writes CBlockIndex to db before calling SetBestChain"/>
 <node CREATED="1445235959286" ID="ID_1858487241" MODIFIED="1445235969218" TEXT="SetBestChain">
@@ -1519,6 +1784,12 @@
 </node>
 </node>
 </node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1445829119776" ID="ID_1240873214" MODIFIED="1445829152684" TEXT="CheckWork">
+<arrowlink DESTINATION="ID_964915765" ENDARROW="Default" ENDINCLINATION="-114;33;" ID="Arrow_ID_859303402" STARTARROW="None" STARTINCLINATION="55;-1;"/>
 </node>
 <node CREATED="1445304736358" ID="ID_613313307" MODIFIED="1445304742177" TEXT="FetchInputs">
 <node CREATED="1445304744230" ID="ID_937049579" MODIFIED="1445304757946" TEXT="Retrieves the inputs of a txn"/>
@@ -1533,10 +1804,10 @@
 <node CREATED="1445305467502" ID="ID_569286875" MODIFIED="1445309033623" TEXT="How do we get the previous txn to tell if its a voting txn?">
 <node CREATED="1445309035808" ID="ID_1928500006" MODIFIED="1445309045684" TEXT="ReadDiskTx with COutPoint from vin"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445559152149" ID="ID_61655943" MODIFIED="1445581457134" TEXT="CWalletTx">
+<node CREATED="1445559152149" ID="ID_61655943" MODIFIED="1445908623665" TEXT="CWalletTx">
 <node CREATED="1445566948812" ID="ID_1858055628" MODIFIED="1445566969223" TEXT="You can get the previous merkle transactions with vtxPrev"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445581456822" TEXT="CMerkleTx"/>
+<node CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445908623081" TEXT="CMerkleTx"/>
 <node CREATED="1445566515347" ID="ID_381341770" MODIFIED="1445581460853" TEXT="CBlockIndex">
 <node CREATED="1445566521931" ID="ID_1857117095" MODIFIED="1445566547343" TEXT="Can be retrieve from block with this code">
 <richcontent TYPE="NOTE"><html>
@@ -1560,8 +1831,7 @@
       &#160;&#160;&#160;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1445579870085" ID="ID_565226267" MODIFIED="1445579874465" TEXT="Signing transactions">
@@ -1576,8 +1846,12 @@
 <node CREATED="1445580657014" ID="ID_1221136736" MODIFIED="1445580665913" TEXT="How does Change work?">
 <node CREATED="1445580731686" ID="ID_1101048102" MODIFIED="1445581229057" TEXT="It does what we do for voting, just send the result back to the same script in the prior output"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445581438238" ID="ID_941280243" MODIFIED="1445581453053" TEXT="what are OP_CODE_SEPERATOR&apos;s for?">
+<node CREATED="1445581438238" ID="ID_941280243" MODIFIED="1445908620378" TEXT="what are OP_CODE_SEPERATOR&apos;s for?">
 <node CREATED="1445583622359" ID="ID_848250017" MODIFIED="1445583631947" TEXT="They aren&apos;t used in the client"/>
+</node>
+<node CREATED="1445908580730" ID="ID_936467519" MODIFIED="1445908945994" TEXT="calert, how does it display stuff to the user (especially in bitcoind)?">
+<node CREATED="1445908798594" ID="ID_615232280" MODIFIED="1445908871013" TEXT="calert warnings are checked for every rpc call. If there is a warning, it throws an exception before ever running the method (unless -disablesafemode is true)"/>
+<node CREATED="1446002207909" ID="ID_166556793" MODIFIED="1446002209201" TEXT="How are calerts stored?     Looks like in memory only. CAlerts can rely on the network retransmitting an alert "/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

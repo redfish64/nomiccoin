@@ -435,12 +435,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
             // Get merkle branch if transaction was found in a block
             if (pblock)
 	      {
-		int depth = wtx.SetMerkleBranch(pblock);
-		// return pindexBest->nHeight - pindex->nHeight + 1;
-		
-		if(wtx.IsCoinBase() || wtx.IsCoinStake())
-		  wtx.coinBaseBlockHeight = pindexBest->nHeight - depth + 1;
-		
+		wtx.SetMerkleBranch(pblock);
 	      }
             return AddToWallet(wtx);
         }
@@ -896,7 +891,19 @@ void CWallet::ResendWalletTransactions()
 //TODO 2: make sure that voting transactions also have a maturity
 int64 CWallet::GetVotingBalance() const
 {
-  return GetBalance() + GetUnconfirmedBalance();
+    int64 nTotal = 0;
+    {
+        LOCK(cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
+            const CWalletTx* pcoin = &(*it).second;
+            if (!pcoin->IsFinal() || !pcoin->IsConfirmed())
+                continue;
+            nTotal += pcoin->GetVotingCredit();
+        }
+    }
+
+    return nTotal;
 }
 
 int64 CWallet::GetBalance() const
@@ -1194,8 +1201,6 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  
 	  txNew.vin.push_back(CTxIn(output.tx->GetHash(),output.i));
 
-	  txNew.coinBaseBlockHeight = output.tx->coinBaseBlockHeight;
-	  
 	  //we send the money back exactly where we got it, except that we add  the voting instruction
 	  //to the scriptsig
 	  //We do this in this way to allow us to identify these vote transactions easily, so that we can

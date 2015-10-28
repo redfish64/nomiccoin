@@ -993,11 +993,6 @@ Value createproposal(const Array& params, bool fHelp)
 	  {
 	    string msg = params[i+1].get_str();
 
-	    if(msg.size() > 140)
-	      {
-		throw runtime_error("msg length too big");
-	      }
-
 	    const std::vector<unsigned char> charvect(msg.begin(), msg.end());
 	    
 	    currScript = currScript << charvect << OP_DISPLAY_MSG;
@@ -1102,40 +1097,103 @@ Value getvoteinfo(const Array& params, bool fHelp)
   if(!ConvertBlobToProposal(params[0].get_str(),prop))
     throw JSONRPCError(-4, "Blob invalid");
 
-  money_t totalVotes = 0;
+  money_t votesForProposal;
+  CBlockIndex *ourBlockIndex;
+  bool isVoteWon;
+  bool isVotingPeriodOver;
+  int blocksBeforeRedeemable;
 
   CTxDB txdb("r");
-  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.GetDeadline(), totalVotes); //if fails, then no votes were cast
+  
+  prop.redeemTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver,
+				    blocksBeforeRedeemable );
 
-  CBlockIndex *ourBlockIndex = pindexBest;
-
-  bool votingPeriodOver = false;
-
-  while(prop.GetDeadline() < ourBlockIndex->nTime && ourBlockIndex->pprev)
-    {
-      printf("checking: block deadline %ld prop deadline %ld\n", ourBlockIndex->nTime, prop.GetDeadline());
-      votingPeriodOver = true;
-      ourBlockIndex = ourBlockIndex->pprev;
-    }
-  printf("done: block deadline %ld prop deadline %ld\n", ourBlockIndex->nTime, prop.GetDeadline());
   Object obj;
 
   std::string titleStr(prop.title.begin(),prop.title.end());
 
   obj.push_back(Pair("proposalTitle", titleStr));
-  obj.push_back(Pair("votesForProposal",   ValueFromAmount(totalVotes)));
-  obj.push_back(Pair("votingPeriodOver", votingPeriodOver));
-  if(votingPeriodOver)
-    obj.push_back(Pair("voteWon", IsVoteWon(totalVotes, ourBlockIndex->votingPeriodVotedCoins)));
+  obj.push_back(Pair("votesForProposal",   ValueFromAmount(votesForProposal)));
+  obj.push_back(Pair("isVotingPeriodOver", isVotingPeriodOver));
+  if(isVotingPeriodOver)
+    {
+      obj.push_back(Pair("isVoteWon", isVoteWon));
+
+      if(isVoteWon)
+	{
+	  obj.push_back(Pair("isRedeemableNow",blocksBeforeRedeemable <= 0));
+	  if(blocksBeforeRedeemable > 0)
+	    obj.push_back(Pair("blocksBeforeRedeemable",blocksBeforeRedeemable));
+	}
+      
+    }
   obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(ourBlockIndex->votingPeriodVotedCoins)));
   if(pindexBest->votingPeriodVotedCoins != 0)
     obj.push_back(Pair("percentOfElectorate",  (double)
-		       totalVotes /
+		       votesForProposal /
 		       (double) ourBlockIndex->votingPeriodVotedCoins));
   obj.push_back(Pair("deadline", DateTimeStrFormat(prop.GetDeadline()).c_str()));
   TxToJSON(prop.redeemTxn, 0, obj);
 
   return obj;
+}
+
+Value redeemvote(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 1)
+    throw runtime_error(
+			"redeemvote <proposalblob>\n"
+			"Adds the proposal txn to the blockchain. This may only be done 500 blocks after the deadline has passed\n"
+			);
+  
+  CProposal prop;
+
+  if(!ConvertBlobToProposal(params[0].get_str(),prop))
+    throw JSONRPCError(-4, "Blob invalid");
+
+  money_t totalVotes = 0;
+
+  CTxDB txdb("r");
+  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.GetDeadline(), totalVotes); //if fails, then no votes were cast
+
+  int remainingDepth = PROPOSAL_MATURITY_BLOCKS;
+  CBlockIndex *ourBlockIndex = pindexBest;
+
+  while(prop.GetDeadline() < ourBlockIndex->nTime && ourBlockIndex->pprev && --remainingDepth >= 0)
+    {
+      ourBlockIndex = ourBlockIndex->pprev;
+    }
+  Object obj;
+
+  if(remainingDepth >= 0)
+    {
+    throw JSONRPCError(-4, "Not enough blocks have passed");
+    }
+
+  uint256 hashTx = prop.redeemTxn.GetHash();
+  
+  // See if the transaction is already in a block
+  // or in the memory pool:
+  CTransaction existingTx;
+  uint256 hashBlock = 0;
+  
+  if (GetTransaction(hashTx, existingTx, hashBlock))
+    {
+      if (hashBlock != 0)
+	throw JSONRPCError(-5, string("transaction already in block ")+hashBlock.GetHex());
+      // Not in block, but already in the memory pool; will drop
+      // through to re-relay it.
+    }
+  else
+    {
+      // push to local node
+      CTxDB txdb("r");
+      if (!prop.redeemTxn.AcceptToMemoryPool(txdb, false))
+	throw JSONRPCError(-22, "TX rejected");
+    }
+  RelayMessage(CInv(MSG_TX, hashTx), prop.redeemTxn);
+  
+  return hashTx.GetHex();
 }
 
 Value signmessage(const Array& params, bool fHelp)
@@ -1345,7 +1403,7 @@ Value getvotingbalance(const Array& params, bool fHelp)
             "getvotingbalance\n"
             "Returns the balance available for voting. This include immature staking and coinbase funds\n");
 
-    return  ValueFromAmount(pwalletMain->GetBalance());
+    return  ValueFromAmount(pwalletMain->GetVotingBalance());
 }
 
 Value getbalance(const Array& params, bool fHelp)
@@ -3724,6 +3782,7 @@ static const CRPCCommand vRPCCommands[] =
     { "createproposal",   &createproposal,   false },
     { "vote",   &vote,   false },
     { "getvoteinfo",   &getvoteinfo,   false },
+    { "redeemvote",   &redeemvote,   false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },

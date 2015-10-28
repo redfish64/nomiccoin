@@ -25,8 +25,9 @@ export var fastChain = {
     STAKE_COIN_STEP            : `1`,
     STAKE_AGE_STEP             : `1`,
 
-    COINBASE_MATURITY          : `1`
+    COINBASE_MATURITY          : `1`,
 
+    PROPOSAL_MATURITY_BLOCKS   : `5`
 };
 
 export var mediumFastChain = {

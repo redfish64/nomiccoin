@@ -39,6 +39,9 @@ class CNode;
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const int LOCKTIMESTAMP_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
+//used to determine if the client needs to be upgraded
+#define VERSION_SEQUENCE 1
+
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else
@@ -229,6 +232,7 @@ public:
     {
         printf("%s\n", ToString().c_str());
     }
+
 };
 
 
@@ -461,6 +465,8 @@ public:
         return SerializeHash(*this);
     }
 
+    
+
     bool IsVoteTxn() const
     {
       int preambleSize;
@@ -540,10 +546,22 @@ public:
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
     }
 
+    //true if the txn is used to redeem a proposal
     bool IsProposal() const
     {
         return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
     }
+
+    bool IsProposalReedemable(CTxDB& txdb) const;
+
+    //gets the kitchen sink of information about the proposal. Used to determine if proposal
+    //won, whether it is redeemable yet, whether it can still be voted for, etc.
+    void GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
+			    CBlockIndex *& latestBeforeDeadlineBlockIndex,
+			    bool& isVoteWon,
+			    bool& isVotingPeriodOver,
+			    int& blocksBeforeRedeemable 
+			    ) const;
 
     /**
         @return True if the transaction is a coinstake and the coins aren't moved nor destroyed
@@ -819,6 +837,11 @@ public:
         READWRITE(nIndex);
     )
 
+    bool IsMature() const
+    {
+      return GetBlocksToMaturity() == 0;
+    }
+    
 
     int SetMerkleBranch(const CBlock* pblock=NULL);
     int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
@@ -1224,6 +1247,8 @@ public:
     unsigned int nBits;
     unsigned int nNonce;
 
+    //proposals to run for this block index
+    CProposalPublicData ppd;
 
     CBlockIndex()
     {
@@ -1932,7 +1957,7 @@ class CProposalVoteCount
 
 };
 
-
 extern bool IsVoteWon(money_t totalVotes, money_t voterParticipation);
+
 #endif
 

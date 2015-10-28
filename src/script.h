@@ -207,6 +207,10 @@ enum opcodetype
 
     //votes for a proposal, args: <block deadline (epoch secs)> <txn hash>
     OP_VOTE = 0xd3,
+
+    // must be first item in all public scripts. If the first item in a regular txn script,
+    // then txn cannot be redeemed. Takes no args
+    OP_PUBLIC_SCRIPT = 0xd4,
     
 
     // template matching params
@@ -605,9 +609,100 @@ public:
 
 
 
+//os id numbers, for upgrading client
+enum OS_ID
+  {
+    NONE=0, //error, unset
+    SOURCE=1, //source code checksum
+    LINUX_X86=2,
+    LINUX_AMD64=3,
+    LINUX_ALPHA=4,
+    LINUX_ARM=5,
+    LINUX_HPPA=6,
+    LINUX_IA64=7,
+    LINUX_PPC=8,
+    LINUX_PPC64=9,
+    LINUX_SPARC=10,
+    WIN32=11,
+    WIN64=12
+  };
+
+/**
+ * Data describing the result of evaluating a proposal for the public. When we run a proposal,
+ * we store this data in the database, to be run later when we are sure the block is confirmed.
+ *
+ * It is only stored for blocks on the main chain. If two proposals occur on the same block, we
+ * merge their actions together. 
+ *
+ * Note that there is only one upgradeDeadline field. If two proposals attempt to upgrade on the
+ * same block to two different versions, we'll just take the earliest deadline regardless of 
+ * which version had it, and the upgrade with the latest upgrade version. 
+ *
+ * If two proposals attempt to upgrade to the same version, we use the earliest tx info for the upgrade
+ * and the lowest deadline across all upgrades. 
+ * (These two cases have a very remote possiblity of occuring anyway. There will almost always be one
+ * upgrade request per block)
+ */
+class CProposalPublicData
+{
+ public:
+  int nVersion;
+
+  //upgrade info
+  int nUpgradeVersion;//zero if no upgrade
+  
+  std::vector<unsigned char> upgradeGitCommit; //git commit of upgrade.
+
+  //osId and sha2 hash of binary dists
+  //note, eventually we may want to consider letting the clients download a binary distribution directly
+  //from the network, verify it against the hash and then upgrade automatically.
+  //Right now, I'm a little hesitant to trust the block chain so much as to let it run 
+  //executables on the users computer with little or no intervention.
+  std::vector<std::pair<int,uint256> > upgradeDistData;
+
+  uint64 upgradeDeadline; //after this deadline, if the upgrade hasn't occurred yet, the
+  //client will shutdown and refuse to run
+
+  //messages to display to the user
+  std::vector<std::vector<unsigned char> > messages;
+
+  //block the proposal was redeemed
+  int nBlockHeight;
+  
+  CProposalPublicData()
+    {
+      SetNull();
+    }
+
+  IMPLEMENT_SERIALIZE
+    (
+     READWRITE(nVersion);
+     READWRITE(nUpgradeVersion);
+     READWRITE(upgradeGitCommit);
+     READWRITE(upgradeDistData);
+     READWRITE(messages);
+    )
+
+    void SetNull()
+    {
+      nVersion = 0;
+      nUpgradeVersion = 0;
+      upgradeGitCommit.clear();
+      upgradeDistData.clear();
+      messages.clear();
+    }
+
+};
 
 
-bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script, const CTransaction& txTo, unsigned int nIn, int nHashType);
+
+
+bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script,
+		const CTransaction* txTo, //needed only if runningPublicScript is false
+		unsigned int nIn, int nHashType, bool runningPublicScript = false,
+		CProposalPublicData *publicData = NULL //needed only if runningPublicScript is true
+		);
+
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet);
 int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned char> >& vSolutions);
 bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType);
@@ -624,4 +719,5 @@ CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsign
 bool IsVoteScript(const CScript& scriptPubKey,int& votePreambleSize);
 bool GetVoteScriptData(const CScript& scriptPubKey, int&  preambleSize, votehash_t& txnHash, money_t& deadline);
 
+bool IsPublicScript(const CScript& script);
 #endif

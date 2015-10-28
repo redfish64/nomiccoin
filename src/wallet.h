@@ -479,8 +479,6 @@ public:
     char fFromMe;
     std::string strFromAccount;
     std::vector<char> vfSpent; // which outputs are already spent
-    blockheight_t coinBaseBlockHeight; // the time the original coin base/coin stake transaction occurred
-    //Only valid for voting and coinbase/coinstake transactions
 
     // memory only
     mutable bool fDebitCached;
@@ -531,7 +529,6 @@ public:
         nCreditCached = 0;
         nAvailableCreditCached = 0;
         nChangeCached = 0;
-	coinBaseBlockHeight = 0;
     }
 
     IMPLEMENT_SERIALIZE
@@ -563,7 +560,6 @@ public:
         READWRITE(nTimeReceived);
         READWRITE(fFromMe);
         READWRITE(fSpent);
-        READWRITE(coinBaseBlockHeight);
 
         if (fRead)
         {
@@ -660,11 +656,6 @@ public:
         return nDebitCached;
     }
 
-    bool IsMature() const
-    {
-      return coinBaseBlockHeight == 0 || coinBaseBlockHeight + COINBASE_MATURITY  < pindexBest->nHeight;
-    }
-
     int64 GetCredit(bool fUseCache=true) const
     {
         // Must wait until coinbase is safely deep enough in the chain before valuing it
@@ -704,6 +695,25 @@ public:
 
         nAvailableCreditCached = nCredit;
         fAvailableCreditCached = true;
+        return nCredit;
+    }
+
+    int64 GetVotingCredit(bool fUseCache=true) const
+    {
+        int64 nCredit = 0;
+        for (unsigned int i = 0; i < vout.size(); i++)
+        {
+            if (!IsSpent(i))
+            {
+                const CTxOut &txout = vout[i];
+                nCredit += pwallet->GetCredit(txout);
+
+                if (!IsValidAmount(nCredit)) {
+                    throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
+                }
+            }
+        }
+
         return nCredit;
     }
 
