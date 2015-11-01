@@ -1380,6 +1380,16 @@
 <node CREATED="1446370130013" ID="ID_983698006" MODIFIED="1446370182434" TEXT="Except that we need to expire messages out of it"/>
 <node CREATED="1446370182829" ID="ID_1985685660" MODIFIED="1446370198298" TEXT="Of course, AppState has messages already there, anyway"/>
 <node CREATED="1446370205213" ID="ID_1341274151" MODIFIED="1446370234393" TEXT="I think this makes sense. A little more brittle, but better since we don&apos;t need a list of ptrs in CBlockIndex"/>
+<node CREATED="1446370541798" ID="ID_1372113124" MODIFIED="1446370566921" TEXT="Should we forgo the ptr to CAppState, and just store the object directly into CBlockIndex?">
+<node CREATED="1446370568374" ID="ID_1112957113" MODIFIED="1446370637921" TEXT="If we do this, then the CAppState will be in *every* block index, but it will be simpler"/>
+<node CREATED="1446370638405" ID="ID_1185641528" MODIFIED="1446370675513" TEXT="And there is really no evidence that this will be a big deal... I mean, suppose 1 million blocks, then we have maybe a message per block, if that, so that would be 100meg"/>
+<node CREATED="1446370701437" ID="ID_807833339" MODIFIED="1446370731905" TEXT="But a 256hash is already 32 bytes">
+<node CREATED="1446370749973" ID="ID_185802779" MODIFIED="1446370770689" TEXT="And there is no guarantee there will be any messages in CAppState at all"/>
+</node>
+<node CREATED="1446370743518" ID="ID_1928452904" MODIFIED="1446370747422" TEXT="So it&apos;s almost a wash">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 </node>
 </node>

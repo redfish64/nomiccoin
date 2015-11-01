@@ -23,8 +23,6 @@
 #include "GetProofOfStakeReward.h"
 #include "GetProofOfWorkReward.h"
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
 using namespace std;
 using namespace boost;
 
@@ -1549,7 +1547,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
  * Runs a proposal as a regular user. Stores result in given bioList
  * adds results to vector of hash's.
  */
-bool RunProposalForPublic(CTransaction *tx, boost::ptr_vector<CBlockIndexObject>& bioList)
+bool RunProposalForPublic(CTransaction *tx, CAppState &appState)
 {
 
   BOOST_FOREACH(CTxOut out, tx->vout)
@@ -1560,7 +1558,7 @@ bool RunProposalForPublic(CTransaction *tx, boost::ptr_vector<CBlockIndexObject>
       std::vector<std::vector<unsigned char> > stack;
       if(!EvalScript(stack, out.scriptPubKey,
 		     NULL,
-		     0, 0, true, &bioList))
+		     0, 0, true, &appState))
 	return error("RunProposalForPublic() : EvalScript failed");
       
     }
@@ -1731,14 +1729,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     if (fDebug && GetBoolArg("-printcreation"))
         printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
 
-    //load the initial blockindexobjects from the prior blockindex
-    boost::ptr_vector<CBlockIndexObject> bioList;
-    if(pindex->pprev)
-      {
-	LoadAppState(pindex->pprev, bioList);
-      }
-
     //TODO 2, do not allow votes for deadlines less than 2 weeks since the coin started
+
+    pindex->appState = pindex->pprev->appState;
     
     // Watch for proposal transactions with a public component
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -1749,31 +1742,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	  {
 	    //everyone evaluates the tx, in case it has operations for displaying a message
 	    //or upgrading the client
-	    RunProposalForPublic(txdb, &tx, bioList);
-
-	    //save the new items to the db
-	    BOOST_FOREACH(CBlockIndexObject bio, bioList)
-	      {
-		bio->SaveToDb(txdb);
-	      }
-
+	    RunProposalForPublic(&tx, pindex->appState);
 	  }
-      }
-
-    //setup the app state for the block
-    CAppState newAppState;
-
-    //note this will delete items from bioList if they have expired from the block chain
-    BuildAppState(bioList, newAppState);
-    LOCK(cs_AppState)
-    {
-      appState = newAppState;
-    }
-
-    //save the hashes of the remaining block index objects into the new block index
-    BOOST_FOREACH(CBlockIndexObject bio, bioList)
-      {
-	pindex->blockIndexObjectHashs.add(bio.GetHash());
       }
 
     // Update block index on disk without changing it in memory.
@@ -4742,42 +4712,20 @@ void CTransaction::GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
   
 }
 
-bool CProposalMessage::Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock)
+/**
+ * Updates the app state for moving to the next block
+ */
+void CAppState::receiveNewBlock(CBlockIndex *pindex, CAppState& appStateOut)
 {
-  if(pindex->nHeight > initialApperanceBlock + PROPOSAL_MESSAGE_PRESENCE_BLOCKS)
-    removeFromNextBlock = true;
-  else
-    aps.add(*this);
+  appStateOut.messages.clear();
   
-  return true;
-}
-
-bool CUpgradeRequest::Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock)
-{
-  if(upgradeVersion <= CLIENT_VERSION) //an upgrade to a prior version is ignored
-    return true;
-  
-  uint64 oldUpgradeDeadline = aps.ur.upgradeDeadline;
-  
-  if(aps.ur.upgradeVersion < upgradeVersion)
+  //remove any message that has been displayed for too long
+  BOOST_FOREACH(CProposalMessage pm, messages)
     {
-      aps.ur = *this;
+      if(pm.initialApperanceBlock + PROPOSAL_MESSAGE_PRESENCE_BLOCKS >= pindex->nHeight)
+	appStateOut.messages.push_back(pm);
     }
   
-  //we always use the minimum deadline
-  if(oldUpgradeDeadline != 0 && oldUpgradeDeadline < upgradeDeadline)
-    aps.ur.upgradeDeadline = oldUpgradeDeadline;
-  
-  return true;
-}
-
-bool CUpgradeRequest::SaveToDb(CTxDB& db)
-{
-  return db.WriteBlockIndexObject(*this);
-}
-
-bool CProposalMessage::SaveToDb(CTxDB& db)
-{
-  return db.WriteBlockIndexObject(*this);
+  appStateOut.ur = ur;
 }
 

@@ -376,7 +376,7 @@ static bool IsValidPubKey(valtype const & vchPubKey)
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		const CTransaction* txTo, //needed only if runningPublicScript is false
 		unsigned int nIn, int nHashType, bool runningPublicScript,
-		boost::ptr_vector<CBlockIndexObject> *blockIndexObjects //needed only if runningPublicScript is true
+		CAppState *appState //needed only if runningPublicScript is true
 		)
 {
     CAutoBN_CTX pctx;
@@ -469,9 +469,9 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      {
 		if(stack.size() < 1 || !runningPublicScript)
 		  return false;
-		CProposalMessage *pm = new CProposalMessage();
-		blockIndexObjects->push_back(pm);
-		pm->message = stack[0];
+		CProposalMessage pm;
+		pm.message = stack[0];
+		appState->add(pm);
 		popstack(stack);
 		break;
 	      }
@@ -483,12 +483,11 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      if(stack.size() < 4 || !runningPublicScript)
 	      	return false;
 
-	      CUpgradeRequest *ur = new CUpgradeRequest();
-	      blockIndexObjects->push_back(ur);
+	      CUpgradeRequest ur;
+	      ur.upgradeVersion = CBigNum(stack[0]).getint();
+	      ur.upgradeDeadline = CBigNum(stack[1]).getuint64();
+	      ur.upgradeGitCommit = stack[2];
 
-	      ur->upgradeVersion = CBigNum(stack[0]).getint();
-	      ur->upgradeDeadline = CBigNum(stack[1]).getuint64();
-	      ur->upgradeGitCommit = stack[2];
 	      int currUpgradeDistCount = CBigNum(stack[3]).getint();
 	      
 	      stack.erase(stack.end()-4, stack.end());
@@ -502,10 +501,10 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		  popstack(stack);
 		  popstack(stack);
 		      
-		  ur->upgradeDistData.push_back(make_pair(osId, sha256hash));
+		  ur.upgradeDistData.push_back(make_pair(osId, sha256hash));
 	      	}
 
-	      
+	      appState->add(ur);
 	      break;
 	      }
                 //

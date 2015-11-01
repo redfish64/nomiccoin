@@ -11,7 +11,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
+
 
 #include "keystore.h"
 #include "bignum.h"
@@ -608,12 +608,12 @@ public:
     }
 };
 
-class CBlockIndexObject;
+class CAppState;
 
 bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script,
 		const CTransaction* txTo, //needed only if runningPublicScript is false
 		unsigned int nIn, int nHashType, bool runningPublicScript = false,
-		boost::ptr_vector<CBlockIndexObject> *blockIndexObjects = NULL //needed only if runningPublicScript is true
+		CAppState *appState = NULL //needed only if runningPublicScript is true
 		);
 
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet);

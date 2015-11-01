@@ -306,13 +306,6 @@ public:
     bool EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline);
     bool ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t & totalVotes);
 
-    bool WriteProposalMessage(CProposalMessage & obj);
-    bool EraseProposalMessage(uint256 hash);
-    bool ReadProposalMessage(uint256 hash,CProposalMessage & obj);
-
-    bool WriteUpgradeRequest(CUpgradeRequest & obj);
-    bool EraseUpgradeRequest(uint256 hash);
-    bool ReadUpgradeRequest(uint256 hash,CUpgradeRequest & obj);
 };
 
 
