@@ -376,7 +376,7 @@ static bool IsValidPubKey(valtype const & vchPubKey)
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		const CTransaction* txTo, //needed only if runningPublicScript is false
 		unsigned int nIn, int nHashType, bool runningPublicScript,
-		CProposalPublicData *ppd //needed only if runningPublicScript is true
+		boost::ptr_vector<CBlockIndexObject> *blockIndexObjects //needed only if runningPublicScript is true
 		)
 {
     CAutoBN_CTX pctx;
@@ -390,7 +390,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
     if (script.size() > 10000)
         return false;
     int nOpCount = 0;
-
 
     try
     {
@@ -467,12 +466,15 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	        break;
 
 	    case OP_DISPLAY_MSG:
-	      if(stack.size() < 1 || !runningPublicScript)
-		return false;
-	      ppd->messages.push_back(stack[0]);
-	      popstack(stack);
-	      break;
-
+	      {
+		if(stack.size() < 1 || !runningPublicScript)
+		  return false;
+		CProposalMessage *pm = new CProposalMessage();
+		blockIndexObjects->push_back(pm);
+		pm->message = stack[0];
+		popstack(stack);
+		break;
+	      }
 	    case OP_UPGRADE_CLIENT:
 	      {
 	      //note that we don't do much verification on this, because since half the network
@@ -481,46 +483,29 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      if(stack.size() < 4 || !runningPublicScript)
 	      	return false;
 
-	      int currUpgradeVersion = CBigNum(stack[0]).getint();
+	      CUpgradeRequest *ur = new CUpgradeRequest();
+	      blockIndexObjects->push_back(ur);
 
-	      //we always use the earliest deadline
-	      uint64 currUpgradeDeadline = CBigNum(stack[1]).getuint64();
-	      if ((ppd->upgradeDeadline == 0) ||
-	      	  (ppd->upgradeDeadline > currUpgradeDeadline))
-	      	ppd->upgradeDeadline = currUpgradeDeadline;
-	      
-	      std::vector<unsigned char>& currUpgradeGitCommit = stack[2];
+	      ur->upgradeVersion = CBigNum(stack[0]).getint();
+	      ur->upgradeDeadline = CBigNum(stack[1]).getuint64();
+	      ur->upgradeGitCommit = stack[2];
 	      int currUpgradeDistCount = CBigNum(stack[3]).getint();
 	      
 	      stack.erase(stack.end()-4, stack.end());
 
-	      //we don't upgrade if we are already at or above that version, and/or we have another
-	      //upgrade already that is higher
-	      if(currUpgradeVersion <= VERSION_SEQUENCE || currUpgradeVersion < ppd->nUpgradeVersion)
-	      	{
-	      	  if(stack.size() < (unsigned int)currUpgradeDistCount)
-	      	    return false;
-	      	  stack.erase(stack.end()-currUpgradeDistCount*2, stack.end());
-	      	}
-	      else
-	      	{
-	      	  ppd->nUpgradeVersion = currUpgradeVersion;
-	      	  ppd->upgradeDeadline = currUpgradeDeadline;
-		  ppd->upgradeGitCommit = currUpgradeGitCommit;
-	      	  ppd->upgradeDistData.clear();
+	      for(int i = 0; i< currUpgradeDistCount*2; i+=2)
+		
+		{
+		  int osId = CBigNum(stack[0]).getint();
+		  uint256 sha256hash = CBigNum(stack[1]).getuint256();
 		  
-	      	  for(int i = 0; i< currUpgradeDistCount*2; i+=2)
-		    
-	      	    {
-	      	      int osId = CBigNum(stack[0]).getint();
-	      	      uint256 sha256hash = CBigNum(stack[1]).getuint256();
+		  popstack(stack);
+		  popstack(stack);
 		      
-	      	      popstack(stack);
-	      	      popstack(stack);
-		      
-	      	      ppd->upgradeDistData.push_back(make_pair(osId, sha256hash));
-	      	    }
+		  ur->upgradeDistData.push_back(make_pair(osId, sha256hash));
 	      	}
+
+	      
 	      break;
 	      }
                 //

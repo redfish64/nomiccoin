@@ -1005,6 +1005,7 @@
 <node CREATED="1446075526055" ID="ID_656492174" MODIFIED="1446075540274" TEXT="Nice, but we need to be able to combine upgrades into one, don&apos;t we?">
 <node CREATED="1446075566246" ID="ID_1362445130" MODIFIED="1446075596947" TEXT="We could do it after the fact, when we look at the current block index, we read all the upgrade objects, combine them and decide what to do"/>
 </node>
+<node CREATED="1446075879223" ID="ID_1767053642" MODIFIED="1446075926131" TEXT="We can&apos;t let this vector get too big, so we&apos;ll have to let messages expire on their own."/>
 </node>
 </node>
 </node>
@@ -1216,6 +1217,174 @@
 <node COLOR="#ff0000" CREATED="1445912707050" ID="ID_1673348619" MODIFIED="1445912709074" TEXT="TODO"/>
 </node>
 </node>
+<node CREATED="1446306157404" ID="ID_70177628" MODIFIED="1446306160213" TEXT="voting results">
+<node CREATED="1446192619433" ID="ID_1763214564" MODIFIED="1446192787054" TEXT="How do we want to programmatically organize this?">
+<node CREATED="1446192796937" ID="ID_1303816729" MODIFIED="1446192799574" TEXT="Operations">
+<node CREATED="1446192801034" FOLDED="true" ID="ID_621414025" MODIFIED="1446194703223" TEXT="1.Create and save upgrade and messages">
+<node CREATED="1446192819546" ID="ID_369438490" MODIFIED="1446192824493" TEXT="Save to db each object"/>
+<node CREATED="1446192824914" ID="ID_542431916" MODIFIED="1446192830614" TEXT="Write to blockindex"/>
+</node>
+<node CREATED="1446192851610" ID="ID_1039330289" MODIFIED="1446194706903" TEXT="2. Load objects from db"/>
+<node CREATED="1446192862282" ID="ID_928297899" MODIFIED="1446194711863" TEXT="3. Delete object from block index">
+<node CREATED="1446192875666" ID="ID_1487018507" MODIFIED="1446192884878" TEXT="Maybe delete from db (not so important)"/>
+</node>
+</node>
+<node CREATED="1446192832730" ID="ID_406366759" MODIFIED="1446192834141" TEXT="Concerns">
+<node CREATED="1446192835794" ID="ID_262671166" MODIFIED="1446192849182" TEXT="Minimize memory usage of blockindex"/>
+<node CREATED="1446192895522" ID="ID_1931324302" MODIFIED="1446192898005" TEXT="Expandable"/>
+</node>
+<node CREATED="1446192787049" ID="ID_1744781010" MODIFIED="1446193397350" TEXT="Methods">
+<node CREATED="1446194354763" ID="ID_1262241963" MODIFIED="1446280962157" TEXT="m1">
+<node CREATED="1446195871428" ID="ID_549761796" MODIFIED="1446196001480" TEXT="CBllockIndexObject Interface">
+<node COLOR="#0033ff" CREATED="1446204880019" FOLDED="true" ID="ID_1951452773" MODIFIED="1446268335334" TEXT="Visitor">
+<node CREATED="1446194319867" ID="ID_761108207" MODIFIED="1446204897319" TEXT="SaveToDbVisitor">
+<node CREATED="1446204901530" ID="ID_569294926" MODIFIED="1446204901530" TEXT=""/>
+</node>
+<node CREATED="1446195007891" ID="ID_389047528" MODIFIED="1446204899606" TEXT="RunObjectVisitor">
+<node CREATED="1446205198947" ID="ID_930875695" MODIFIED="1446205218838" TEXT="ProposalMessage">
+<node CREATED="1446205220235" ID="ID_1743784865" MODIFIED="1446205376999" TEXT="collects all proposal messages in local vector"/>
+<node CREATED="1446205402603" ID="ID_729635296" MODIFIED="1446205409663" TEXT="How do we remove dead messages?"/>
+</node>
+<node CREATED="1446205250499" ID="ID_1889288297" MODIFIED="1446205260055" TEXT="UpgradeRequest"/>
+</node>
+<node CREATED="1446205487531" ID="ID_142998441" MODIFIED="1446205523247" TEXT="Returns boolean false when there is an error"/>
+<node CREATED="1446205523723" ID="ID_833983004" MODIFIED="1446205543590" TEXT="Has reference to var deleteMe to delete from cblockindex ">
+<node CREATED="1446205578147" ID="ID_950439223" MODIFIED="1446205587375" TEXT="But it doesn&apos;t work for SaveToDbVisitor"/>
+<node CREATED="1446205591355" ID="ID_1679181035" MODIFIED="1446205606151" TEXT="Maybe RunObjectVisitor doesn&apos;t implement Visitor"/>
+<node CREATED="1446205607635" ID="ID_785374844" MODIFIED="1446205619015" TEXT="What if we just had a &quot;run&quot; method?">
+<node CREATED="1446205626491" ID="ID_458552917" MODIFIED="1446205640311" TEXT="It could set the deleteMe ref"/>
+<node CREATED="1446205640739" ID="ID_269696930" MODIFIED="1446205645614" TEXT="and return bool for an error"/>
+<node CREATED="1446205683051" ID="ID_328123687" MODIFIED="1446205692142" TEXT="and update the static vars necessary for these functions directly"/>
+</node>
+</node>
+<node CREATED="1446205498931" ID="ID_1655458191" MODIFIED="1446205503342" TEXT="What about errors?"/>
+<node CREATED="1446205723699" ID="ID_848220106" MODIFIED="1446205724963" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1446268344130" ID="ID_686308716" MODIFIED="1446268374108" TEXT="SaveToDb"/>
+<node CREATED="1446205727235" ID="ID_745804427" MODIFIED="1446268419374" TEXT="Run">
+<node CREATED="1446205733019" ID="ID_899283915" MODIFIED="1446205737703" TEXT="args">
+<node CREATED="1446205739043" ID="ID_1444311665" MODIFIED="1446205745703" TEXT="CTxDb"/>
+<node CREATED="1446269238313" ID="ID_488291255" MODIFIED="1446269256149" TEXT="RemoveFromNextBlock"/>
+</node>
+<node CREATED="1446206570052" ID="ID_1076711977" MODIFIED="1446206580639" TEXT="ProposalMessage">
+<node CREATED="1446206582756" ID="ID_1712202211" MODIFIED="1446206597983" TEXT="puts messages in a global place"/>
+<node CREATED="1446206598514" ID="ID_970194059" MODIFIED="1446206603128" TEXT="possibly notifies qt to update"/>
+</node>
+<node CREATED="1446206604483" ID="ID_659376707" MODIFIED="1446206616759" TEXT="UpgradeRequest">
+<node CREATED="1446206619939" ID="ID_1275939158" MODIFIED="1446206628087" TEXT="puts deadline in global place"/>
+<node CREATED="1446206628610" ID="ID_908524862" MODIFIED="1446206634470" TEXT="puts version info in global place"/>
+<node CREATED="1446206634891" ID="ID_507071574" MODIFIED="1446206645407" TEXT="If already exists, updates appropriately"/>
+<node CREATED="1446206645699" ID="ID_1019138508" MODIFIED="1446206659455" TEXT="Maybe uses a uber version of UpgradeRequest">
+<node CREATED="1446206660916" ID="ID_1804947818" MODIFIED="1446206666495" TEXT="Deadline is updated"/>
+<node CREATED="1446206666891" ID="ID_960439706" MODIFIED="1446206671791" TEXT="Version is updated"/>
+</node>
+</node>
+<node CREATED="1446269510786" ID="ID_247224507" MODIFIED="1446269518477" TEXT="Should we create a structure to hold all this?">
+<node CREATED="1446269522505" ID="ID_296034526" MODIFIED="1446269554229" TEXT="That way, we can pass it in to Run, and the methods can resonably assume the messages/upgrade request from the prior block has been cleared out already"/>
+<node CREATED="1446269554753" ID="ID_529761958" MODIFIED="1446269567589" TEXT="Should we store it in CBlockIndex?">
+<node CREATED="1446269568874" ID="ID_1283051655" MODIFIED="1446269600949" TEXT="I don&apos;t think thats a good idea because we don&apos;t need to waste the extra memory (although it would be small)"/>
+</node>
+</node>
+<node CREATED="1446269636297" ID="ID_896405330" MODIFIED="1446269643173" TEXT="When should this method be called?">
+<node CREATED="1446269644489" ID="ID_1267645932" MODIFIED="1446269673989" TEXT="We don&apos;t want to call it everytime we get a connect block... wait we&apos;ll have to, because we won&apos;t know when the messages and upgrade requests expire"/>
+<node CREATED="1446269677329" ID="ID_1906613617" MODIFIED="1446269700277" TEXT="It will slow down the block reading a little to read the messages and upgrade requests for every block, however">
+<node CREATED="1446269741297" ID="ID_1083719419" MODIFIED="1446271457534" TEXT="We can keep the array in memory, but then we still need a flag to mark messages read"/>
+</node>
+<node CREATED="1446269759489" ID="ID_416065588" MODIFIED="1446270078669" TEXT="Maybe we should just go back to CPublicInformation">
+<node CREATED="1446270081658" ID="ID_1233650354" MODIFIED="1446270107318" TEXT="Whenever we connect a block, we just update this structure, removing expired messages, and updating upgrade requests"/>
+<node CREATED="1446270116426" ID="ID_1585810395" MODIFIED="1446270349405" TEXT="What about marking messages?">
+<node CREATED="1446270363218" ID="ID_877334718" MODIFIED="1446270376998" TEXT="db.WriteMessageRead(messageHash,isRead)"/>
+</node>
+<node CREATED="1446270394850" ID="ID_643431126" MODIFIED="1446271371946" TEXT="What about Reorg?">
+<node CREATED="1446270756106" ID="ID_964369727" MODIFIED="1446270776382" TEXT="We need to be able to know which messages/upgrade requests are active for any block"/>
+<node CREATED="1446270779522" ID="ID_1462610864" MODIFIED="1446270800142" TEXT="This is why we need to store them as separate objects that attach themselves to the block chain"/>
+<node CREATED="1446271374898" ID="ID_378710823" MODIFIED="1446271390038" TEXT="Or at least something in the block index objects"/>
+</node>
+<node CREATED="1446270801458" ID="ID_1327009338" MODIFIED="1446270827150" TEXT="What if we store CPublicInformation within the CBlockIndex?">
+<node CREATED="1446270828674" ID="ID_647035244" MODIFIED="1446270845270" TEXT="Then we don&apos;t need a vector of hashes any more, just a single hash to CPublicInformation"/>
+<node CREATED="1446270846306" ID="ID_938432876" MODIFIED="1446270869342" TEXT="We can store it in the db until its necessary to get."/>
+<node CREATED="1446270872642" ID="ID_1673214983" MODIFIED="1446271055639" TEXT="How does CDiskBlockIndex work?">
+<node CREATED="1446271058730" ID="ID_1074350851" MODIFIED="1446271074950" TEXT="hashes of prev and next are kept here"/>
+<node CREATED="1446271038578" ID="ID_1839439453" MODIFIED="1446271051118" TEXT="It has a constructor that takes a CBlockIndex and just hashes prev and next"/>
+</node>
+<node CREATED="1446271323146" ID="ID_1894981097" MODIFIED="1446271367227" TEXT="Its too much complication">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1446271399578" ID="ID_525196639" MODIFIED="1446271663123" TEXT="We can, but then we need to store CPublicInformation for every block index, and so, why not keep that information within blockindex, and if so we are kind of back where we were">
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446271594930" ID="ID_851441523" MODIFIED="1446271607598" TEXT="We could store messages as messages, and the upgrade request as a single thing"/>
+<node CREATED="1446271608042" ID="ID_492816252" MODIFIED="1446271614502" TEXT="I mean, they are kind of related but not really."/>
+</node>
+<node CREATED="1446271652642" ID="ID_576437311" MODIFIED="1446271661627" TEXT="I think the way we&apos;re doing it is good enough">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1446194185795" ID="ID_1861283262" MODIFIED="1446196100038" TEXT="put type,hash vector into CBlockIndex">
+<node CREATED="1446194193962" ID="ID_38475981" MODIFIED="1446195985272" TEXT="ReadCBlockIndexObject">
+<node CREATED="1446195922844" ID="ID_5763411" MODIFIED="1446195934336" TEXT="uses switch to determine which object to read"/>
+<node CREATED="1446194832291" ID="ID_1365089942" MODIFIED="1446194923031" TEXT="populates vector or smart pointer"/>
+<node CREATED="1446195972140" ID="ID_381435381" MODIFIED="1446195974464" TEXT="directly in db.c"/>
+<node CREATED="1446205772587" ID="ID_3635045" MODIFIED="1446205773559" TEXT="args">
+<node CREATED="1446205775331" ID="ID_1080833172" MODIFIED="1446205780870" TEXT="type"/>
+<node CREATED="1446205781315" ID="ID_1566663917" MODIFIED="1446205782414" TEXT="hash"/>
+</node>
+</node>
+</node>
+<node CREATED="1446196132116" ID="ID_253506751" MODIFIED="1446196155648" TEXT="Call RunObject when connecting the next block, RunObject returns false if should be removed from block chain"/>
+<node CREATED="1446280937431" ID="ID_782739257" MODIFIED="1446280944051" TEXT="Where do we put these new classes?">
+<node CREATED="1446280964887" ID="ID_1409571489" MODIFIED="1446280986083" TEXT="script.cpp needs them because we create them in EvalScript"/>
+<node CREATED="1446280986900" ID="ID_395618631" MODIFIED="1446281014079" TEXT="Yet they need access to CTxDb which script.h doesn&apos;t have"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446297807937" ID="ID_4986919" MODIFIED="1446298478345" TEXT="Should CBlockIndex just have an actual vector (or pointer to one) of CBlockIndexObjects?">
+<node CREATED="1446297859153" ID="ID_1359580513" MODIFIED="1446298035189" TEXT="So when we connect, we build the vector, and then run it?"/>
+<node CREATED="1446298035609" ID="ID_212355919" MODIFIED="1446298290214" TEXT="Then when we save it, we do the other "/>
+<node CREATED="1446306015240" ID="ID_617184599" MODIFIED="1446306130429" TEXT="I don&apos;t see why we even put the vector at all, and not just the hashes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446306105457" ID="ID_548875537" MODIFIED="1446306124667" TEXT="We don&apos;t want to load it for every index, only the current one, and we don&apos;t need it after we have loaded it"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1446291933269" ID="ID_41317909" MODIFIED="1446307579671" TEXT="So what is the flow?">
+<node CREATED="1446307579661" ID="ID_1088465509" MODIFIED="1446307586072" TEXT="ConnectBlock">
+<node CREATED="1446296295496" ID="ID_638010940" MODIFIED="1446296303396" TEXT="A new block comes in"/>
+<node CREATED="1446296303864" ID="ID_1007532634" MODIFIED="1446296325533" TEXT="ConnectBlock sees a redeemable proposal txn"/>
+<node CREATED="1446296325968" ID="ID_1828880583" MODIFIED="1446306500433" TEXT="It calls EvalForPublic, which creates a list of public block objects"/>
+<node CREATED="1446306691125" ID="ID_431013027" MODIFIED="1446306710991" TEXT="It stores the hashes of the items in the block index (to be saved within ConnectBlock)"/>
+<node CREATED="1446306500865" ID="ID_91713304" MODIFIED="1446367913984" TEXT="ConnectBlock then runs BuildAppState, which sets up a CAppState object">
+<font NAME="SansSerif" SIZE="13"/>
+</node>
+<node CREATED="1446306648509" ID="ID_1300003788" MODIFIED="1446306666634" TEXT="This object is queried when we want to read a message or whine about a necessary upgrade"/>
+</node>
+<node CREATED="1446307556523" ID="ID_129904958" MODIFIED="1446307590937" TEXT="LoadBlockIndex">
+<node CREATED="1446307593250" ID="ID_26320904" MODIFIED="1446307617639" TEXT="After loading everything, we call LoadBlockObjects with vector of hashes"/>
+<node CREATED="1446306500865" ID="ID_703262627" MODIFIED="1446367948816" TEXT="We run BuildAppState, which sets up a CAppState object">
+<font NAME="SansSerif" SIZE="13"/>
+</node>
+<node CREATED="1446367991844" ID="ID_1369198308" MODIFIED="1446367996968" TEXT="...same as connect block"/>
+</node>
+<node CREATED="1446367921004" ID="ID_1751870883" MODIFIED="1446367925792" TEXT="Read message">
+<node CREATED="1446368001908" ID="ID_855753695" MODIFIED="1446368017368" TEXT="We mark the message read, and call db.SaveProposalMessage"/>
+</node>
+<node CREATED="1446368027781" ID="ID_1211674118" MODIFIED="1446368030281" TEXT="Upgrade">
+<node CREATED="1446368031628" ID="ID_95515037" MODIFIED="1446368047520" TEXT="For any rpc call, we thrown an exception stating the client needs to be upgraded"/>
+<node CREATED="1446368048812" ID="ID_1262528840" MODIFIED="1446368064488" TEXT="In GUI we put it in the status bar or something"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1446370088317" ID="ID_563786974" MODIFIED="1446370104733" TEXT="Why don&apos;t we store appstate in cblockindex directly?">
+<node CREATED="1446370109173" ID="ID_193544002" MODIFIED="1446370113961" TEXT="Or at least a hash to it?"/>
+<node CREATED="1446370130013" ID="ID_983698006" MODIFIED="1446370182434" TEXT="Except that we need to expire messages out of it"/>
+<node CREATED="1446370182829" ID="ID_1985685660" MODIFIED="1446370198298" TEXT="Of course, AppState has messages already there, anyway"/>
+<node CREATED="1446370205213" ID="ID_1341274151" MODIFIED="1446370234393" TEXT="I think this makes sense. A little more brittle, but better since we don&apos;t need a list of ptrs in CBlockIndex"/>
+</node>
+</node>
+</node>
+</node>
+</node>
 <node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
 <node CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445915141691" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
 <font NAME="SansSerif" SIZE="12"/>
@@ -1306,6 +1475,9 @@
 </node>
 </node>
 </node>
+</node>
+<node COLOR="#ff0000" CREATED="1446305382166" ID="ID_828673164" MODIFIED="1446305400107" TEXT="TODO use CLIENT_VERSION for our version number">
+<node CREATED="1446305402942" ID="ID_723219768" MODIFIED="1446305408502" TEXT="it exists already, bitcoin uses it"/>
 </node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
@@ -1768,6 +1940,14 @@
 <node CREATED="1445162114093" ID="ID_352007369" MODIFIED="1445162137721" TEXT="Blocks in the best chain are connected using ConnectBlock()"/>
 <node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
 <node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310444869" TEXT="Whenever we add a block to the block chain, we call ConnectBlock(), regardless if we made it ourselves or not"/>
+<node CREATED="1446304632906" ID="ID_977481524" MODIFIED="1446304636649" TEXT="LoadBlockIndex">
+<node CREATED="1446305808031" ID="ID_183798572" MODIFIED="1446305815117" TEXT="Loads the indexes from the db"/>
+<node CREATED="1446304643935" ID="ID_1934249933" MODIFIED="1446304674390" TEXT="calls InsertBlockIndex to resolve prev and next">
+<node CREATED="1446304679242" ID="ID_860483694" MODIFIED="1446305775063" TEXT="InsertBlockIndex looks for hash in memory, and if it doesn&apos;t exist, creates a new empty block index with no information">
+<node CREATED="1446304750576" ID="ID_1722814838" MODIFIED="1446305800530" TEXT="It does this because the block indexs are read in order on the db, which may not be the order in which they are linked"/>
+</node>
+</node>
+</node>
 <node CREATED="1445829109305" ID="ID_1571173489" MODIFIED="1445829258157" TEXT="ProcessMessage(gets block from other nodes)">
 <node CREATED="1445829080953" ID="ID_964915765" MODIFIED="1445829152684" TEXT="ProcessBlock">
 <linktarget COLOR="#b0b0b0" DESTINATION="ID_964915765" ENDARROW="Default" ENDINCLINATION="-114;33;" ID="Arrow_ID_859303402" SOURCE="ID_1240873214" STARTARROW="None" STARTINCLINATION="55;-1;"/>
@@ -1780,7 +1960,10 @@
 <node CREATED="1445235970335" ID="ID_799162962" MODIFIED="1445235974515" TEXT="SetBestChainInner">
 <node CREATED="1445235976207" ID="ID_888274618" MODIFIED="1445235978210" TEXT="ConnectBlock">
 <node CREATED="1445327971749" ID="ID_1123323722" MODIFIED="1445327983769" TEXT="Writes CBlockIndex for the second time (first was in AddToBlockIndex"/>
-<node COLOR="#ff0000" CREATED="1445328415310" ID="ID_294539002" MODIFIED="1445328562865" TEXT="We can&apos;t put nMoneySupply and pool funds here for genesis block because it doesn&apos;t get called"/>
+<node CREATED="1446299031041" ID="ID_873289190" MODIFIED="1446299036701" TEXT="Saves CBlockIndex">
+<node CREATED="1446299037473" ID="ID_91022874" MODIFIED="1446299055582" TEXT="This works by creating a CDiskBlockIndex, and saving that"/>
+<node CREATED="1446299213857" ID="ID_1502672830" MODIFIED="1446299232629" TEXT="It actually saves the previous blockindex"/>
+</node>
 </node>
 </node>
 </node>
@@ -1852,6 +2035,9 @@
 <node CREATED="1445908580730" ID="ID_936467519" MODIFIED="1445908945994" TEXT="calert, how does it display stuff to the user (especially in bitcoind)?">
 <node CREATED="1445908798594" ID="ID_615232280" MODIFIED="1445908871013" TEXT="calert warnings are checked for every rpc call. If there is a warning, it throws an exception before ever running the method (unless -disablesafemode is true)"/>
 <node CREATED="1446002207909" ID="ID_166556793" MODIFIED="1446002209201" TEXT="How are calerts stored?     Looks like in memory only. CAlerts can rely on the network retransmitting an alert "/>
+</node>
+<node CREATED="1446190133913" ID="ID_505624950" MODIFIED="1446190140532" TEXT="block chain trust issues">
+<node CREATED="1446190142241" ID="ID_981466216" MODIFIED="1446191873020" TEXT="Block chain trust is calculated based on the hashTarget. This number is multiplied by the coinage before being checked against the hash."/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

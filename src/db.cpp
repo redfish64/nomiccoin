@@ -780,7 +780,7 @@ bool CTxDB::LoadBlockIndex()
     }
     if (pindexFork)
     {
-        // Reorg back to the fork
+         // Reorg back to the fork
         printf("LoadBlockIndex() : *** moving best chain pointer back to block %d\n", pindexFork->nHeight);
         CBlock block;
         if (!block.ReadFromDisk(pindexFork))
@@ -886,6 +886,37 @@ bool CTxDB::EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline)
 {
   tuple<string, votehash_t, timestamp_t> triple(string("votecount"), txnHash, deadline);
   return Erase(triple);
+}
+
+bool CTxDB::ReadProposalMessage(uint256 hash, CProposalMessage& obj)
+{
+  return Read(make_pair(string("proposalmessage"),hash), obj);
+}
+
+bool CTxDB::WriteProposalMessage(CProposalMessage & obj)
+{
+  return Write(make_pair(string("proposalmessage"),obj.GetHash()), obj);
+}
+
+bool CTxDB::EraseProposalMessage(uint256 hash)
+{
+  return Erase(make_pair(string("proposalmessage"),hash));
+}
+
+
+bool CTxDB::ReadUpgradeRequest(uint256 hash, CUpgradeRequest& obj)
+{
+  return Read(make_pair(string("upgraderequest"),hash), obj);
+}
+
+bool CTxDB::WriteUpgradeRequest(CUpgradeRequest & obj)
+{
+  return Write(make_pair(string("upgraderequest"),obj.GetHash()), obj);
+}
+
+bool CTxDB::EraseUpgradeRequest(uint256 hash)
+{
+  return Erase(make_pair(string("upgraderequest"),hash));
 }
 
 

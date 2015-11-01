@@ -1196,8 +1196,6 @@ private:
 
 
 
-
-
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
  * candidates to be the next block.  pprev and pnext link a path through the
@@ -1209,7 +1207,7 @@ class CBlockIndex
 {
 public:
     const uint256* phashBlock;
-    CBlockIndex* pprev;
+    CBlockIndex*   pprev;
     CBlockIndex* pnext;
     unsigned int nFile;
     unsigned int nBlockPos;
@@ -1247,8 +1245,10 @@ public:
     unsigned int nBits;
     unsigned int nNonce;
 
-    //proposals to run for this block index
-    CProposalPublicData ppd;
+    //CProposalMessage's, and CUpgradeRequest's, etc. Things that operate on a timer based on the
+    //block chain, objects from the prior blockindex are copied to the next.
+    //We store only the hashes, since we don't use this much.
+    std::vector<uint256> blockIndexObjectHashs;
 
     CBlockIndex()
     {
@@ -1276,6 +1276,7 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+
     }
 
     CBlockIndex(unsigned int nFileIn, unsigned int nBlockPosIn, CBlock& block)
@@ -1471,7 +1472,7 @@ class CDiskBlockIndex : public CBlockIndex
 public:
     uint256 hashPrev;
     uint256 hashNext;
-
+    
     CDiskBlockIndex()
     {
         hashPrev = 0;
@@ -1958,6 +1959,152 @@ class CProposalVoteCount
 };
 
 extern bool IsVoteWon(money_t totalVotes, money_t voterParticipation);
+
+enum BlockIndexObjectType
+  {
+    PROPOSAL_MESSAGE=1,
+    UPGRADE_REQUEST=2
+  };
+
+class CAppState;
+
+/**
+ * An object stored in the block index, that turns on and off based on the block height
+ */
+class CBlockIndexObject 
+{
+ public:
+  int type; 
+  int initialApperanceBlock;
+
+  virtual bool Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock) = 0;
+  virtual bool SaveToDb(CTxDB& db) = 0;
+};
+
+class CAppState;
+
+
+/**
+ * A message delivered to all users, which only appears if 51% voted for it. Why?
+ * So people can float ideas out there and see what the public reaction would be, such as 
+ * "Would you support raising the interest rate to 8%?".
+ */
+class CProposalMessage : public CBlockIndexObject
+{
+ public:
+  int type; 
+  int initialApperanceBlock;
+  std::vector<unsigned char> message;
+
+  CProposalMessage()
+    {
+      SetNull();
+    }
+
+  void SetNull()
+  {
+    type = 0;
+    initialApperanceBlock = 0;
+    message.clear();
+    }
+
+  IMPLEMENT_SERIALIZE
+    (
+     READWRITE(type);
+     READWRITE(initialApperanceBlock);
+     READWRITE(message);
+     );
+
+  bool SaveToDb(CTxDB& db);
+
+  bool Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock);
+
+  uint256 GetHash() const
+  {
+    return SerializeHash(*this);
+  }
+  
+};
+
+//os id numbers, for upgrading client
+enum OS_ID
+  {
+    NONE=0, //error, unset
+    LINUX_X86=2,
+    LINUX_AMD64=3,
+    LINUX_ALPHA=4,
+    LINUX_ARM=5,
+    LINUX_HPPA=6,
+    LINUX_IA64=7,
+    LINUX_PPC=8,
+    LINUX_PPC64=9,
+    LINUX_SPARC=10,
+    WIN32=11,
+    WIN64=12
+  };
+
+/**
+ * Forces the client to upgrade at a specific block
+ */
+class CUpgradeRequest : public CBlockIndexObject
+{
+ public:
+  int upgradeVersion;//zero if no upgrade
+  
+  std::vector<unsigned char> upgradeGitCommit; //git commit of upgrade.
+
+  //osId and sha2 hash of binary dists
+  //note, eventually we may want to consider letting the clients download a binary distribution directly
+  //from the network, verify it against the hash and then upgrade automatically.
+  //Right now, I'm a little hesitant to trust the block chain so much as to let it run 
+  //executables on the users computer with little or no intervention.
+  std::vector<std::pair<int,uint256> > upgradeDistData;
+
+  uint64 upgradeDeadline; //after this deadline, if the upgrade hasn't occurred yet, the
+  //client will shutdown and refuse to run
+
+  void SetNull()
+  {
+    type = 0;
+    initialApperanceBlock = 0;
+    upgradeVersion = 0;
+    upgradeGitCommit.clear();
+    upgradeDistData.clear();
+    upgradeDeadline = 0;
+    }
+
+  IMPLEMENT_SERIALIZE
+    (
+     READWRITE(type);
+     READWRITE(initialApperanceBlock);
+     READWRITE(upgradeVersion);
+     READWRITE(upgradeGitCommit);
+     READWRITE(upgradeDistData);
+     READWRITE(upgradeDeadline);
+     );
+
+  bool SaveToDb(CTxDB& db);
+
+  bool Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock);
+
+  uint256 GetHash() const
+  {
+    return SerializeHash(*this);
+  }
+};
+
+/**
+ * A state of the application as it relates to CBlockIndexObjects
+ */
+class CAppState
+{
+ public:
+  std::vector<CProposalMessage> messages;
+  
+  CUpgradeRequest ur;
+};
+
+
 
 #endif
 
