@@ -197,7 +197,6 @@ int VOTE_REG_PERIOD_BLOCKS = 2 * WEEK / TARGET_SPACING;
  * 
  * So for the same reason there is a coinbase/coinstake maturity, there is a proposal maturity. 
  */
-//TODO 2 implement this!
 int PROPOSAL_MATURITY_BLOCKS = 500;
 
 

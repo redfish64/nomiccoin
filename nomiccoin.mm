@@ -889,6 +889,11 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node CREATED="1446393602453" ID="ID_1902095867" MODIFIED="1446426480096" TEXT="Should we add a function to see proposals that will deadline soon (that have been voted on)?">
+<node CREATED="1446393645509" ID="ID_586436728" MODIFIED="1446426478275" TEXT="I think that would be better served  by a block explorer">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 <node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
 <node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
@@ -908,7 +913,7 @@
 <node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
 </node>
 </node>
-<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1444787385691" TEXT="new ops">
+<node CREATED="1444787383783" FOLDED="true" ID="ID_208007625" MODIFIED="1446429421363" TEXT="new ops">
 <node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1445910888567" TEXT="Causes the client to upgrade. md5sum is of the source code">
 <node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
@@ -1081,7 +1086,7 @@
 <node COLOR="#ff0000" CREATED="1445912964722" ID="ID_1080183006" MODIFIED="1445912966763" TEXT="TODO"/>
 </node>
 </node>
-<node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1444811830459" TEXT="new rpc commands">
+<node CREATED="1444811826007" FOLDED="true" ID="ID_70535443" MODIFIED="1446429419039" TEXT="new rpc commands">
 <node CREATED="1444811832655" ID="ID_536155444" MODIFIED="1444997746588" TEXT="createproposal &lt;poll deadline&gt; [commands...]">
 <node CREATED="1444811867511" ID="ID_1627882680" MODIFIED="1444811870516" TEXT="commands are:">
 <node CREATED="1444811871543" ID="ID_1550214091" MODIFIED="1444811880348" TEXT="display_msg &lt;message&gt;">
@@ -1149,7 +1154,7 @@
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
 <node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
-<node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1444996941561" TEXT="voting">
+<node CREATED="1444996931023" FOLDED="true" ID="ID_1706006000" MODIFIED="1446429426198" TEXT="voting">
 <node CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445912547983" TEXT="Cannot take place for the first few blocks... to give people a chance to register to vote">
 <node CREATED="1445912557723" ID="ID_514581827" MODIFIED="1445912615743" TEXT="A proposal can be created right away, but its deadline has to be a few weeks out"/>
 <node COLOR="#ff0000" CREATED="1445912527931" ID="ID_1714713472" MODIFIED="1445912530635" TEXT="TODO"/>
@@ -1216,9 +1221,28 @@
 <node CREATED="1445912701098" ID="ID_1816890497" MODIFIED="1445912706527" TEXT="Yes, as long as its easy"/>
 <node COLOR="#ff0000" CREATED="1445912707050" ID="ID_1673348619" MODIFIED="1445912709074" TEXT="TODO"/>
 </node>
+<node COLOR="#ff0000" CREATED="1446393546512" ID="ID_1925200700" MODIFIED="1446393560442" TEXT="Should we prevent a deadline that is too early?">
+<node CREATED="1446393566932" ID="ID_99940264" MODIFIED="1446393601386" TEXT="An attacker could see that the total votes is really low, and then set a deadline after 30 seconds or so and then immediately vote"/>
+<node CREATED="1446393636313" ID="ID_667673206" MODIFIED="1446393638120" TEXT="Yes"/>
+<node COLOR="#ff0000" CREATED="1446393638527" ID="ID_1845111188" MODIFIED="1446393641729" TEXT="TODO"/>
+</node>
+</node>
+<node CREATED="1446429428140" ID="ID_1905534355" MODIFIED="1446429438130" TEXT="proposal txn">
+<node CREATED="1446429442178" ID="ID_1112789658" MODIFIED="1446429572969" TEXT="Should we allow proposal txns with more than one input?">
+<node CREATED="1446429467700" ID="ID_829302692" MODIFIED="1446429501163" TEXT="In other words, a txn based on another account besides the shared pool"/>
+<node CREATED="1446429521406" ID="ID_1600005927" MODIFIED="1446429541378" TEXT="It could be a way for an entity to say, I&apos;ll pay some of the fee needed to accomplish this task."/>
+<node CREATED="1446429541949" ID="ID_1322084809" MODIFIED="1446429545738" TEXT="Sounds useful, actually"/>
+<node CREATED="1446429747315" ID="ID_433853930" MODIFIED="1446429857801" TEXT="But, suppose the entity doesn&apos;t have much funds, then the remainder will be paid by the pool">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446429864571" ID="ID_652866961" MODIFIED="1446429873762" TEXT="There is no way to specifiy how much each input should pay"/>
+</node>
+<node CREATED="1446429567821" ID="ID_1187223072" MODIFIED="1446429854482" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 <node CREATED="1446306157404" ID="ID_70177628" MODIFIED="1446306160213" TEXT="voting results">
-<node CREATED="1446192619433" ID="ID_1763214564" MODIFIED="1446192787054" TEXT="How do we want to programmatically organize this?">
+<node CREATED="1446192619433" FOLDED="true" ID="ID_1763214564" MODIFIED="1446429409625" TEXT="How do we want to programmatically organize this?">
 <node CREATED="1446192796937" ID="ID_1303816729" MODIFIED="1446192799574" TEXT="Operations">
 <node CREATED="1446192801034" FOLDED="true" ID="ID_621414025" MODIFIED="1446194703223" TEXT="1.Create and save upgrade and messages">
 <node CREATED="1446192819546" ID="ID_369438490" MODIFIED="1446192824493" TEXT="Save to db each object"/>
@@ -1375,7 +1399,7 @@
 <node CREATED="1446368048812" ID="ID_1262528840" MODIFIED="1446368064488" TEXT="In GUI we put it in the status bar or something"/>
 </node>
 </node>
-<node COLOR="#ff0000" CREATED="1446370088317" ID="ID_563786974" MODIFIED="1446370104733" TEXT="Why don&apos;t we store appstate in cblockindex directly?">
+<node COLOR="#ff0000" CREATED="1446370088317" ID="ID_563786974" MODIFIED="1446393537311" TEXT="Why don&apos;t we store appstate in cblockindex directly?">
 <node CREATED="1446370109173" ID="ID_193544002" MODIFIED="1446370113961" TEXT="Or at least a hash to it?"/>
 <node CREATED="1446370130013" ID="ID_983698006" MODIFIED="1446370182434" TEXT="Except that we need to expire messages out of it"/>
 <node CREATED="1446370182829" ID="ID_1985685660" MODIFIED="1446370198298" TEXT="Of course, AppState has messages already there, anyway"/>
@@ -1847,6 +1871,10 @@
 <node COLOR="#ff0000" CREATED="1446001054269" ID="ID_1990595523" MODIFIED="1446001068412" TEXT="Two proposals redeeming same block"/>
 <node COLOR="#ff0000" CREATED="1446001068931" ID="ID_1681261017" MODIFIED="1446001076773" TEXT="Reorg before proposal redeems"/>
 <node COLOR="#ff0000" CREATED="1446001077188" ID="ID_875072501" MODIFIED="1446001082380" TEXT="Reorg after proposal redeems"/>
+<node COLOR="#ff0000" CREATED="1446426878538" ID="ID_1240243486" MODIFIED="1446426913811" TEXT="Create &quot;crazy&quot; client that posts not allowed transactions on the block chain">
+<node COLOR="#ff0000" CREATED="1446426917468" ID="ID_662991222" MODIFIED="1446426927839" TEXT="Redeems before maturity"/>
+<node COLOR="#ff0000" CREATED="1446426930804" ID="ID_351339051" MODIFIED="1446426935638" TEXT="... what else?"/>
+</node>
 </node>
 </node>
 <node COLOR="#ff0000" CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445833459121" POSITION="right" TEXT="distribution">

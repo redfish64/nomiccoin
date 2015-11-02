@@ -1134,7 +1134,7 @@ Value getvoteinfo(const Array& params, bool fHelp)
 		       (double) ourBlockIndex->votingPeriodVotedCoins));
   obj.push_back(Pair("deadline", DateTimeStrFormat(prop.GetDeadline()).c_str()));
   TxToJSON(prop.redeemTxn, 0, obj);
-
+  
   return obj;
 }
 
@@ -1149,7 +1149,7 @@ Value redeemvote(const Array& params, bool fHelp)
   CProposal prop;
 
   if(!ConvertBlobToProposal(params[0].get_str(),prop))
-    throw JSONRPCError(-4, "Blob invalid");
+    throw JSONRPCError(-1, "Blob invalid");
 
   money_t totalVotes = 0;
 
@@ -1167,7 +1167,7 @@ Value redeemvote(const Array& params, bool fHelp)
 
   if(remainingDepth >= 0)
     {
-    throw JSONRPCError(-4, "Not enough blocks have passed");
+    throw JSONRPCError(-2, "Not enough blocks have passed");
     }
 
   uint256 hashTx = prop.redeemTxn.GetHash();
@@ -1180,7 +1180,7 @@ Value redeemvote(const Array& params, bool fHelp)
   if (GetTransaction(hashTx, existingTx, hashBlock))
     {
       if (hashBlock != 0)
-	throw JSONRPCError(-5, string("transaction already in block ")+hashBlock.GetHex());
+	throw JSONRPCError(-3, string("transaction already in block ")+hashBlock.GetHex());
       // Not in block, but already in the memory pool; will drop
       // through to re-relay it.
     }
@@ -1189,7 +1189,7 @@ Value redeemvote(const Array& params, bool fHelp)
       // push to local node
       CTxDB txdb("r");
       if (!prop.redeemTxn.AcceptToMemoryPool(txdb, false))
-	throw JSONRPCError(-22, "TX rejected");
+	throw JSONRPCError(-4, "TX rejected");
     }
   RelayMessage(CInv(MSG_TX, hashTx), prop.redeemTxn);
   
@@ -1204,7 +1204,7 @@ Value signmessage(const Array& params, bool fHelp)
             "Signs a message with the private key of an address.\n");
 
     if (pwalletMain->IsLocked())
-        throw JSONRPCError(-13, "Error: Please enter the wallet passphrase with walletpassphrase first.\n");
+        throw JSONRPCError(-1, "Error: Please enter the wallet passphrase with walletpassphrase first.\n");
 
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();

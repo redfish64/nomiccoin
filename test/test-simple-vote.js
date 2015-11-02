@@ -66,7 +66,7 @@ export async function test( ) {
     console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
     expect ( rpc.result.votesForProposal ).to.be.equal( 0 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 0 )
-    expect ( rpc.result.votingPeriodOver ).to.be.equal( false )
+    expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
 
     await delayExecution( 2 );
     await mineSomePowBlocks( client2, 1 );
@@ -83,7 +83,7 @@ export async function test( ) {
     console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
     expect ( rpc.result.votesForProposal ).to.be.equal( 10 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 10 )
-    expect ( rpc.result.votingPeriodOver ).to.be.equal( false )
+    expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
 
     var rpc = await sendRpcQuery( client1, { method : 'getvotingbalance' } );
     expect( rpc.result ).to.be.equal( 10 );
@@ -124,7 +124,8 @@ export async function test( ) {
 
     expect ( rpc.result.votesForProposal ).to.be.equal( 10 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 10 )
-    expect ( rpc.result.votingPeriodOver ).to.be.equal( true )
+    expect ( rpc.result.isVotingPeriodOver ).to.be.equal( true )
+    expect ( rpc.result.isVoteWon ).to.be.equal( true )
 
      //whenever you vote, regardless
     //of the deadline, the voting period is updated to show the new coins, so we check that as well
@@ -132,4 +133,31 @@ export async function test( ) {
     					   })
 
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 20 )
+
+    //try to redeem the vote before maturity
+    var rpc = await sendRpcQuery( client1, { method : "redeemvote",
+    					     params :
+    					     [
+    						 voteblob
+    					     ]
+    					   })
+    
+
+    //console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
+    expect ( rpc.error.message ).to.be.equal( "Not enough blocks have passed" )
+
+    //mine pass the redeemable time
+    await delayExecution( 2 );
+    await mineSomePowBlocks( client2, 5 );
+    await delayExecution( 2 );
+    
+    //redeem the vote
+    // var rpc = await sendRpcQuery( client1, { method : "redeemvote",
+    // 					     params :
+    // 					     [
+    // 						 voteblob
+    // 					     ]
+    // 					   })
+    
+
 }

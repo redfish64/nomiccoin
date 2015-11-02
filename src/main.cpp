@@ -1105,7 +1105,7 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     // be dropped).  If tx is definitely invalid, fInvalid will be set to true.
     fInvalid = false;
 
-    if (IsCoinBase())
+    if (IsCoinBase() || IsProposal())
         return true; // Coinbase transactions have no inputs to fetch.
 
     for (unsigned int i = 0; i < vin.size(); i++)
@@ -1714,21 +1714,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
       pindex->votingPeriodVotedCoins -= beginPeriodBlockIndex->votedCoinsDelta;
 
     
-    if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
-        return error("Connect() : WriteBlockIndex for pindex failed");
-
-    // Write queued txindex changes
-    for (map<uint256, CTxIndex>::iterator mi = mapQueuedChanges.begin(); mi != mapQueuedChanges.end(); ++mi)
-    {
-        if (!txdb.UpdateTxIndex((*mi).first, (*mi).second))
-            return error("ConnectBlock() : UpdateTxIndex failed");
-    }
-
-    // ppcoin: fees are not collected by miners as in bitcoin
-    // ppcoin: fees are destroyed to compensate the entire network
-    if (fDebug && GetBoolArg("-printcreation"))
-        printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
-
     //TODO 2, do not allow votes for deadlines less than 2 weeks since the coin started
 
     pindex->appState = pindex->pprev->appState;
@@ -1745,6 +1730,21 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	    RunProposalForPublic(&tx, pindex->appState);
 	  }
       }
+
+    if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
+        return error("Connect() : WriteBlockIndex for pindex failed");
+
+    // Write queued txindex changes
+    for (map<uint256, CTxIndex>::iterator mi = mapQueuedChanges.begin(); mi != mapQueuedChanges.end(); ++mi)
+    {
+        if (!txdb.UpdateTxIndex((*mi).first, (*mi).second))
+            return error("ConnectBlock() : UpdateTxIndex failed");
+    }
+
+    // ppcoin: fees are not collected by miners as in bitcoin
+    // ppcoin: fees are destroyed to compensate the entire network
+    if (fDebug && GetBoolArg("-printcreation"))
+        printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
 
     // Update block index on disk without changing it in memory.
     // The memory index structure will be changed after the db commits.
@@ -4166,6 +4166,13 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
                 continue;
 
+	    if(tx.IsProposal())
+	      {
+		//if it is a proposal, we want it in the first block we that we can
+                mapPriority.insert(make_pair(-numeric_limits<double>::max(), &(*mi).second));
+		continue;
+	      }
+	    
             COrphan* porphan = NULL;
             double dPriority = 0;
             BOOST_FOREACH(const CTxIn& txin, tx.vin)
@@ -4242,27 +4249,42 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             // ppcoin: simplify transaction fee - allow free = false
             int64 nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
 
-            // Connecting shouldn't fail due to dependency on other memory pool transactions
-            // because we're already processing them in order of dependency
-            map<uint256, CTxIndex> mapTestPoolTmp(mapTestPool);
-            MapPrevTx mapInputs;
-            bool fInvalid;
-            if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
-                continue;
+	    map<uint256, CTxIndex> mapTestPoolTmp(mapTestPool);
+	    int64 nTxFees;
 
-            int64 nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
-            if (nTxFees < nMinFee)
-                continue;
+	    if(tx.IsProposal()) //if a proposal, we get the input from the funds pool
+	      {
+		if(pindexPrev->nSharedPoolFunds - tx.GetValueOut() - nMinFee < 0)
+		  continue;
 
-            nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
-            if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
-                continue;
+		nTxFees = nMinFee;
+	      }
+	    else
+	      {
+		// Connecting shouldn't fail due to dependency on other memory pool transactions
+		// because we're already processing them in order of dependency
+		MapPrevTx mapInputs;
+		bool fInvalid;
+		if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
+		  continue;
+		
+		nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
+		if (nTxFees < nMinFee)
+		  continue;
 
-            if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true))
-                continue;
-            mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
-            swap(mapTestPool, mapTestPoolTmp);
+		nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
+		if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
+		  continue;
 
+		if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true))
+		  continue;
+	      } //else a regular transaction
+	    
+	    //note that the proposal could still be linked to another transaction
+	    //so we add it to the memory pool
+	    mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
+	    swap(mapTestPool, mapTestPoolTmp);
+	    
             // Added
             pblock->vtx.push_back(tx);
             nBlockSize += nTxSize;
