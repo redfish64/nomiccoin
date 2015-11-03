@@ -376,7 +376,8 @@ static bool IsValidPubKey(valtype const & vchPubKey)
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		const CTransaction* txTo, //needed only if runningPublicScript is false
 		unsigned int nIn, int nHashType, bool runningPublicScript,
-		CAppState *appState //needed only if runningPublicScript is true
+		CAppState *appState, //needed only if runningPublicScript is true
+		int blockHeight
 		)
 {
     CAutoBN_CTX pctx;
@@ -471,6 +472,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		  return false;
 		CProposalMessage pm;
 		pm.message = stack[0];
+		pm.initialApperanceBlock = blockHeight;
 		appState->add(pm);
 		popstack(stack);
 		break;

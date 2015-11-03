@@ -152,12 +152,31 @@ export async function test( ) {
     await delayExecution( 2 );
     
     //redeem the vote
-    // var rpc = await sendRpcQuery( client1, { method : "redeemvote",
-    // 					     params :
-    // 					     [
-    // 						 voteblob
-    // 					     ]
-    // 					   })
+    var rpc = await sendRpcQuery( client1, { method : "redeemvote",
+    					     params :
+    					     [
+    						 voteblob
+    					     ]
+    					   })
+
+    var rpc = await sendRpcQuery( client1, { method : "readproposalmessages",
+    					     params :
+    					     [
+    					     ]
+    					   })
+    console.log('readproposalmessages1 : %s',  JSON.stringify(rpc, null, 4));
+    //TODO 3 how to test for an empty set of messages
     
+    //commit the redeem transaction
+    await delayExecution( 2 );
+    await mineSomePowBlocks( client2, 1 );
+    await delayExecution( 2 );
+    
+    var rpc = await sendRpcQuery( client1, { method : "readproposalmessages",
+    					     params :
+    					     [
+    					     ]
+    					   })
+    console.log('readproposalmessages2 : %s',  JSON.stringify(rpc, null, 4));
 
 }

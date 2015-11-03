@@ -653,68 +653,70 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         }
     }
 
-    if (fCheckInputs)
+    if (fCheckInputs && !tx.IsProposal())
     {
-        MapPrevTx mapInputs;
-        map<uint256, CTxIndex> mapUnused;
-        bool fInvalid = false;
-        if (!tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid))
+      MapPrevTx mapInputs;
+      map<uint256, CTxIndex> mapUnused;
+      int nFees;
+      bool fInvalid = false;
+      if (!tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid))
+	{
+	  if (fInvalid)
+	    return error("CTxMemPool::accept() : FetchInputs found invalid tx %s", hash.ToString().substr(0,10).c_str());
+	  if (pfMissingInputs)
+	    *pfMissingInputs = true;
+	  return error("CTxMemPool::accept() : FetchInputs failed %s", hash.ToString().substr(0,10).c_str());
+	}
+      
+      // Check for non-standard pay-to-script-hash in inputs
+      if (!tx.AreInputsStandard(mapInputs))
+	return error("CTxMemPool::accept() : nonstandard transaction input");
+      
+      // Note: if you modify this code to accept non-standard transactions, then
+      // you should add code here to check that the transaction does a
+      // reasonable number of ECDSA signature verifications.
+      
+      nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
+      
+      unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+      
+      // Don't accept it if it can't get into a block
+      if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
+	return error("CTxMemPool::accept() : not enough fees");
+      
+      // Continuously rate-limit free transactions
+      // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
+      // be annoying or make other's transactions take longer to confirm.
+      if (nFees < MIN_RELAY_TX_FEES)
         {
-            if (fInvalid)
-                return error("CTxMemPool::accept() : FetchInputs found invalid tx %s", hash.ToString().substr(0,10).c_str());
-            if (pfMissingInputs)
-                *pfMissingInputs = true;
-            return error("CTxMemPool::accept() : FetchInputs failed %s", hash.ToString().substr(0,10).c_str());
+	  static CCriticalSection cs;
+	  static double dFreeCount;
+	  static int64 nLastTime;
+	  int64 nNow = GetTime();
+	  
+	  {
+	    LOCK(cs);
+	    // Use an exponentially decaying ~10-minute window:
+	    dFreeCount *= pow(1.0 - 1.0/600.0, (double)(nNow - nLastTime));
+	    nLastTime = nNow;
+	    // -limitfreerelay unit is thousand-bytes-per-minute
+	    // At default rate it would take over a month to fill 1GB
+	    if (dFreeCount > GetArg("-limitfreerelay", 15)*10*1000 && !IsFromMe(tx))
+	      return error("CTxMemPool::accept() : free transaction rejected by rate limiter");
+	    if (fDebug)
+	      printf("Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount+nSize);
+	    dFreeCount += nSize;
+	  }
         }
 
-        // Check for non-standard pay-to-script-hash in inputs
-        if (!tx.AreInputsStandard(mapInputs))
-            return error("CTxMemPool::accept() : nonstandard transaction input");
-
-        // Note: if you modify this code to accept non-standard transactions, then
-        // you should add code here to check that the transaction does a
-        // reasonable number of ECDSA signature verifications.
-
-        int64 nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
-        unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-
-        // Don't accept it if it can't get into a block
-        if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
-            return error("CTxMemPool::accept() : not enough fees");
-
-        // Continuously rate-limit free transactions
-        // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
-        // be annoying or make other's transactions take longer to confirm.
-        if (nFees < MIN_RELAY_TX_FEES)
+      // Check against previous transactions
+      // This is done last to help prevent CPU exhaustion denial-of-service attacks.
+      if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1,1,1), pindexBest, false, false))
         {
-            static CCriticalSection cs;
-            static double dFreeCount;
-            static int64 nLastTime;
-            int64 nNow = GetTime();
-
-            {
-                LOCK(cs);
-                // Use an exponentially decaying ~10-minute window:
-                dFreeCount *= pow(1.0 - 1.0/600.0, (double)(nNow - nLastTime));
-                nLastTime = nNow;
-                // -limitfreerelay unit is thousand-bytes-per-minute
-                // At default rate it would take over a month to fill 1GB
-                if (dFreeCount > GetArg("-limitfreerelay", 15)*10*1000 && !IsFromMe(tx))
-                    return error("CTxMemPool::accept() : free transaction rejected by rate limiter");
-                if (fDebug)
-                    printf("Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount+nSize);
-                dFreeCount += nSize;
-            }
-        }
-
-        // Check against previous transactions
-        // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1,1,1), pindexBest, false, false))
-        {
-            return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0,10).c_str());
+	  return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0,10).c_str());
         }
     }
-
+    
     // Store transaction in memory
     {
         LOCK(cs);
@@ -1299,7 +1301,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
-    if (!IsCoinBase())
+  if (!IsCoinBase() && !IsProposal())
     {
         int64 nValueIn = 0;
         int64 nFees = 0;
@@ -1384,11 +1386,6 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             if (nStakeReward > GetProofOfStakeReward(nCoinAge, pindexBlock->pprev->nHeight) - GetMinFee() + MIN_TX_FEES)
                 return DoS(100, error("ConnectInputs() : %s stake reward exceeded", GetHash().ToString().substr(0,10).c_str()));
         }
-	else if (IsProposal())
-	  {
-	    //no-op there are no inputs for a proposal (besides the sharedpoolfunds, but that is handled
-	    //)
-	  }
         else
         {
             if (nValueIn < GetValueOut())
@@ -1547,7 +1544,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
  * Runs a proposal as a regular user. Stores result in given bioList
  * adds results to vector of hash's.
  */
-bool RunProposalForPublic(CTransaction *tx, CAppState &appState)
+bool RunProposalForPublic(CTransaction *tx, CAppState &appState, int blockHeight)
 {
 
   BOOST_FOREACH(CTxOut out, tx->vout)
@@ -1558,11 +1555,10 @@ bool RunProposalForPublic(CTransaction *tx, CAppState &appState)
       std::vector<std::vector<unsigned char> > stack;
       if(!EvalScript(stack, out.scriptPubKey,
 		     NULL,
-		     0, 0, true, &appState))
+		     0, 0, true, &appState, blockHeight))
 	return error("RunProposalForPublic() : EvalScript failed");
-      
     }
-
+  
   return true;
 }
 
@@ -1727,7 +1723,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	  {
 	    //everyone evaluates the tx, in case it has operations for displaying a message
 	    //or upgrading the client
-	    RunProposalForPublic(&tx, pindex->appState);
+	    RunProposalForPublic(&tx, pindex->appState, pindex->nHeight);
 	  }
       }
 

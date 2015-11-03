@@ -956,7 +956,8 @@ std::string ConvertProposalToBlob(CProposal& proposal)
   ss << proposal;
 
   vector<unsigned char> data(ss.begin(), ss.end());
-  
+
+  //TODO compress this???
   return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
 }
 
@@ -981,8 +982,9 @@ Value createproposal(const Array& params, bool fHelp)
     tx.vin.resize(1);
     tx.vin[0].prevout.SetProposal();
 
-    int64 currAmt = 0;
-    CScript currScript;
+    bool needPublicScript = false;
+    CScript pubScript;
+    pubScript << OP_PUBLIC_SCRIPT;
 	
     for(uint i = 2; i < params.size(); )
       {
@@ -995,9 +997,11 @@ Value createproposal(const Array& params, bool fHelp)
 
 	    const std::vector<unsigned char> charvect(msg.begin(), msg.end());
 	    
-	    currScript = currScript << charvect << OP_DISPLAY_MSG;
+	    pubScript = pubScript << charvect << OP_DISPLAY_MSG;
 
 	    i+=2;
+
+	    needPublicScript = true;
 	  }
 	else if (command.compare("upgradeclient")==0)
 	  {
@@ -1005,9 +1009,11 @@ Value createproposal(const Array& params, bool fHelp)
 	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[i+2].get_str());
 
 	    const std::vector<unsigned char> charvect(md5sum.begin(), md5sum.end());
-	    currScript = currScript << charvect << deadlineEpoch << OP_UPGRADE_CLIENT;
+	    pubScript = pubScript << charvect << deadlineEpoch << OP_UPGRADE_CLIENT;
 
 	    i+=3;
+
+	    needPublicScript = true;
 	  }
 	else if (command.compare("spendpool")==0)
 	  {
@@ -1015,7 +1021,7 @@ Value createproposal(const Array& params, bool fHelp)
 	    Value amtVal = params[i+2];
 	    ConvertTo<double>(amtVal);
 	    int64 amt = AmountFromValue(params[i+2]);
-
+	    
 	    if (amt < MIN_TXOUT_AMOUNT)
 	      throw JSONRPCError(-101, "Send amount too small");
 
@@ -1023,41 +1029,28 @@ Value createproposal(const Array& params, bool fHelp)
 	    if (!address.IsValid())
 	      throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
 	    
-	    //if there is already an output with a spend pool, we have to create a new one
-	    if(currAmt != 0)
-	      {
-		CTxOut out(currAmt, currScript);
-		
-		tx.vout.push_back(out);
-		currScript.clear();
-	      }
-
 	    CScript sendMoney;
 	    sendMoney.SetDestination(address.Get());
 	    
-	    currScript = currScript << sendMoney;
-	    currAmt = amt;
-	    
-	    i+=3;
+	    CTxOut out(amt, sendMoney);
+	    tx.vout.push_back(out);
 	  }
 	else
 	  throw runtime_error("don't understand command");
       }
 
-    if(!currScript.empty())
+    if(needPublicScript)
       {
-	CTxOut out(currAmt, currScript);
+	CTxOut out(0, pubScript);
 	
 	tx.vout.push_back(out);
       }
 
-    //we don't specify an input, because we don't know the UTXO's that will be present
-    //when we go and spend the pool money
     proposal.redeemTxn = tx;
     proposal.ResetSelfHash();
 
     Object result;
-    //TODO 2 make this base58?
+
     result.push_back(Pair("voteblob", ConvertProposalToBlob(proposal)));
     TxToJSON(tx, 0, result);
 
@@ -1194,6 +1187,28 @@ Value redeemvote(const Array& params, bool fHelp)
   RelayMessage(CInv(MSG_TX, hashTx), prop.redeemTxn);
   
   return hashTx.GetHex();
+}
+
+Value readproposalmessages(const Array& params, bool fHelp)
+{
+  if (fHelp)
+    throw runtime_error(
+			"readproposalmessages\n"
+			"Reads the messages from recent passed proposals."
+			);
+
+  Array ret;
+  
+  BOOST_FOREACH(CProposalMessage message,pindexBest->appState.messages)
+    {
+      Object obj;
+      obj.push_back(Pair("block",message.initialApperanceBlock));
+      obj.push_back(Pair("messageText",std::string(message.message.begin(), message.message.end())));
+
+      ret.push_back(obj);
+    }
+
+  return ret;
 }
 
 Value signmessage(const Array& params, bool fHelp)
@@ -3783,6 +3798,7 @@ static const CRPCCommand vRPCCommands[] =
     { "vote",   &vote,   false },
     { "getvoteinfo",   &getvoteinfo,   false },
     { "redeemvote",   &redeemvote,   false },
+    { "readproposalmessages",   &readproposalmessages,   false },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },
