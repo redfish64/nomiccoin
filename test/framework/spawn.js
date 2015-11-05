@@ -10,6 +10,8 @@ var gClientId = 0;
 
 var spawn = require( 'child_process' ).spawn;
 
+var writeFileSync = require('fs').writeFileSync;
+
 function checkPort( port ) {
 
     return new Promise( ( resolve, reject ) => {
@@ -57,10 +59,12 @@ export async function spawnClient( options = { } ) {
 
     var id = gClientId ++;
 
+    var datadir = `${BASE_DATADIR}/coin-datadir-${id}/`;
+
     options = merge( {
 
         v : true,
-        datadir : `${BASE_DATADIR}/coin-datadir-${id}/`,
+        datadir : datadir,
 
         port : BASE_PORT + id,
         rpcport : BASE_RPC_PORT + id,
@@ -116,9 +120,9 @@ export async function spawnClient( options = { } ) {
 
     client.target = `127.0.0.1:${client.port}`;
 
-    console.log( 'Client spawned. Delaying execution to leave it some time to boot' );
+    writeFileSync(`${datadir}/pid`,client.pid)
+
     await delayExecution( options.delay );
-    console.log( 'Done, thanks for waiting! Resuming test execution' );
 
     return client;
 

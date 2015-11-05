@@ -28,6 +28,11 @@ export async function test( ) {
     var rpc = await sendRpcQuery( client1, { method : 'getvotingbalance' } );
     expect( rpc.result ).to.be.equal( 10 );
 
+    //create an address to receive pool funds
+    var rpc = await sendRpcQuery( client1, { method : 'getnewaddress' } );
+    var propRecvAddr = rpc.result;
+    console.log('receiving address : %s', propRecvAddr);
+
     //'2012-11-04T14:51:06.157Z'
     //create a deadline 30 seconds from now
     var deadlineStr = new Date(new Date().getTime() + 30*1000).toISOString().
@@ -52,7 +57,10 @@ export async function test( ) {
 							  "WIN64",
 							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead",
 							  "LINUX_AMD64",
-							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d"
+							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d",
+							  "spendpool",
+							  propRecvAddr,
+							  "2.5"
 							 ]
 						       }
 					    );
@@ -168,6 +176,7 @@ export async function test( ) {
     					     ]
     					   })
 
+    //make sure that before we earn the next block, nothing went through
     var rpc = await sendRpcQuery( client1, { method : "getproposalmessages",
     					     params :
     					     [
@@ -179,11 +188,18 @@ export async function test( ) {
     					   })
     expect ( rpc.result.upgradeNeeded ).to.be.equal(false)
 
+    var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
+					     params : [ propRecvAddr ]
+					   })
+    expect ( rpc.result ).to.be.equal(0);
+    
+
     //commit the redeem transaction
     await delayExecution( 2 );
-    await mineSomePowBlocks( client2, 1 );
+    await mineSomePowBlocks( client2, 1 ); 
     await delayExecution( 2 );
-    
+
+    //now we should get the funds, the displayed message, and the upgrade
     var rpc = await sendRpcQuery( client1, { method : "getproposalmessages",
     					   })
     expect ( rpc.result.length ).to.be.equal(1)
@@ -198,5 +214,13 @@ export async function test( ) {
     expect ( rpc.result.distData[0].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead")
     expect ( rpc.result.distData[1].osId ).to.be.equal( "LINUX_AMD64")
     expect ( rpc.result.distData[1].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d")
+
+    var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
+    					     params : [ propRecvAddr ]
+    					   })
+    expect ( rpc.result ).to.be.equal(2.5);
+    
+    //TODO 2 test that we can't execute any unsafe rpc calls before deadline finishes
+    //TODO 2 test that we are forced to upgrade after deadline finishes
 
 }

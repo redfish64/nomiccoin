@@ -18,8 +18,6 @@ export async function mineSomePowBlocks( client, count ) {
     if ( req.result.length < count )
         throw new Error( 'The client hasn\'t been able to mine enough blocks' );
 
-    console.log( 'Mining successful!' );
-
     return req.result;
 
 }
@@ -38,8 +36,6 @@ export async function mineForMaturation( client ) {
 
     if ( req.result.length < 1 )
         throw new Error( 'The client hasn\'t been able to mine enough blocks' );
-
-    console.log( 'Mining successful!' );
 
     return req.result;
 

@@ -5,8 +5,10 @@ export function sendRpcQuery( client, json ) {
     return new Promise( ( resolve, reject ) => {
 
         var data = JSON.stringify( json );
+	if(json.params == null)
+	    json.params = [];
 
-	console.log("sending: %s",data);
+	console.log("sending: %s %s",json.method, "'"+json.params.join("' '")+"'");
 
         var request = require( 'http' ).request( {
 
