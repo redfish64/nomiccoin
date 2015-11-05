@@ -471,7 +471,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		if(stack.size() < 1 || !runningPublicScript)
 		  return false;
 		CProposalMessage pm;
-		pm.message = stack[0];
+		pm.message = stacktop(-1);
 		pm.initialApperanceBlock = blockHeight;
 		appState->add(pm);
 		popstack(stack);
@@ -486,23 +486,25 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      	return false;
 
 	      CUpgradeRequest ur;
-	      ur.upgradeVersion = CBigNum(stack[0]).getint();
-	      ur.upgradeDeadline = CBigNum(stack[1]).getuint64();
-	      ur.upgradeGitCommit = stack[2];
+	      ur.upgradeVersion = CBigNum(stacktop(-1)).getint();
+	      popstack(stack);
+	      ur.upgradeDeadline = CBigNum(stacktop(-1)).getuint64();
+	      popstack(stack);
+	      ur.upgradeGitCommit = stacktop(-1);
+	      popstack(stack);
 
-	      int currUpgradeDistCount = CBigNum(stack[3]).getint();
+	      int upgradeDistCount = CBigNum(stacktop(-1)).getint();
+	      popstack(stack);
 	      
-	      stack.erase(stack.end()-4, stack.end());
-
-	      for(int i = 0; i< currUpgradeDistCount*2; i+=2)
-		
+	      for(int i = upgradeDistCount-1; i>=0; i--)
 		{
-		  int osId = CBigNum(stack[0]).getint();
-		  uint256 sha256hash = CBigNum(stack[1]).getuint256();
+		  int osId = CBigNum(stacktop(-1)).getint();
+		  if(osId < 0 || osId > OS_ID_LENGTH)
+		    return false; //os id is wrong, something it out of wack
+		  popstack(stack);
+		  uint256 sha256hash = CBigNum(stacktop(-1)).getuint256();
+		  popstack(stack);
 		  
-		  popstack(stack);
-		  popstack(stack);
-		      
 		  ur.upgradeDistData.push_back(make_pair(osId, sha256hash));
 	      	}
 

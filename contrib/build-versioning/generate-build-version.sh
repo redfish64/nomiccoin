@@ -20,6 +20,7 @@ if [ -e "$(which git)" ]; then
 
     # get a string like "2012-04-10 16:27:19 +0200"
     TIME="$(git log -n 1 --format="%ci")"
+
 fi
 
 if [ -n "$DESC" ]; then

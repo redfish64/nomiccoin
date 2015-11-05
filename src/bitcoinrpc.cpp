@@ -651,6 +651,7 @@ Value getinfo(const Array& params, bool fHelp)
     Object obj;
 
     obj.push_back(Pair("version",       FormatFullVersion()));
+    obj.push_back(Pair("versionNumber",       CLIENT_VERSION));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
     obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
@@ -696,6 +697,46 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
     obj.push_back(Pair("networkghps",      getnetworkghps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
+
+    return obj;
+}
+
+
+Value getupgradeinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getupgradeinfo\n"
+            "Returns information on any required upgrade if applicable\n");
+
+    Object obj;
+
+    CUpgradeRequest& ur = pindexBest->appState.ur;
+
+    if(ur.upgradeVersion <= CLIENT_VERSION)
+      {
+	obj.push_back(Pair("upgradeNeeded",           false));
+	return obj;
+      }
+    obj.push_back(Pair("upgradeNeeded",           true));
+    obj.push_back(Pair("upgradeGitCommit",
+		       std::string(ur.upgradeGitCommit.begin(),
+				   ur.upgradeGitCommit.end())));
+
+    std::pair<int,uint256> p;
+
+    Array distDataArray;
+    
+    BOOST_FOREACH(p, ur.upgradeDistData)
+      {
+	Object distData;
+	distData.push_back(Pair("osId", OS_ID[p.first]));
+	distData.push_back(Pair("sha256Hash",
+				p.second.GetHex()));
+	distDataArray.push_back(distData);
+      }
+    
+    obj.push_back(Pair("distData", distDataArray));
 
     return obj;
 }
@@ -957,8 +998,20 @@ std::string ConvertProposalToBlob(CProposal& proposal)
 
   vector<unsigned char> data(ss.begin(), ss.end());
 
-  //TODO compress this???
+  //TODO 2 compress this???
   return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
+}
+
+int GetOsId(const char *str)
+{
+  for(int i = 0;i < OS_ID_LENGTH; i++)
+    {
+      if(strcmp(OS_ID[i], str) == 0)
+	return i;
+    }
+
+  return -1;
+  
 }
 
 Value createproposal(const Array& params, bool fHelp)
@@ -967,8 +1020,11 @@ Value createproposal(const Array& params, bool fHelp)
         throw runtime_error(
 			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max size 20)> [commands...]\n"
 			    "commands are:\n"
-			    "displaymsg <msg (max size 140)>\n" //TODO 2 max message size?
-			    "upgradeclient <md5sum> <deadline(YYYY-MM-DD HH:MM:SS TZ)>\n" //TODO 2 max message size?
+			    "displaymsg <msg>\n" 
+			    "upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
+			    "<git commit/tag> "
+			    "[<os1 type> <sha256sum of binary>] "
+			    "[<os2 type> <sha256sum of binary>] ... "
 			    "spendpool <toaddress> <amt>\n"
 			    );
 
@@ -986,7 +1042,7 @@ Value createproposal(const Array& params, bool fHelp)
     CScript pubScript;
     pubScript << OP_PUBLIC_SCRIPT;
 	
-    for(uint i = 2; i < params.size(); )
+    for(uint i = 2; i < params.size()-1; )
       {
 
 	string command = params[i].get_str();
@@ -997,7 +1053,7 @@ Value createproposal(const Array& params, bool fHelp)
 
 	    const std::vector<unsigned char> charvect(msg.begin(), msg.end());
 	    
-	    pubScript = pubScript << charvect << OP_DISPLAY_MSG;
+	    pubScript << charvect << OP_DISPLAY_MSG;
 
 	    i+=2;
 
@@ -1005,13 +1061,37 @@ Value createproposal(const Array& params, bool fHelp)
 	  }
 	else if (command.compare("upgradeclient")==0)
 	  {
-	    string md5sum = params[i+1].get_str();
-	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[i+2].get_str());
+	    int clientVersion = atoi(params[++i].get_str().c_str());
+	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[++i].get_str());
+	    string gitStr = params[++i].get_str();
 
-	    const std::vector<unsigned char> charvect(md5sum.begin(), md5sum.end());
-	    pubScript = pubScript << charvect << deadlineEpoch << OP_UPGRADE_CLIENT;
+	    vector<pair<int,uint256> > osIdAndBinaryHashes;
+	    i++;
+	    for(;i < params.size()-1; i+=2)
+	      {
+		int os_id = GetOsId(params[i].get_str().c_str());
+		if(os_id == -1)
+		    break;
 
-	    i+=3;
+		uint256 binaryHash(params[i+1].get_str());
+
+		osIdAndBinaryHashes.push_back(make_pair(os_id, binaryHash));
+	      }
+
+
+	    pair<int,uint256> p;
+	    for(int i = osIdAndBinaryHashes.size()-1; i>=0; i--)
+	      {
+		p =  osIdAndBinaryHashes[i];
+		pubScript = pubScript << p.second
+				      << p.first;
+	      }
+	    
+	    pubScript = pubScript << osIdAndBinaryHashes.size()
+				  << std::vector<unsigned char>(gitStr.begin(), gitStr.end())
+				  << deadlineEpoch
+				  << clientVersion 
+				  << OP_UPGRADE_CLIENT;
 
 	    needPublicScript = true;
 	  }
@@ -1036,7 +1116,7 @@ Value createproposal(const Array& params, bool fHelp)
 	    tx.vout.push_back(out);
 	  }
 	else
-	  throw runtime_error("don't understand command");
+	  throw runtime_error("don't understand command "+command );
       }
 
     if(needPublicScript)
@@ -1059,6 +1139,7 @@ Value createproposal(const Array& params, bool fHelp)
 
 Value vote(const Array& params, bool fHelp)
 {
+  //TODO 2 we must check the proposal blob to make sure it's valid and "standard".
   if (pwalletMain->IsCrypted() || (fHelp || params.size() != 1))
         throw runtime_error(
             "vote <proposalblob>\n"
@@ -1189,11 +1270,11 @@ Value redeemvote(const Array& params, bool fHelp)
   return hashTx.GetHex();
 }
 
-Value readproposalmessages(const Array& params, bool fHelp)
+Value getproposalmessages(const Array& params, bool fHelp)
 {
   if (fHelp)
     throw runtime_error(
-			"readproposalmessages\n"
+			"getproposalmessages\n"
 			"Reads the messages from recent passed proposals."
 			);
 
@@ -3794,11 +3875,12 @@ static const CRPCCommand vRPCCommands[] =
     { "sendrawtransaction",     &sendrawtransaction,     false},
     { "getrawmempool",          &getrawmempool,          true },
     { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
-    { "createproposal",   &createproposal,   false },
+    { "createproposal",   &createproposal,   true },
     { "vote",   &vote,   false },
-    { "getvoteinfo",   &getvoteinfo,   false },
+    { "getvoteinfo",   &getvoteinfo,   true },
     { "redeemvote",   &redeemvote,   false },
-    { "readproposalmessages",   &readproposalmessages,   false },
+    { "getproposalmessages",   &getproposalmessages,   true },
+    { "getupgradeinfo",   &getupgradeinfo,   true },
 #ifdef TESTING
     { "generatework",           &generatework,           false },
     { "generatestake",          &generatestake,          false },

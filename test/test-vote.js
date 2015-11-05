@@ -33,18 +33,29 @@ export async function test( ) {
     var deadlineStr = new Date(new Date().getTime() + 30*1000).toISOString().
 	replace(/T/, ' ').      // replace T with a space
 	replace(/\..+/, ' UTC');     // delete the dot and everything after
-	
+
+    var upgradeDeadlineStr = new Date(new Date().getTime() + 180*1000).toISOString().
+	replace(/T/, ' ').      // replace T with a space
+	replace(/\..+/, ' UTC');     // delete the dot and everything after
+
     console.log('deadline : %s, now: %s',  deadlineStr, new Date().toISOString());
     var rpc = await sendRpcQuery( client2, { method : 'createproposal',
 							 params :
 							 [deadlineStr,
 							  "test title",
 							  "displaymsg",
-							  "test msg"
+							  "test msg",
+							  "upgradeclient",
+							  "1010001",
+							  upgradeDeadlineStr,
+							  "gitcommitxxx",
+							  "WIN64",
+							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead",
+							  "LINUX_AMD64",
+							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d"
 							 ]
 						       }
 					    );
-    console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
 
     var voteblob = rpc.result.voteblob;
 		
@@ -63,7 +74,6 @@ export async function test( ) {
     						 voteblob
     					     ]
     					   })
-    console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
     expect ( rpc.result.votesForProposal ).to.be.equal( 0 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 0 )
     expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
@@ -80,7 +90,6 @@ export async function test( ) {
     					   })
 
     
-    console.log('rpc : %s',  JSON.stringify(rpc, null, 4));
     expect ( rpc.result.votesForProposal ).to.be.equal( 10 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 10 )
     expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
@@ -159,24 +168,35 @@ export async function test( ) {
     					     ]
     					   })
 
-    var rpc = await sendRpcQuery( client1, { method : "readproposalmessages",
+    var rpc = await sendRpcQuery( client1, { method : "getproposalmessages",
     					     params :
     					     [
     					     ]
     					   })
-    console.log('readproposalmessages1 : %s',  JSON.stringify(rpc, null, 4));
-    //TODO 3 how to test for an empty set of messages
+    expect ( rpc.result.length ).to.be.equal(0)
     
+    var rpc = await sendRpcQuery( client1, { method : "getupgradeinfo",
+    					   })
+    expect ( rpc.result.upgradeNeeded ).to.be.equal(false)
+
     //commit the redeem transaction
     await delayExecution( 2 );
     await mineSomePowBlocks( client2, 1 );
     await delayExecution( 2 );
     
-    var rpc = await sendRpcQuery( client1, { method : "readproposalmessages",
-    					     params :
-    					     [
-    					     ]
+    var rpc = await sendRpcQuery( client1, { method : "getproposalmessages",
     					   })
-    console.log('readproposalmessages2 : %s',  JSON.stringify(rpc, null, 4));
+    expect ( rpc.result.length ).to.be.equal(1)
+    expect ( rpc.result[0].messageText ).to.be.equal( "test msg")
+    expect ( rpc.result[0].block ).to.be.equal( 32)
+
+    var rpc = await sendRpcQuery( client1, { method : "getupgradeinfo",
+    					   })
+    expect ( rpc.result.upgradeNeeded ).to.be.equal(true)
+    expect ( rpc.result.upgradeGitCommit ).to.be.equal("gitcommitxxx")
+    expect ( rpc.result.distData[0].osId ).to.be.equal( "WIN64")
+    expect ( rpc.result.distData[0].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead")
+    expect ( rpc.result.distData[1].osId ).to.be.equal( "LINUX_AMD64")
+    expect ( rpc.result.distData[1].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d")
 
 }

@@ -17,12 +17,12 @@ $rpcport = 6100+$c;
 
 if($port != 5100)
 {
-    $an_str = " -addnode=127.0.0.1:5100";
+    @an_str = ("-addnode=127.0.0.1:5100");
 }
 
-$stuff = qq{/home/tim/projects/nomiccoin/test/../src/nomiccoind -v -datadir=/tmp//coin-datadir-$c/ -port=$port -rpcport=$rpcport -rpcuser=user -rpcpassword=password -rpcallowip=* -gen=0 -stakegen=0 -dnsseed=0 $an_str }.join(" ",@ARGV);
+@stuff = ("/home/tim/projects/nomiccoin/test/../src/nomiccoind", "-v", "-datadir=/tmp//coin-datadir-$c/", "-port=$port", "-rpcport=$rpcport", "-rpcuser=user", "-rpcpassword=password", "-rpcallowip=*", "-gen=0", "-stakegen=0", "-dnsseed=0", @an_str, @ARGV);
 
-print "Running: $stuff\n";
+print "Running: '".join("' '",@stuff)."'\n";
 
-system($stuff);
+system(@stuff);
 

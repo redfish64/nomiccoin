@@ -67,6 +67,24 @@ const string strMessageMagic = COIN_NAME " Signed Message:\n";
 double dHashesPerSec;
 int64 nHPSTimerStart;
 
+const char *OS_ID[] =
+  {
+    "NONE",
+    "LINUX_X86",
+    "LINUX_AMD64",
+    "LINUX_ALPHA",
+    "LINUX_ARM",
+    "LINUX_HPPA",
+    "LINUX_IA64",
+    "LINUX_PPC",
+    "LINUX_PPC64",
+    "LINUX_SPARC",
+    "WIN32",
+    "WIN64",
+  };
+
+const int OS_ID_LENGTH = (sizeof(OS_ID)/sizeof(char *));
+
 // Settings
 int64 nTransactionFee = MIN_TX_FEES;
 

@@ -6,6 +6,8 @@ export function sendRpcQuery( client, json ) {
 
         var data = JSON.stringify( json );
 
+	console.log("sending: %s",data);
+
         var request = require( 'http' ).request( {
 
             method : 'POST',
@@ -34,6 +36,7 @@ export function sendRpcQuery( client, json ) {
             } );
 
             response.on( 'end', ( ) => {
+		console.log("received: %s",stringBuffer);
 
                 try {
                     resolve( JSON.parse( stringBuffer ) );
@@ -62,4 +65,8 @@ export function sendRpcQuery( client, json ) {
 
     } );
 
+}
+
+export function nsendRpcQuery( client, json ) {
+    console.log("pretending to send: %s",data);
 }

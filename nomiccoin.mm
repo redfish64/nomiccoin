@@ -913,9 +913,9 @@
 <node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
 </node>
 </node>
-<node CREATED="1444787383783" FOLDED="true" ID="ID_208007625" MODIFIED="1446429421363" TEXT="new ops">
-<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1444804818773" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;md5sum&gt;">
-<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1445910888567" TEXT="Causes the client to upgrade. md5sum is of the source code">
+<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1446682192937" TEXT="new ops">
+<node COLOR="#ff0000" CREATED="1444804794921" ID="ID_64752469" MODIFIED="1446682342530" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
+<node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
 <node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
 <node CREATED="1445835412844" ID="ID_1579658579" MODIFIED="1445910484146" TEXT="Should source code contain md5sums of prior versions?">
 <node CREATED="1445835433420" ID="ID_1160602152" MODIFIED="1445835454872" TEXT="This is to prevent the code from asking to be upgraded while reading the block chain"/>
@@ -1015,6 +1015,20 @@
 </node>
 </node>
 </node>
+<node CREATED="1446682345865" ID="ID_1233356391" MODIFIED="1446682350845" TEXT="Enforcement">
+<node COLOR="#ff0000" CREATED="1446682352794" ID="ID_1870972562" MODIFIED="1446682660543" TEXT="if past the deadline, upgrade information is shown, system won&apos;t start"/>
+<node COLOR="#ff0000" CREATED="1446682374401" ID="ID_560528344" MODIFIED="1446682660311" TEXT="If an &quot;unsafe&quot; command is used, error will be shown"/>
+<node COLOR="#ff0000" CREATED="1446682429241" ID="ID_1267419512" MODIFIED="1446682660079" TEXT="getupgradeinfo will show upgrade information"/>
+<node COLOR="#ff0000" CREATED="1446682447976" ID="ID_1073954145" MODIFIED="1446682659809" TEXT="upgrade message is repeatedly shown in the log">
+<node CREATED="1446682492729" ID="ID_1293730630" MODIFIED="1446682498596" TEXT="frequency?">
+<node CREATED="1446682499664" ID="ID_1125849435" MODIFIED="1446682535645" TEXT="Every received block?">
+<node CREATED="1446682640104" ID="ID_1204925875" MODIFIED="1446682658073" TEXT="Should be good enough">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+</node>
 </node>
 <node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;">
 <node COLOR="#ff0000" CREATED="1445912895490" ID="ID_370974018" MODIFIED="1445912903179" TEXT="TODO"/>
@@ -1086,7 +1100,7 @@
 <node COLOR="#ff0000" CREATED="1445912964722" ID="ID_1080183006" MODIFIED="1445912966763" TEXT="TODO"/>
 </node>
 </node>
-<node CREATED="1444811826007" FOLDED="true" ID="ID_70535443" MODIFIED="1446429419039" TEXT="new rpc commands">
+<node CREATED="1444811826007" ID="ID_70535443" MODIFIED="1446682078051" TEXT="new rpc commands">
 <node CREATED="1444811832655" ID="ID_536155444" MODIFIED="1444997746588" TEXT="createproposal &lt;poll deadline&gt; [commands...]">
 <node CREATED="1444811867511" ID="ID_1627882680" MODIFIED="1444811870516" TEXT="commands are:">
 <node CREATED="1444811871543" ID="ID_1550214091" MODIFIED="1444811880348" TEXT="display_msg &lt;message&gt;">
@@ -1513,6 +1527,16 @@
 <node COLOR="#ff0000" CREATED="1446305382166" ID="ID_828673164" MODIFIED="1446305400107" TEXT="TODO use CLIENT_VERSION for our version number">
 <node CREATED="1446305402942" ID="ID_723219768" MODIFIED="1446305408502" TEXT="it exists already, bitcoin uses it"/>
 </node>
+<node CREATED="1446684396617" ID="ID_1099367642" MODIFIED="1446684596215" TEXT="We are relying too much on the idea that if 51% vote on a proposal, then it must be safe I think. There is no automated check to see if a script is safe, so we are relying on people to eyeball the script, which they probably won&apos;t do">
+<node CREATED="1446684491752" ID="ID_1302332192" MODIFIED="1446684595391" TEXT="Should we go as far as making &quot;STANDARD&quot; proposals, and only accepting standard stuff?">
+<node CREATED="1446684532327" ID="ID_735965972" MODIFIED="1446684569772" TEXT="Yea, I don&apos;t really see much leeway for creative scripts. There is only a few things that can be done"/>
+<node CREATED="1446684575808" ID="ID_1892253110" MODIFIED="1446684586700" TEXT="This should also make it easier in the gui to describe what the script does"/>
+<node CREATED="1446684587096" ID="ID_708935987" MODIFIED="1446684605642" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446684599031" ID="ID_1591337978" MODIFIED="1446684602983" TEXT="TODO"/>
+</node>
+</node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
 <node CREATED="1443875039576" ID="ID_428257359" MODIFIED="1443875049556" TEXT="Voting">
@@ -1871,8 +1895,9 @@
 <node COLOR="#ff0000" CREATED="1446001054269" ID="ID_1990595523" MODIFIED="1446001068412" TEXT="Two proposals redeeming same block"/>
 <node COLOR="#ff0000" CREATED="1446001068931" ID="ID_1681261017" MODIFIED="1446001076773" TEXT="Reorg before proposal redeems"/>
 <node COLOR="#ff0000" CREATED="1446001077188" ID="ID_875072501" MODIFIED="1446001082380" TEXT="Reorg after proposal redeems"/>
-<node COLOR="#ff0000" CREATED="1446426878538" ID="ID_1240243486" MODIFIED="1446426913811" TEXT="Create &quot;crazy&quot; client that posts not allowed transactions on the block chain">
+<node COLOR="#ff0000" CREATED="1446426878538" ID="ID_1240243486" MODIFIED="1446535979385" TEXT="Create &quot;attack&quot; client that posts not allowed transactions on the block chain">
 <node COLOR="#ff0000" CREATED="1446426917468" ID="ID_662991222" MODIFIED="1446426927839" TEXT="Redeems before maturity"/>
+<node COLOR="#ff0000" CREATED="1446535967997" ID="ID_1951763392" MODIFIED="1446535974275" TEXT="not passed proposals"/>
 <node COLOR="#ff0000" CREATED="1446426930804" ID="ID_351339051" MODIFIED="1446426935638" TEXT="... what else?"/>
 </node>
 </node>

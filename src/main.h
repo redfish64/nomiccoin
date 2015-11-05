@@ -1246,22 +1246,11 @@ class CProposalMessage
   
 };
 
-//os id numbers, for upgrading client
-enum OS_ID
-  {
-    NONE=0, //error, unset
-    LINUX_X86=2,
-    LINUX_AMD64=3,
-    LINUX_ALPHA=4,
-    LINUX_ARM=5,
-    LINUX_HPPA=6,
-    LINUX_IA64=7,
-    LINUX_PPC=8,
-    LINUX_PPC64=9,
-    LINUX_SPARC=10,
-    WIN32=11,
-    WIN64=12
-  };
+//os ids, for upgrading client, position corresponds to id number
+//(add new ones to the bottom, obviously)
+extern const char *OS_ID[];
+
+extern const int OS_ID_LENGTH;
 
 /**
  * Forces the client to upgrade at a specific block
