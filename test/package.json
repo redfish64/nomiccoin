@@ -5,6 +5,7 @@
         "lodash" : "*",
         "mkdirp" : "*",
         "rimraf" : "*",
-        "bitcore" : "althousedev/bitcore"
+        "bitcore" : "althousedev/bitcore",
+	"is-running" : "*"
     }
 }

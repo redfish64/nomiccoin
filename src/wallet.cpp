@@ -1170,11 +1170,9 @@ CScript CreateVoteScript(CProposal proposal)
 }
 
 
-bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
-				 CWalletVotingTxnSet & wVoteSet)
+bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, const CProposal *proposal,
+				 std::vector<CWalletTx>& vtxn)
 {
-  wVoteSet.proposal = proposal;
-  
   {
     LOCK2(cs_main, cs_wallet);
     // txdb must be opened before the mapWallet lock
@@ -1208,13 +1206,15 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
 	  CTxOut txOut(nValue, utxoToVoteWith.scriptPubKey);
 	  txNew.vout.push_back(txOut);
 
-	  votehash_t txnHash = proposal.redeemTxn.GetHash();
+	  //a null Proposal means a no vote on everything
+	  votehash_t txnHash = proposal ? proposal->redeemTxn.GetHash() : 0;
 	  
 	  // Sign
-	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash, proposal.GetDeadline()))
+	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash,
+			     proposal ? proposal->GetDeadline() : 0))
 	    return false;
 
- 	  wVoteSet.vtxn.push_back(txNew);
+ 	  vtxn.push_back(txNew);
 	}
     }
   }
@@ -1222,14 +1222,14 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal,
   return true;
 }
 
-bool CWallet::VoteForProposal(CProposal prop)
+bool CWallet::VoteForProposal(const CProposal *prop)
 {
-  CWalletVotingTxnSet wVoteSet;
+  std::vector<CWalletTx> vtxn;
 
-  if(!CreateVotingTxnSet(GetAdjustedTime(), prop, wVoteSet))
+  if(!CreateVotingTxnSet(GetAdjustedTime(), prop, vtxn))
     return error("VoteForProposal(): CreateVotingTxnSet failed");
 
-  BOOST_FOREACH(CWalletTx txn, wVoteSet.vtxn)
+  BOOST_FOREACH(CWalletTx txn, vtxn)
     {
       //we don't use a reserve key because we are sending the coins right back to where they came from
       //for voting

@@ -165,7 +165,7 @@ class CProposal
       selfHash = 0;
     }
 
-  timestamp_t GetDeadline()
+  timestamp_t GetDeadline() const
   {
     return redeemTxn.nTime;
   }
@@ -189,13 +189,6 @@ class CProposal
     selfHash = 0;
     selfHash = SerializeHash(*this);
   }
-};
-
-class CWalletVotingTxnSet
-{
- public:
-  CProposal proposal;
-  std::vector<CWalletTx> vtxn;
 };
 
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
@@ -259,7 +252,7 @@ public:
 
     CPubKey vchDefaultKey;
 
-    bool CreateVotingTxnSet(timestamp_t nVoteTime, CProposal proposal, CWalletVotingTxnSet & wVoteSet );
+    bool CreateVotingTxnSet(timestamp_t nVoteTime, const CProposal *proposal, std::vector<CWalletTx>& vtxn);
     
     timestamp_t GetEstimatedStakeTime(void);
 
@@ -311,7 +304,7 @@ public:
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
 
-    bool VoteForProposal(CProposal p);
+    bool VoteForProposal(const CProposal *p);
 
     bool NewKeyPool();
     bool TopUpKeyPool();

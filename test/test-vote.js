@@ -39,10 +39,6 @@ export async function test( ) {
 	replace(/T/, ' ').      // replace T with a space
 	replace(/\..+/, ' UTC');     // delete the dot and everything after
 
-    var upgradeDeadlineStr = new Date(new Date().getTime() + 180*1000).toISOString().
-	replace(/T/, ' ').      // replace T with a space
-	replace(/\..+/, ' UTC');     // delete the dot and everything after
-
     console.log('deadline : %s, now: %s',  deadlineStr, new Date().toISOString());
     var rpc = await sendRpcQuery( client2, { method : 'createproposal',
 							 params :
@@ -50,14 +46,6 @@ export async function test( ) {
 							  "test title",
 							  "displaymsg",
 							  "test msg",
-							  "upgradeclient",
-							  "1010001",
-							  upgradeDeadlineStr,
-							  "gitcommitxxx",
-							  "WIN64",
-							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead",
-							  "LINUX_AMD64",
-							  "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d",
 							  "spendpool",
 							  propRecvAddr,
 							  "2.5"
@@ -184,43 +172,28 @@ export async function test( ) {
     					   })
     expect ( rpc.result.length ).to.be.equal(0)
     
-    var rpc = await sendRpcQuery( client1, { method : "getupgradeinfo",
-    					   })
-    expect ( rpc.result.upgradeNeeded ).to.be.equal(false)
-
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
 					     params : [ propRecvAddr ]
 					   })
     expect ( rpc.result ).to.be.equal(0);
-    
+
+    //expect ( 1 ).to.be.equal(0)
 
     //commit the redeem transaction
     await delayExecution( 2 );
     await mineSomePowBlocks( client2, 1 ); 
     await delayExecution( 2 );
 
-    //now we should get the funds, the displayed message, and the upgrade
+    //now we should get the funds, the displayed message
     var rpc = await sendRpcQuery( client1, { method : "getproposalmessages",
     					   })
     expect ( rpc.result.length ).to.be.equal(1)
     expect ( rpc.result[0].messageText ).to.be.equal( "test msg")
     expect ( rpc.result[0].block ).to.be.equal( 32)
 
-    var rpc = await sendRpcQuery( client1, { method : "getupgradeinfo",
-    					   })
-    expect ( rpc.result.upgradeNeeded ).to.be.equal(true)
-    expect ( rpc.result.upgradeGitCommit ).to.be.equal("gitcommitxxx")
-    expect ( rpc.result.distData[0].osId ).to.be.equal( "WIN64")
-    expect ( rpc.result.distData[0].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b275dead")
-    expect ( rpc.result.distData[1].osId ).to.be.equal( "LINUX_AMD64")
-    expect ( rpc.result.distData[1].sha256Hash ).to.be.equal( "33d9dbb1885523750398821c4e37b1c5f3f9a3d77cd9cee08a4e3227b2755a6d")
-
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
     					     params : [ propRecvAddr ]
     					   })
     expect ( rpc.result ).to.be.equal(2.5);
     
-    //TODO 2 test that we can't execute any unsafe rpc calls before deadline finishes
-    //TODO 2 test that we are forced to upgrade after deadline finishes
-
 }

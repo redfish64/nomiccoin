@@ -49,7 +49,13 @@ ui_*.h
 #test stuff
 /test/nomiccoin?
 /test/nomiccoin.conf
+/test/debug.log
 
 # other junk
 cscope.out
 TAGS
+
+#eclipse stuff
+/.cproject
+/.project
+/Debug/

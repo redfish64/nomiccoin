@@ -1294,7 +1294,8 @@ class CUpgradeRequest
     if(ur.upgradeVersion <= CLIENT_VERSION)
       return;
     
-    if(ur.upgradeDeadline < upgradeDeadline)
+    if((ur.upgradeVersion != 0 && ur.upgradeDeadline < upgradeDeadline)
+       || upgradeDeadline == 0)
       upgradeDeadline = ur.upgradeDeadline;
     
     if(ur.upgradeVersion > upgradeVersion)

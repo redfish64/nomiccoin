@@ -1438,7 +1438,8 @@ bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize)
   //first we check the deadline, which is an 8 byte number. CScript << <num> is smart enough
   //to push less bytes for a smaller number, regardless of the maximum size, so we have to
   //test for a realistically sized timestamp for a deadline
-  if(iter == scriptSig.end() || *iter < 3 || *iter > 8)
+  //Note also that this value may be 0 for a vote 0 call
+  if(iter == scriptSig.end() || *iter > 8)
     return false;
 
   iter += *iter + 1;
@@ -1654,7 +1655,7 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
 {
     scriptSigRet.clear();
 
-    if(voteDeadline != 0)
+    if(voteTxnHash != 0)
       scriptSigRet << voteDeadline << *voteTxnHash << OP_VOTE;
 
     vector<valtype> vSolutions;

@@ -719,6 +719,7 @@ Value getupgradeinfo(const Array& params, bool fHelp)
 	return obj;
       }
     obj.push_back(Pair("upgradeNeeded",           true));
+    obj.push_back(Pair("upgradeDeadline", DateTimeStrFormat(ur.upgradeDeadline)));
     obj.push_back(Pair("upgradeGitCommit",
 		       std::string(ur.upgradeGitCommit.begin(),
 				   ur.upgradeGitCommit.end())));
@@ -969,7 +970,7 @@ void ConvertTo(Value& value)
 int ConvertTimeishToEpochSecs(string timeish)
 {
   struct tm tm;
-  if(!strptime(timeish.c_str(), "%Y-%m-%d %H:%M:%S %Z", &tm))
+  if(!strptime(timeish.c_str(), TIMEFORMAT, &tm))
     return 0;
 
   //co: converts to localtime
@@ -1097,23 +1098,24 @@ Value createproposal(const Array& params, bool fHelp)
 	  }
 	else if (command.compare("spendpool")==0)
 	  {
-	    string toaddress = params[i+1].get_str();
-	    Value amtVal = params[i+2];
+	    CBitcoinAddress address(params[++i].get_str());
+	    if (!address.IsValid())
+	      throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
+	    
+	    Value amtVal = params[++i];
 	    ConvertTo<double>(amtVal);
-	    int64 amt = AmountFromValue(params[i+2]);
+	    int64 amt = AmountFromValue(amtVal);
 	    
 	    if (amt < MIN_TXOUT_AMOUNT)
 	      throw JSONRPCError(-101, "Send amount too small");
 
-	    CBitcoinAddress address(params[0].get_str());
-	    if (!address.IsValid())
-	      throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
-	    
 	    CScript sendMoney;
 	    sendMoney.SetDestination(address.Get());
 	    
 	    CTxOut out(amt, sendMoney);
 	    tx.vout.push_back(out);
+
+	    ++i;
 	  }
 	else
 	  throw runtime_error("don't understand command "+command );
@@ -1142,16 +1144,27 @@ Value vote(const Array& params, bool fHelp)
   //TODO 2 we must check the proposal blob to make sure it's valid and "standard".
   if (pwalletMain->IsCrypted() || (fHelp || params.size() != 1))
         throw runtime_error(
-            "vote <proposalblob>\n"
+			    string("") +
+			    "vote <proposalblob|0>\n"
             "Votes with all coins for the given proposal.\n"
-            "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n");
+	    "If 'vote 0' is specified, then the coins will be registered as a no vote for all current proposals.\n"
+	    "\n"
+	    "\nWhenever a vote is cast, the coins that issued the vote will be considered active. For a proposal to pass, it must reach a greater than 50% majority of all active coins over the last two weeks."
+	    +
+	    (pwalletMain->IsCrypted() ? "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n" : ""));
+
+  if(params[0].get_str() == "0")
+    {
+      pwalletMain->VoteForProposal(0);
+      return "ok";
+    }
 
   CProposal prop;
 
   if(!ConvertBlobToProposal(params[0].get_str(),prop))
     throw JSONRPCError(-4, "Blob invalid");
 
-  if (!pwalletMain->VoteForProposal(prop))
+  if (!pwalletMain->VoteForProposal(&prop))
     throw JSONRPCError(-4, "Voting failed :??????");
 
   //TODO 2 what should we really return here?
@@ -3882,7 +3895,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getproposalmessages",   &getproposalmessages,   true },
     { "getupgradeinfo",   &getupgradeinfo,   true },
 #ifdef TESTING
-    { "generatework",           &generatework,           false },
+    { "generatework",           &generatework,           true },
     { "generatestake",          &generatestake,          false },
 #endif
 };

@@ -894,25 +894,33 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node CREATED="1446429442178" ID="ID_1112789658" MODIFIED="1446429572969" TEXT="Should we allow proposal txns with more than one input?">
+<node CREATED="1446429467700" ID="ID_829302692" MODIFIED="1446429501163" TEXT="In other words, a txn based on another account besides the shared pool"/>
+<node CREATED="1446429521406" ID="ID_1600005927" MODIFIED="1446429541378" TEXT="It could be a way for an entity to say, I&apos;ll pay some of the fee needed to accomplish this task."/>
+<node CREATED="1446429541949" ID="ID_1322084809" MODIFIED="1446429545738" TEXT="Sounds useful, actually"/>
+<node CREATED="1446429747315" ID="ID_433853930" MODIFIED="1446429857801" TEXT="But, suppose the entity doesn&apos;t have much funds, then the remainder will be paid by the pool">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446429864571" ID="ID_652866961" MODIFIED="1446429873762" TEXT="There is no way to specifiy how much each input should pay"/>
+</node>
+<node CREATED="1446429567821" ID="ID_1187223072" MODIFIED="1446429854482" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1446002008308" ID="ID_1446918280" MODIFIED="1446002018817" TEXT="Do we need to store messages somewhere?">
+<node CREATED="1446002021125" ID="ID_1980182557" MODIFIED="1446722958065" TEXT="No">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1446001277557" ID="ID_1483312421" MODIFIED="1446001845623" TEXT="What happens if there are two upgrade clients calls in the same block?">
+<node CREATED="1446001451205" ID="ID_1133956769" MODIFIED="1446001467560" TEXT="The problem is that we are storing only one CPublicProposalData per block"/>
+<node CREATED="1446001508157" ID="ID_1034270459" MODIFIED="1446001517177" TEXT="The two upgrades may have conflicting deadlines"/>
+<node CREATED="1446001469173" ID="ID_1374086573" MODIFIED="1446001482400" TEXT="Its such a rare thing to occur I don&apos;t want to complicate the code for this."/>
+<node CREATED="1446001518085" ID="ID_635340999" MODIFIED="1446001533503" TEXT="We will use the earliest of the deadlines regardless of the upgrade that created it">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 <node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
-<node CREATED="1444787018887" ID="ID_816583240" MODIFIED="1444787028837" TEXT="temp addresses">
-<node CREATED="1444787030352" ID="ID_1551747574" MODIFIED="1444792498397" TEXT="Ei1DSRm1D6rtaERGE14uh5Yze5LxMF6RaJ">
-<node CREATED="1444787041344" ID="ID_857877843" MODIFIED="1444787043699" TEXT="FBxDbfkmiF8WH6vgpQ3CpU64ks1eLSLDXowfjFUUMkqG779YPsNP"/>
-</node>
-<node CREATED="1444787053088" ID="ID_1455205995" MODIFIED="1444787055612" TEXT="Eu28WPKMYryQhaGRVZPjwsMbpFYV6dxsfS">
-<node CREATED="1444787066719" ID="ID_1092050335" MODIFIED="1444787068443" TEXT="FBqqyE97iaswsDijpdsJmf9UJ1v9eeBEDawWUMkkHU3C56QwUmcL"/>
-</node>
-<node CREATED="1444787077136" ID="ID_210194158" MODIFIED="1444787080144" TEXT="EnBsTsftjzi3CdjaoMwLrg7apiMbB4uamM">
-<node CREATED="1444787080145" ID="ID_431244803" MODIFIED="1444787087915" TEXT="F4kkYxVFteotUCxpSirixJZRfGgENASKNwqpyVfdfdts8KVyHHHn"/>
-</node>
-<node CREATED="1444787090591" ID="ID_99078524" MODIFIED="1444787103324" TEXT="F2pRXKgBsctLRYRfu9XQPCPPgBvPwkP8gp">
-<node CREATED="1444787104687" ID="ID_1302722204" MODIFIED="1444787113691" TEXT="F6fQQoazrQjqAYjUXmwnAi3peXz6erq3hTwZthCeurWa4cDGaizB"/>
-</node>
-<node CREATED="1444787395112" ID="ID_385583189" MODIFIED="1444787409824" TEXT="EgzqvBu4cFMZ2CLRHhi1Tj9kFkcd1NkYnp">
-<node CREATED="1444787409825" ID="ID_492452408" MODIFIED="1444787417843" TEXT="FCGNoJ72aq36g1XW8EvGXLnrquYgjhatVnikxmN78g2ptwUGk5fQ"/>
-</node>
-</node>
 <node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1446682192937" TEXT="new ops">
 <node COLOR="#ff0000" CREATED="1444804794921" ID="ID_64752469" MODIFIED="1446682342530" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
@@ -960,30 +968,8 @@
 </node>
 <node CREATED="1445998601467" ID="ID_1462153673" MODIFIED="1445998622261" TEXT="We create sha2 hashes for binaries and require a git commit for the source">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446723005095" ID="ID_1445095052" MODIFIED="1446723012331" TEXT="We need to create a procedure for an upgrade"/>
 <node COLOR="#ff0000" CREATED="1446001956997" ID="ID_983022076" MODIFIED="1446001959501" TEXT="TODO"/>
-</node>
-<node CREATED="1446001277557" ID="ID_1483312421" MODIFIED="1446001845623" TEXT="What happens if there are two upgrade clients calls in the same block?">
-<node CREATED="1446001451205" ID="ID_1133956769" MODIFIED="1446001467560" TEXT="The problem is that we are storing only one CPublicProposalData per block"/>
-<node CREATED="1446001508157" ID="ID_1034270459" MODIFIED="1446001517177" TEXT="The two upgrades may have conflicting deadlines"/>
-<node CREATED="1446001469173" ID="ID_1374086573" MODIFIED="1446001482400" TEXT="Its such a rare thing to occur I don&apos;t want to complicate the code for this."/>
-<node CREATED="1446001518085" ID="ID_635340999" MODIFIED="1446001533503" TEXT="We will use the earliest of the deadlines regardless of the upgrade that created it">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node COLOR="#ff0000" CREATED="1446001947141" ID="ID_203529055" MODIFIED="1446001949853" TEXT="TODO"/>
-</node>
-<node CREATED="1446001846933" ID="ID_1305752118" MODIFIED="1446001942353" TEXT="We can&apos;t delete prior upgrades, because we can&apos;t allow the client to be downgraded after it was upgraded. How do we handle this?">
-<node CREATED="1446001877229" ID="ID_371204405" MODIFIED="1446001892441" TEXT="If the user decides to go back to the prior version, we can&apos;t allow it to run"/>
-<node CREATED="1446001893685" ID="ID_1159605649" MODIFIED="1446001931341" TEXT="I think we can accomplish this by having a version stored in the db. If the client attempts to downgrade, it will not allow it based on the db.">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-<node COLOR="#ff0000" CREATED="1446001943788" ID="ID_1420747305" MODIFIED="1446001946277" TEXT="TODO"/>
-</node>
-<node CREATED="1446002008308" ID="ID_1446918280" MODIFIED="1446002018817" TEXT="Do we need to store messages somewhere?">
-<node CREATED="1446002021125" ID="ID_1980182557" MODIFIED="1446002044968" TEXT="Yes, we will store messages in some sort of bucket that can be read back later. Old messages will be deletable"/>
-<node COLOR="#ff0000" CREATED="1446002072589" ID="ID_1804253203" MODIFIED="1446002090341" TEXT="How do we store a bucket of messages?"/>
-<node COLOR="#ff0000" CREATED="1446002045645" ID="ID_1030039522" MODIFIED="1446002057109" TEXT="TODO">
-<font NAME="SansSerif" SIZE="12"/>
-</node>
 </node>
 <node CREATED="1446028520171" ID="ID_1993156353" MODIFIED="1446028555568" TEXT="What happens if user is shown upgrade message, and then block chain reorgs?">
 <node CREATED="1446028557644" ID="ID_364778146" MODIFIED="1446028623664" TEXT="Maybe we should keep everything in the block index, and reference it from there">
@@ -993,7 +979,7 @@
 <node CREATED="1446028772036" ID="ID_664915778" MODIFIED="1446028777984" TEXT="If it isn&apos;t we do nothing"/>
 <node COLOR="#ff0000" CREATED="1446028778980" ID="ID_1629381455" MODIFIED="1446028801771" TEXT="But how does that work for messages?"/>
 </node>
-<node COLOR="#ff0000" CREATED="1446028806212" ID="ID_1697018565" MODIFIED="1446028831252" TEXT="Is there a better way?">
+<node CREATED="1446028806212" ID="ID_1697018565" MODIFIED="1446723118264" TEXT="Is there a better way?">
 <node CREATED="1446028848420" ID="ID_1893582068" MODIFIED="1446028855056" TEXT="I think we need to think relationally"/>
 <node CREATED="1446028855612" ID="ID_755440715" MODIFIED="1446028861887" TEXT="A seperate table for messages">
 <node CREATED="1446028870380" ID="ID_179762871" MODIFIED="1446028877664" TEXT="Each message has a &quot;read&quot; flag"/>
@@ -1012,11 +998,15 @@
 </node>
 <node CREATED="1446075879223" ID="ID_1767053642" MODIFIED="1446075926131" TEXT="We can&apos;t let this vector get too big, so we&apos;ll have to let messages expire on their own."/>
 </node>
+<node CREATED="1446723126288" ID="ID_1315859088" MODIFIED="1446723135642" TEXT="It&apos;s too much work and of dubious benefit">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
 </node>
 </node>
 </node>
 <node CREATED="1446682345865" ID="ID_1233356391" MODIFIED="1446682350845" TEXT="Enforcement">
 <node COLOR="#ff0000" CREATED="1446682352794" ID="ID_1870972562" MODIFIED="1446682660543" TEXT="if past the deadline, upgrade information is shown, system won&apos;t start"/>
+<node COLOR="#ff0000" CREATED="1446722955792" ID="ID_650904809" MODIFIED="1446722957121" TEXT="When do we shutdown the system after the deadline has passed?"/>
 <node COLOR="#ff0000" CREATED="1446682374401" ID="ID_560528344" MODIFIED="1446682660311" TEXT="If an &quot;unsafe&quot; command is used, error will be shown"/>
 <node COLOR="#ff0000" CREATED="1446682429241" ID="ID_1267419512" MODIFIED="1446682660079" TEXT="getupgradeinfo will show upgrade information"/>
 <node COLOR="#ff0000" CREATED="1446682447976" ID="ID_1073954145" MODIFIED="1446682659809" TEXT="upgrade message is repeatedly shown in the log">
@@ -1241,20 +1231,7 @@
 <node COLOR="#ff0000" CREATED="1446393638527" ID="ID_1845111188" MODIFIED="1446393641729" TEXT="TODO"/>
 </node>
 </node>
-<node CREATED="1446429428140" ID="ID_1905534355" MODIFIED="1446429438130" TEXT="proposal txn">
-<node CREATED="1446429442178" ID="ID_1112789658" MODIFIED="1446429572969" TEXT="Should we allow proposal txns with more than one input?">
-<node CREATED="1446429467700" ID="ID_829302692" MODIFIED="1446429501163" TEXT="In other words, a txn based on another account besides the shared pool"/>
-<node CREATED="1446429521406" ID="ID_1600005927" MODIFIED="1446429541378" TEXT="It could be a way for an entity to say, I&apos;ll pay some of the fee needed to accomplish this task."/>
-<node CREATED="1446429541949" ID="ID_1322084809" MODIFIED="1446429545738" TEXT="Sounds useful, actually"/>
-<node CREATED="1446429747315" ID="ID_433853930" MODIFIED="1446429857801" TEXT="But, suppose the entity doesn&apos;t have much funds, then the remainder will be paid by the pool">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1446429864571" ID="ID_652866961" MODIFIED="1446429873762" TEXT="There is no way to specifiy how much each input should pay"/>
-</node>
-<node CREATED="1446429567821" ID="ID_1187223072" MODIFIED="1446429854482" TEXT="No">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
+<node CREATED="1446429428140" ID="ID_1905534355" MODIFIED="1446429438130" TEXT="proposal txn"/>
 <node CREATED="1446306157404" ID="ID_70177628" MODIFIED="1446306160213" TEXT="voting results">
 <node CREATED="1446192619433" FOLDED="true" ID="ID_1763214564" MODIFIED="1446429409625" TEXT="How do we want to programmatically organize this?">
 <node CREATED="1446192796937" ID="ID_1303816729" MODIFIED="1446192799574" TEXT="Operations">
@@ -1490,6 +1467,12 @@
 <node CREATED="1445909036378" ID="ID_623486568" MODIFIED="1445909039206" TEXT="nomiccoind">
 <node CREATED="1445908991250" ID="ID_1421085117" MODIFIED="1445909032838" TEXT="Should work same as CAlerts. All RPC calls will stop working until client is upgraded. Will print out &quot;Please download and install new version, md5sum &quot;xxxx&quot;, run md5sum to check">
 <node COLOR="#ff0000" CREATED="1445915458764" ID="ID_989305112" MODIFIED="1445915460596" TEXT="TODO"/>
+<node CREATED="1446704369699" ID="ID_582975914" MODIFIED="1446705015658" TEXT="Should we use the alert system, ie create an alert directly for an upgrade?">
+<node CREATED="1446704886107" ID="ID_590160360" MODIFIED="1446704898391" TEXT="Only one alert can exist at a time. A new alert cancels the old one"/>
+<node CREATED="1446704899355" ID="ID_1775093620" MODIFIED="1446705014067" TEXT="Seperate">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 </node>
 <node CREATED="1445909039706" ID="ID_662288964" MODIFIED="1445909044933" TEXT="nomiccoin-qt">
@@ -1524,9 +1507,6 @@
 </node>
 </node>
 </node>
-<node COLOR="#ff0000" CREATED="1446305382166" ID="ID_828673164" MODIFIED="1446305400107" TEXT="TODO use CLIENT_VERSION for our version number">
-<node CREATED="1446305402942" ID="ID_723219768" MODIFIED="1446305408502" TEXT="it exists already, bitcoin uses it"/>
-</node>
 <node CREATED="1446684396617" ID="ID_1099367642" MODIFIED="1446684596215" TEXT="We are relying too much on the idea that if 51% vote on a proposal, then it must be safe I think. There is no automated check to see if a script is safe, so we are relying on people to eyeball the script, which they probably won&apos;t do">
 <node CREATED="1446684491752" ID="ID_1302332192" MODIFIED="1446684595391" TEXT="Should we go as far as making &quot;STANDARD&quot; proposals, and only accepting standard stuff?">
 <node CREATED="1446684532327" ID="ID_735965972" MODIFIED="1446684569772" TEXT="Yea, I don&apos;t really see much leeway for creative scripts. There is only a few things that can be done"/>
@@ -1536,6 +1516,9 @@
 </node>
 <node COLOR="#ff0000" CREATED="1446684599031" ID="ID_1591337978" MODIFIED="1446684602983" TEXT="TODO"/>
 </node>
+</node>
+<node CREATED="1446858152711" ID="ID_60178078" MODIFIED="1446858185850" TEXT="Is there a better way than PoW if the block chain slows down?">
+<node COLOR="#ff0000" CREATED="1446858187662" ID="ID_525474896" MODIFIED="1446859324221" TEXT="PoW blocks only have 1 trust, so they aren&apos;t really worth anything. this also means they can be ignored when creating PoS blocks. By ignoring the PoW block, you can potentially create a different kernel..."/>
 </node>
 </node>
 <node CREATED="1444095910607" FOLDED="true" ID="ID_1067944322" MODIFIED="1444622773581" POSITION="left" TEXT="v1">
@@ -1895,6 +1878,7 @@
 <node COLOR="#ff0000" CREATED="1446001054269" ID="ID_1990595523" MODIFIED="1446001068412" TEXT="Two proposals redeeming same block"/>
 <node COLOR="#ff0000" CREATED="1446001068931" ID="ID_1681261017" MODIFIED="1446001076773" TEXT="Reorg before proposal redeems"/>
 <node COLOR="#ff0000" CREATED="1446001077188" ID="ID_875072501" MODIFIED="1446001082380" TEXT="Reorg after proposal redeems"/>
+<node COLOR="#ff0000" CREATED="1446695358346" ID="ID_317673262" MODIFIED="1446695376354" TEXT="Test spending more than the pool contains"/>
 <node COLOR="#ff0000" CREATED="1446426878538" ID="ID_1240243486" MODIFIED="1446535979385" TEXT="Create &quot;attack&quot; client that posts not allowed transactions on the block chain">
 <node COLOR="#ff0000" CREATED="1446426917468" ID="ID_662991222" MODIFIED="1446426927839" TEXT="Redeems before maturity"/>
 <node COLOR="#ff0000" CREATED="1446535967997" ID="ID_1951763392" MODIFIED="1446535974275" TEXT="not passed proposals"/>
@@ -1938,17 +1922,12 @@
 <node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
 <node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
 <node CREATED="1445137019409" ID="ID_1330490338" MODIFIED="1445137021301" TEXT="2">
-<node CREATED="1445136400097" ID="ID_1867873505" MODIFIED="1445136406237" TEXT="Why are blocks being mined every second?">
-<node CREATED="1445136411545" ID="ID_901737279" MODIFIED="1445136424605" TEXT="When we first start the network, everyone is mining every second"/>
-</node>
-<node CREATED="1445136984121" ID="ID_1402537902" MODIFIED="1445137005285" TEXT="Uses a lot of the cpu, around 17% even when only pos staking???"/>
-<node CREATED="1445156888604" ID="ID_319596110" MODIFIED="1445156910872" TEXT="voting seems to only vote with the first UTXO if there is more than one "/>
-</node>
-<node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5">
-<node CREATED="1445153706299" ID="ID_1983967459" MODIFIED="1445153762078" TEXT="make viewproposal function">
+<node COLOR="#ff0000" CREATED="1446689772817" ID="ID_813066186" MODIFIED="1446689795801" TEXT="Update copyright, license crap"/>
+<node COLOR="#ff0000" CREATED="1445153706299" ID="ID_1983967459" MODIFIED="1446689758370" TEXT="make viewproposal function">
 <node CREATED="1445153764363" ID="ID_275972263" MODIFIED="1445153775230" TEXT="allows user to see proposal before commiting to it in nomiccoind"/>
 </node>
 </node>
+<node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5"/>
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
 </node>
@@ -2101,6 +2080,34 @@
 </node>
 <node CREATED="1446190133913" ID="ID_505624950" MODIFIED="1446190140532" TEXT="block chain trust issues">
 <node CREATED="1446190142241" ID="ID_981466216" MODIFIED="1446191873020" TEXT="Block chain trust is calculated based on the hashTarget. This number is multiplied by the coinage before being checked against the hash."/>
+</node>
+<node CREATED="1446714150069" ID="ID_1925728240" MODIFIED="1446714156585" TEXT="When does pindexBest change?">
+<node CREATED="1446714158069" ID="ID_1519405314" MODIFIED="1446714172505" TEXT="Since upgrade requests depend on the setting of this value, we need to know whenever it changes"/>
+<node CREATED="1446714173054" ID="ID_1366986456" MODIFIED="1446714443617" TEXT="LoadBlockIndex()">
+<node CREATED="1446715691397" ID="ID_954925765" MODIFIED="1446715705369" TEXT="Calls SetBestChain(), but only if there is some error in the chain"/>
+<node CREATED="1446715708341" ID="ID_1048862357" MODIFIED="1446715721649" TEXT="Otherwise sets the pindexBest itself"/>
+<node CREATED="1446716307781" ID="ID_1679586941" MODIFIED="1446716316441" TEXT="Loads hashBestChain, which is a global variable"/>
+</node>
+<node CREATED="1446714444069" ID="ID_780566088" MODIFIED="1446715794513" TEXT="CBlock::SetBestChain()">
+<node CREATED="1446715114373" ID="ID_1155547456" MODIFIED="1446715121233" TEXT="Called by a lot of different places"/>
+<node CREATED="1446716198462" ID="ID_1053959768" MODIFIED="1446716224889" TEXT="Writes HashBestChain, which is a single variable in the db pointing to a hash of the end of the best chain"/>
+</node>
+</node>
+<node CREATED="1446860812662" ID="ID_549082520" MODIFIED="1446860822322" TEXT="stakemodifier">
+<node CREATED="1446861028045" ID="ID_1005055511" MODIFIED="1446865123876" TEXT="ComputeNextStakeModifier">
+<node CREATED="1446860823478" ID="ID_617955276" MODIFIED="1446860837251" TEXT="Stake modifier stays constant for 200 minutes worth of blocks"/>
+<node CREATED="1446860841093" ID="ID_735952597" MODIFIED="1446860879707" TEXT="It uses a selection interval to choose blocks">
+<node CREATED="1446860880815" ID="ID_1120290823" MODIFIED="1446862097826" TEXT="This selection interval is subtracted from the last block in the chain divided by the MODIFIER_INTERVAL_BASE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1446860928527" ID="ID_1041021148" MODIFIED="1446862114402" TEXT="This means that working off a different block in the chain will change the selection interval, but only when crossing the modifier_interval_base"/>
+<node CREATED="1446861601110" ID="ID_1687793104" MODIFIED="1446861603099" TEXT=" int64 nSelectionIntervalStart = (pindexPrev-&gt;GetBlockTime() / MODIFIER_INTERVAL_BASE) * MODIFIER_INTERVAL_BASE - nSelectionInterval;"/>
+</node>
+</node>
+<node CREATED="1446861043710" ID="ID_1908570216" MODIFIED="1446864828123" TEXT="It runs GetStakeModifierSelectionInterval to get the selection interval">
+<node CREATED="1446861311783" ID="ID_1946807190" MODIFIED="1446861330683" TEXT="This does a calculation which appears could be replaced with a constant... why is it here?"/>
+</node>
+<node COLOR="#ff0000" CREATED="1446865126597" ID="ID_1968601185" MODIFIED="1446865143684" TEXT="Not sure what the difference is between BlackCoin, ppcoin and Neucoin in this regard????"/>
+</node>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

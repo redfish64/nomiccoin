@@ -451,6 +451,8 @@ inline std::string DateTimeStrFormat(const char* pszFormat, int64 nTime)
     return pszTime;
 }
 
+#define TIMEFORMAT "%Y-%m-%d %H:%M:%S %Z"
+
 static const std::string strTimestampFormat = "%Y-%m-%d %H:%M:%S UTC";
 inline std::string DateTimeStrFormat(int64 nTime)
 {
