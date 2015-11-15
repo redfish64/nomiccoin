@@ -244,6 +244,7 @@ public:
     timestamp_t nEstimatedStakeTime;
 
     std::map<uint256, CWalletTx> mapWallet;
+
     std::vector<uint256> vWalletUpdated;
 
     std::map<uint256, int> mapRequestCount;
@@ -785,6 +786,14 @@ public:
 
     void RelayWalletTransaction(CTxDB& txdb);
     void RelayWalletTransaction();
+
+    bool IsMature() const
+    {
+      return GetBlocksToMaturity() == 0;
+    }
+
+    int GetBlocksToMaturity() const;
+    CWalletTx *GetNonVoteAncestor() const;
 };
 
 

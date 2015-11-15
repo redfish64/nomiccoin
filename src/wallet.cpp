@@ -1121,7 +1121,8 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
     return true;
 }
 
-bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const
+bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet,
+		int64& nValueRet) const
 {
     vector<COutput> vCoins;
     AvailableCoins(nSpendTime, vCoins);
@@ -1395,6 +1396,20 @@ timestamp_t CWallet::GetEstimatedStakeTime(void)
     return nEstimatedStakeTime;
 }
 
+void GetNonVoteAncestor(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, PAIRTYPE(const CWalletTx*, unsigned int)& pcoinOut)
+{
+	CWalletTx *nonVoteTx = pcoin.first->GetNonVoteAncestor();
+
+	if(nonVoteTx == pcoin.first || nonVoteTx == NULL)
+		pcoinOut = pcoin;
+	else
+	{
+		//since votes always have exactly one input, we know it will be zero
+		pcoinOut.second = 0;
+		pcoinOut.first = nonVoteTx;
+	}
+}
+
 
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
@@ -1423,14 +1438,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     vector<const CWalletTx*> vwtxPrev;
     int64 nValueIn = 0;
 
-    if (nBalance > nReserveBalance)
-    {
-      if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
-	  return false;
-    }
+    if (nBalance <= nReserveBalance)
+    	return false;
+
+    if (!SelectCoins(nBalance - nReserveBalance, txNew.nTime, setCoins, nValueIn))
+        return false;
 
     if (setCoins.empty())
-	return false;
+    	return false;
 
     StakeStats stakeStats;
     bool nsmc = GetBoolArg("-nosplitmaxcombine", false);
@@ -1440,18 +1455,23 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
+    	//we "pass through" the vote transactions to get to the non vote transaction before it
+    	PAIRTYPE(const CWalletTx*, unsigned int) stakedPCoin;
+
+    	GetNonVoteAncestor(pcoin, stakedPCoin);
+
         CTxDB txdb("r");
-        CTxIndex txindex;
-        if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+        CTxIndex stakedTxindex;
+        if (!txdb.ReadTxIndex(stakedPCoin.first->GetHash(), stakedTxindex))
             continue;
 
         // Read block header
-        CBlock block;
-        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+        CBlock stakedBlock;
+        if (!stakedBlock.ReadFromDisk(stakedTxindex.pos.nFile, stakedTxindex.pos.nBlockPos, false))
             continue;
         static int nMaxStakeSearchInterval = 60;
 
-        if (block.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
+        if (stakedBlock.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
 	    continue; // only count coins meeting min age requirement
 
 	
@@ -1461,9 +1481,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Search backward in time from the given txNew timestamp
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0;
-            COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
 
-            if (CheckStakeKernelHash(pindexBest, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
+            COutPoint stakedPrevoutStake = COutPoint(stakedPCoin.first->GetHash(), stakedPCoin.second);
+
+            if (CheckStakeKernelHash(pindexBest, nBits, stakedBlock, stakedTxindex.pos.nTxPos - stakedTxindex.pos.nBlockPos,
+            		*stakedPCoin.first,
+            		stakedPrevoutStake, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
             {
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
@@ -1531,7 +1554,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
-                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
+                if (stakedBlock.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
@@ -1549,7 +1572,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         return false;
     
 
-    //TODO 2 get rid of this splitting code. It will upset voting
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
         // Attempt to add more inputs

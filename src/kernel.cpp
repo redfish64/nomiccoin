@@ -274,7 +274,9 @@ CBigNum MAX_HASH(1);
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 //
-bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom, unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, StakeStats *stakeStats)
+bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom,
+		unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout,
+		unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, StakeStats *stakeStats)
 {
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
         return error("CheckStakeKernelHash() : nTime violation");
@@ -347,22 +349,29 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
     CTxIndex txindex;
     if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: read txPrev failed"));  // previous transaction not in main chain, may occur during initial download
-    txdb.Close();
 
     // Verify signature
     if (!VerifySignature(txPrev, tx, 0, true, 0))
         return tx.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str()));
 
+    CTransaction nonVoteTxPrev;
+    CTxIndex nonVoteTxIndex;
+    COutPoint nonVoteOutPoint;
+    if(!txPrev.ReadNonVoteAncestor(txdb, txindex, txin.prevout, nonVoteTxPrev, nonVoteTxIndex, nonVoteOutPoint))
+        return tx.DoS(1, error("CheckProofOfStake() : INFO: cannot read non vote ancestor"));
+    txdb.Close();
+
     // Read block header
-    CBlock block;
-    if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+    CBlock nonVoteBlock;
+    if (!nonVoteBlock.ReadFromDisk(nonVoteTxIndex.pos.nFile, nonVoteTxIndex.pos.nBlockPos, false))
         return fDebug? error("CheckProofOfStake() : read block failed") : false; // unable to read block of previous transaction
 
     // Check that the proof-of-stake hasn't been blacklisted
-    if (IsProofOfStakeBlacklisted(block.GetProofOfStake()))
+    if (IsProofOfStakeBlacklisted(nonVoteBlock.GetProofOfStake()))
         return tx.DoS(100, error("CheckProofOfStake() : Blacklisted Proof-of-Stake"));
 
-    if (!CheckStakeKernelHash(pindexPrev, nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, txPrev, txin.prevout, tx.nTime, hashProofOfStake, fDebug))
+    if (!CheckStakeKernelHash(pindexPrev, nBits, nonVoteBlock, nonVoteTxIndex.pos.nTxPos - nonVoteTxIndex.pos.nBlockPos,
+    		nonVoteTxPrev, nonVoteOutPoint, tx.nTime, hashProofOfStake, fDebug))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s", tx.GetHash().ToString().c_str(), hashProofOfStake.ToString().c_str())); // may occur during initial download or if behind on block chain sync
 
     return true;

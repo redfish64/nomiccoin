@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
-<node CREATED="1444028673000" ID="ID_652303042" MODIFIED="1445910359530" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1447555772402" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -919,10 +919,17 @@
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
+<node CREATED="1447424278853" ID="ID_1186530024" MODIFIED="1447554825270" TEXT="What if someone votes a million times and then stakes with that. Would it be an effective dos?">
+<node CREATED="1447554781356" ID="ID_1134988575" MODIFIED="1447554797640" TEXT="It would cost a lot, and effect only a single block"/>
+<node CREATED="1447554798380" ID="ID_1342533632" MODIFIED="1447554817577" TEXT="It may not be a problem"/>
+<node CREATED="1447554820197" ID="ID_1227883896" MODIFIED="1447554823510" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
 </node>
 <node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1445724347479" POSITION="right" TEXT="coding">
 <node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1446682192937" TEXT="new ops">
-<node COLOR="#ff0000" CREATED="1444804794921" ID="ID_64752469" MODIFIED="1446682342530" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
+<node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1447555634772" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
 <node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
 <node CREATED="1445835412844" ID="ID_1579658579" MODIFIED="1445910484146" TEXT="Should source code contain md5sums of prior versions?">
@@ -1005,11 +1012,13 @@
 </node>
 </node>
 <node CREATED="1446682345865" ID="ID_1233356391" MODIFIED="1446682350845" TEXT="Enforcement">
-<node COLOR="#ff0000" CREATED="1446682352794" ID="ID_1870972562" MODIFIED="1446682660543" TEXT="if past the deadline, upgrade information is shown, system won&apos;t start"/>
-<node COLOR="#ff0000" CREATED="1446722955792" ID="ID_650904809" MODIFIED="1446722957121" TEXT="When do we shutdown the system after the deadline has passed?"/>
-<node COLOR="#ff0000" CREATED="1446682374401" ID="ID_560528344" MODIFIED="1446682660311" TEXT="If an &quot;unsafe&quot; command is used, error will be shown"/>
-<node COLOR="#ff0000" CREATED="1446682429241" ID="ID_1267419512" MODIFIED="1446682660079" TEXT="getupgradeinfo will show upgrade information"/>
-<node COLOR="#ff0000" CREATED="1446682447976" ID="ID_1073954145" MODIFIED="1446682659809" TEXT="upgrade message is repeatedly shown in the log">
+<node CREATED="1446682352794" ID="ID_1870972562" MODIFIED="1447555566725" TEXT="if past the deadline, upgrade information is shown, system won&apos;t start"/>
+<node CREATED="1446722955792" ID="ID_650904809" MODIFIED="1447555573212" TEXT="When do we shutdown the system after the deadline has passed?">
+<node CREATED="1447555583356" ID="ID_1984478489" MODIFIED="1447555590657" TEXT="I think we are doing this when we get a block"/>
+</node>
+<node CREATED="1446682374401" ID="ID_560528344" MODIFIED="1447555600164" TEXT="If an &quot;unsafe&quot; command is used, error will be shown"/>
+<node CREATED="1446682429241" ID="ID_1267419512" MODIFIED="1447555619724" TEXT="getupgradeinfo will show upgrade information"/>
+<node CREATED="1446682447976" ID="ID_1073954145" MODIFIED="1447555631948" TEXT="upgrade message is repeatedly shown in the log">
 <node CREATED="1446682492729" ID="ID_1293730630" MODIFIED="1446682498596" TEXT="frequency?">
 <node CREATED="1446682499664" ID="ID_1125849435" MODIFIED="1446682535645" TEXT="Every received block?">
 <node CREATED="1446682640104" ID="ID_1204925875" MODIFIED="1446682658073" TEXT="Should be good enough">
@@ -1020,10 +1029,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;">
-<node COLOR="#ff0000" CREATED="1445912895490" ID="ID_370974018" MODIFIED="1445912903179" TEXT="TODO"/>
-<node CREATED="1445923032154" ID="ID_1815934047" MODIFIED="1445923037877" TEXT="There is no limit to msg size"/>
-</node>
+<node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
 <node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445913589636" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
 <font NAME="SansSerif" SIZE="12"/>
 <node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
@@ -1053,7 +1059,9 @@
 <node CREATED="1445913554723" ID="ID_748204266" MODIFIED="1445913577443" TEXT="Fallback if chasing the ancestors is too much of a pain">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node COLOR="#ff0000" CREATED="1445913577987" ID="ID_1927579689" MODIFIED="1445913580427" TEXT="TODO"/>
+<node COLOR="#ff0000" CREATED="1445913577987" ID="ID_1927579689" MODIFIED="1447555692448" TEXT="Can&apos;t do this">
+<node COLOR="#ff0000" CREATED="1447555714365" ID="ID_1582600626" MODIFIED="1447555718188" TEXT="Why?"/>
+</node>
 </node>
 <node CREATED="1445510066119" ID="ID_205432673" MODIFIED="1445510451260" TEXT="voting freezes funds until coinbase_maturity?">
 <node CREATED="1445510081246" ID="ID_380593311" MODIFIED="1445510362226" TEXT="This is to prevent problems with double spends and coinstake. A voting transaction can occur with out respecting coinbase_maturity. This is to allow the user to vote even if they staked right before an election. However, doing so masks the coinstake. Rather than chasing it its ancestors to determine if they are coinstake/coinbase and haven&apos;t matured, we just check this">
@@ -1158,7 +1166,7 @@
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
 <node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
-<node CREATED="1444996931023" FOLDED="true" ID="ID_1706006000" MODIFIED="1446429426198" TEXT="voting">
+<node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1447030485468" TEXT="voting">
 <node CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445912547983" TEXT="Cannot take place for the first few blocks... to give people a chance to register to vote">
 <node CREATED="1445912557723" ID="ID_514581827" MODIFIED="1445912615743" TEXT="A proposal can be created right away, but its deadline has to be a few weeks out"/>
 <node COLOR="#ff0000" CREATED="1445912527931" ID="ID_1714713472" MODIFIED="1445912530635" TEXT="TODO"/>
@@ -1230,10 +1238,39 @@
 <node CREATED="1446393636313" ID="ID_667673206" MODIFIED="1446393638120" TEXT="Yes"/>
 <node COLOR="#ff0000" CREATED="1446393638527" ID="ID_1845111188" MODIFIED="1446393641729" TEXT="TODO"/>
 </node>
+<node CREATED="1447030502924" ID="ID_825206545" MODIFIED="1447030510984" TEXT="Preventing interruption in staking">
+<node COLOR="#ff0000" CREATED="1447030513132" ID="ID_1009727896" MODIFIED="1447030520461" TEXT="TODO">
+<font NAME="SansSerif" SIZE="12"/>
 </node>
-<node CREATED="1446429428140" ID="ID_1905534355" MODIFIED="1446429438130" TEXT="proposal txn"/>
+<node CREATED="1447030521276" ID="ID_728997998" MODIFIED="1447030582352" TEXT="AvailableCoins isn&apos;t a good place to be getting the staked tx before the voting one">
+<node CREATED="1447030584141" ID="ID_371764171" MODIFIED="1447030605768" TEXT="First, we need a CWalletTx for some methods, such as isConfirmed, etc"/>
+<node CREATED="1447030606533" ID="ID_860006276" MODIFIED="1447030635864" TEXT="Second, CWalletTx includes references to txns not yet in the blockchain to support some methods"/>
+<node CREATED="1447030636437" ID="ID_1797003351" MODIFIED="1447030696344" TEXT="Third, CWalletTx are stored within the CWallet. So if we start adding our stake txns there, we&apos;d have to check everywhere that mapWallet is being used for bugs."/>
+<node CREATED="1447030696804" ID="ID_6950441" MODIFIED="1447031263984" TEXT="Also, If we don&apos;t use CWallet for memory allocation, then we need to allocate it somewhere, and manage it ourselves"/>
+</node>
+<node CREATED="1447149793534" ID="ID_1827426772" MODIFIED="1447149827506" TEXT="Tx&apos;s may have multiple outputs, only some of those outputs may be owned by the current user and therefore minable">
+<node CREATED="1447149831582" ID="ID_346350586" MODIFIED="1447149847690" TEXT="How does WalletTx handle this, if part of the transaction may not be ours?">
+<node CREATED="1447150542575" ID="ID_766487896" MODIFIED="1447150616898" TEXT="It just manually looks at each output to see if we own the keys for it"/>
+</node>
+<node CREATED="1447150654726" ID="ID_564068369" MODIFIED="1447150668987" TEXT="I think, therefore, we need to include the array index in our map to the original txn">
+<node CREATED="1447150674655" ID="ID_766729065" MODIFIED="1447150692202" TEXT="Otherwise, how do we know which output of the txn to use, unless we trace each forward?"/>
+<node CREATED="1447152093135" ID="ID_1263890995" MODIFIED="1447152098210" TEXT="How does staking do this now?">
+<node CREATED="1447152202671" ID="ID_188814041" MODIFIED="1447152223010" TEXT="It goes through each wallet transaction and pushes the outputs individually that are stakable"/>
+</node>
+<node CREATED="1447155268118" ID="ID_559125265" MODIFIED="1447155286083" TEXT="How long do CWalletTx stay in wallet. When do we cull them?">
+<node CREATED="1447159683072" ID="ID_585926260" MODIFIED="1447159690410" TEXT="It seems like they stay there forever">
+<node CREATED="1447159731239" ID="ID_1790576754" MODIFIED="1447160038795" TEXT="If true, this means that we don&apos;t need to store this extra info at all, we can simply trace it back through the wallet, I think"/>
+</node>
+</node>
+<node CREATED="1447160043494" ID="ID_1976924672" MODIFIED="1447160053762" TEXT="How does the CWalletTx get saved?">
+<node CREATED="1447160337295" ID="ID_1682748712" MODIFIED="1447160362939" TEXT="They are written piecemeal into the wallet.dat whenever they get committed to the main database"/>
+</node>
+</node>
+</node>
+</node>
+</node>
 <node CREATED="1446306157404" ID="ID_70177628" MODIFIED="1446306160213" TEXT="voting results">
-<node CREATED="1446192619433" FOLDED="true" ID="ID_1763214564" MODIFIED="1446429409625" TEXT="How do we want to programmatically organize this?">
+<node CREATED="1446192619433" FOLDED="true" ID="ID_1763214564" MODIFIED="1447555802367" TEXT="How do we want to programmatically organize this?">
 <node CREATED="1446192796937" ID="ID_1303816729" MODIFIED="1446192799574" TEXT="Operations">
 <node CREATED="1446192801034" FOLDED="true" ID="ID_621414025" MODIFIED="1446194703223" TEXT="1.Create and save upgrade and messages">
 <node CREATED="1446192819546" ID="ID_369438490" MODIFIED="1446192824493" TEXT="Save to db each object"/>
@@ -2107,6 +2144,14 @@
 <node CREATED="1446861311783" ID="ID_1946807190" MODIFIED="1446861330683" TEXT="This does a calculation which appears could be replaced with a constant... why is it here?"/>
 </node>
 <node COLOR="#ff0000" CREATED="1446865126597" ID="ID_1968601185" MODIFIED="1446865143684" TEXT="Not sure what the difference is between BlackCoin, ppcoin and Neucoin in this regard????"/>
+</node>
+</node>
+<node CREATED="1446950853349" ID="ID_1300230350" MODIFIED="1446951021383" TEXT="Minting">
+<node CREATED="1446951021376" ID="ID_1038305106" MODIFIED="1446951024056" TEXT="CreateCoinStake">
+<node CREATED="1446950872581" ID="ID_104864375" MODIFIED="1446950998840" TEXT="SelectCoins">
+<node CREATED="1446951002716" ID="ID_530158102" MODIFIED="1446951008952" TEXT="Chooses the transactions to mint from"/>
+</node>
+<node CREATED="1446951027596" ID="ID_903403547" MODIFIED="1446951027596" TEXT=""/>
 </node>
 </node>
 </node>

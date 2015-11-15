@@ -58,6 +58,38 @@ export var mediumFastChain = {
 
 };
 
+export var withMinStakeAgeChain = {
+
+    GENESIS_MERKLE_HASH        : `hash_t("0xb0c01c59825e8df457a272471b18d4c60984fccfc39aa175030654760dcf0886")`,
+    GENESIS_HASH               : `hash_t("0x898a93d813df827f2ba84ea5bbacc17aa55b3b0461b699ed5ddd81fe868e5b61")`,
+    GENESIS_TIME               : `1441976184`,
+    GENESIS_NONCE              : `172958`,
+
+    BLOCK_CHECKPOINTS          : `boost::assign::map_list_of(0, GENESIS_HASH)`,
+    STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0x0e00670b)`,
+
+    POW_MAX_BLOCK              : `std::numeric_limits<blockheight_t>::max()`,
+
+    POW_INITIAL_TARGET         : `target_t(~uint256(0))`,
+    POS_INITIAL_TARGET         : `target_t(~uint256(0))`,
+
+    POW_MAX_TARGET             : `target_t(~uint256(0))`,
+    POS_MAX_TARGET             : `target_t(~uint256(0))`,
+
+    POW_TARGET_SPACING         : `1 * SECOND`,
+    POS_TARGET_SPACING         : `1 * SECOND`,
+
+    STAKE_MIN_AGE              : `60 * SECOND`,
+    STAKE_MAX_AGE              : `60 * SECOND`,
+
+    STAKE_COIN_STEP            : `1`,
+    STAKE_AGE_STEP             : `1`,
+
+    COINBASE_MATURITY          : `1`,
+
+    PROPOSAL_MATURITY_BLOCKS   : `15`
+};
+
 export var smallChain = {
 
     COIN_PREMINE          : `0 * COIN`,

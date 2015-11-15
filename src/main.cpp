@@ -301,6 +301,41 @@ bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txinde
     return true;
 }
 
+/**
+ * Finds the last transaction that is not a voting transaction in the ancestors of this.
+ *
+ * nonVoteOutPoint: set to the outpoint of the latest non vote transaction that eventually branches to this
+ */
+bool CTransaction::ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,
+		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint)
+{
+	if(!this->IsVoteTxn())
+	{
+		nonVoteTxPrev = *this;
+		nonVoteTxIndex = thisTxIndex;
+		nonVoteOutPoint = thisOutpoint;
+
+		return true;
+	}
+
+	if(!nonVoteTxPrev.ReadFromDisk(txdb, thisOutpoint, nonVoteTxIndex))
+		return error("CTransaction::ReadNonVoteAncestor() : cannot read vote ancestor %s",
+				this->vin[0].prevout.hash.ToString().c_str());
+	nonVoteOutPoint = thisOutpoint;
+
+	INFINITE_LOOP
+	{
+		if(!nonVoteTxPrev.IsVoteTxn())
+			return true;
+
+		nonVoteOutPoint = nonVoteTxPrev.vin[0].prevout;
+
+		if(!nonVoteTxPrev.ReadFromDisk(txdb, nonVoteOutPoint, nonVoteTxIndex))
+			return error("CTransaction::ReadNonVoteAncestor() : cannot read vote ancestor %s",
+					nonVoteTxPrev.vin[0].prevout.hash.ToString().c_str());
+	}
+}
+
 bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout)
 {
     CTxIndex txindex;
@@ -836,10 +871,45 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
-
-int CMerkleTx::GetBlocksToMaturity() const
+CWalletTx *CWalletTx::GetNonVoteAncestor() const
 {
-  if (!(IsCoinBase() || IsCoinStake() || IsVoteTxn()))
+	const CWalletTx * ourTx = this;
+
+	INFINITE_LOOP {
+		if(!ourTx->IsVoteTxn())
+			return (CWalletTx *)ourTx;
+
+		std::map<uint256, CWalletTx>::const_iterator x =  ourTx->pwallet->mapWallet.find(ourTx->vin[0].prevout.hash);
+
+		if(x == ourTx->pwallet->mapWallet.end())
+			return NULL;
+
+		ourTx = &(x->second);
+	}
+}
+
+
+int CWalletTx::GetBlocksToMaturity() const
+{
+	//TODO FIXME 1
+//	????? if it is a vote txn, we need to check to see if the original is coinstake/coinbase. We can't just be lazy and
+//			make voting txns mature like coinstake, because
+//		maturity also matters when staking, so that would make voting txn's not be able to stake until after maturity
+//		effectively stopping staking
+  if(IsVoteTxn())
+  {
+	  CWalletTx *nonVoteTxn = this->GetNonVoteAncestor();
+	  if(nonVoteTxn)
+	  {
+		  return nonVoteTxn->GetBlocksToMaturity();
+	  }
+
+	  //a vote txn should always be from our own wallet.
+	  printf("VoteTxn without non vote ancestor, %s\n", this->GetHash().GetHex().c_str());
+	  return 0;
+  }
+
+  if (!(IsCoinBase() || IsCoinStake()))
         return 0;
 
     int depth = GetDepthInMainChain();

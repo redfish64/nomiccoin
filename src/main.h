@@ -789,6 +789,8 @@ public:
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge = false) const;  // ppcoin: get transaction coin age
     bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts);
+    bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,
+    		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint);
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
@@ -837,19 +839,13 @@ public:
         READWRITE(nIndex);
     )
 
-    bool IsMature() const
-    {
-      return GetBlocksToMaturity() == 0;
-    }
-    
-
     int SetMerkleBranch(const CBlock* pblock=NULL);
     int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
     int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { return GetDepthInMainChain() > 0; }
-    int GetBlocksToMaturity() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true);
     bool AcceptToMemoryPool();
+
 };
 
 
