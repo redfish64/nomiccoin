@@ -357,7 +357,7 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
     CTransaction nonVoteTxPrev;
     CTxIndex nonVoteTxIndex;
     COutPoint nonVoteOutPoint;
-    if(!txPrev.ReadNonVoteAncestor(txdb, txindex, txin.prevout, nonVoteTxPrev, nonVoteTxIndex, nonVoteOutPoint))
+    if(!txPrev.ReadNonVoteAncestor(txdb, txindex, txin.prevout, NULL, nonVoteTxPrev, nonVoteTxIndex, nonVoteOutPoint))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: cannot read non vote ancestor"));
     txdb.Close();
 

@@ -206,7 +206,8 @@ public:
      * Used for a transaction that redeems a pass vote proposal
      */
     void SetProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
-    bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
+    bool IsRedeemedProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
+    bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-3)); }
 
     friend bool operator<(const COutPoint& a, const COutPoint& b)
     {
@@ -547,6 +548,12 @@ public:
     }
 
     //true if the txn is used to redeem a proposal
+    bool IsRedeemedProposal() const
+    {
+        return (vin.size() == 1 && vin[0].prevout.IsRedeemedProposal() && vout.size() >= 1);
+    }
+
+    //true if the txn is a proposal
     bool IsProposal() const
     {
         return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
@@ -728,8 +735,8 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" :
-					   (IsVoteTxn()? "Vote" :
-					    "CTransaction"));
+					   (IsVoteTxn()? "Vote" :(IsCoinStake()&&IsVoteTxn()? "Coinstake/Vote" :
+					    "CTransaction")));
         str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%d, vout.size=%d, nLockTime=%d)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,
@@ -760,14 +767,19 @@ public:
 
      @param[in] txdb	Transaction database
      @param[in] mapTestPool	List of pending changes to the transaction index database
-     @param[in] fBlock	True if being called to add a new best-block to the chain
-     @param[in] fMiner	True if being called by CreateNewBlock
+     @param[in] fBlock	True if being called to add a new best-block to the chain. Will use the mapTestPool to lookup the inputs first.
+                        Otherwise will ignore this
+     @param[in] fMiner	True if being called by CreateNewBlock. Will use mapTestPool and not error on any lookup failure.
      @param[out] inputsRet	Pointers to this transaction's inputs
+     @param[out] nonVoteInputsRet	Pointers to the non vote ancestors of all inputs. If an input is a vote,
+                                    then it's prior txn is returned (unless that also is a vote, in which case,
+                                    it's prior txn is returned, and so forth)
      @param[out] fInvalid	returns true if transaction is invalid
      @return	Returns true if all inputs are in txdb or mapTestPool
      */
     bool FetchInputs(CTxDB& txdb, const std::map<uint256, CTxIndex>& mapTestPool,
-                     bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid);
+                     bool fBlock, bool fMiner, MapPrevTx& inputsRet,
+                     bool& fInvalid);
 
     /** Sanity check previous transactions, then, if all checks succeed,
         mark them as spent by this transaction.
@@ -789,7 +801,8 @@ public:
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge = false) const;  // ppcoin: get transaction coin age
     bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts);
-    bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,
+    bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,const std::map<uint256, CTxIndex> *mapQueuedChanges,
+
     		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint);
 
 protected:

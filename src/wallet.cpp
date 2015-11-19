@@ -1469,14 +1469,17 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         CBlock stakedBlock;
         if (!stakedBlock.ReadFromDisk(stakedTxindex.pos.nFile, stakedTxindex.pos.nBlockPos, false))
             continue;
-        static int nMaxStakeSearchInterval = 60;
+        static int64 nMaxStakeSearchInterval = 60;
 
-        if (stakedBlock.GetBlockTime() + STAKE_MIN_AGE > txNew.nTime - nMaxStakeSearchInterval)
-	    continue; // only count coins meeting min age requirement
+        // only count coins meeting min age requirement
+        int actualSearchInterval =
+        		min(
+        			min((int64)(txNew.nTime - (stakedBlock.GetBlockTime() + STAKE_MIN_AGE)), nMaxStakeSearchInterval),
+        			nSearchInterval);
 
 	
         bool fKernelFound = false;
-        for (unsigned int n=0; n<min(nSearchInterval,(int64)nMaxStakeSearchInterval) && !fKernelFound && !fShutdown; n++)
+        for (int n=0; n<actualSearchInterval && !fKernelFound && !fShutdown; n++)
         {
             // Search backward in time from the given txNew timestamp
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
@@ -1629,8 +1632,20 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         int nIn = 0;
         BOOST_FOREACH(const CWalletTx* pcoin, vwtxPrev)
         {
-            if (!SignSignature(*this, *pcoin, txNew, nIn++))
-                return error("CreateCoinStake : failed to sign coinstake");
+        	int preambleSize;
+        	votehash_t txnHash;
+        	money_t deadline;
+
+        	//if we are generating stake for a vote, then reinstate the vote after we stake
+        	if(pcoin->GetVoteTxnData(preambleSize, txnHash, deadline))
+        	{
+        		if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL, &txnHash, deadline))
+        			return error("CreateCoinStake : failed to sign coinstake");
+        	}
+        	else {
+        		if (!SignSignature(*this, *pcoin, txNew, nIn++))
+        			return error("CreateCoinStake : failed to sign coinstake");
+        	}
         }
 
         // Limit size

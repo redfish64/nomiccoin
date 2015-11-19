@@ -302,14 +302,16 @@ bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txinde
 }
 
 /**
- * Finds the last transaction that is not a voting transaction in the ancestors of this.
+ * Finds the last transaction that is not a pure voting transaction in the ancestors of this.
+ * Transactions that are both coin stake and voting txns will be returned.
  *
  * nonVoteOutPoint: set to the outpoint of the latest non vote transaction that eventually branches to this
  */
-bool CTransaction::ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,
+bool CTransaction::ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,const map<uint256, CTxIndex> *mapQueuedChanges,
+
 		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint)
 {
-	if(!this->IsVoteTxn())
+	if(!this->IsVoteTxn() || this->IsCoinStake())
 	{
 		nonVoteTxPrev = *this;
 		nonVoteTxIndex = thisTxIndex;
@@ -318,19 +320,30 @@ bool CTransaction::ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPo
 		return true;
 	}
 
-	if(!nonVoteTxPrev.ReadFromDisk(txdb, thisOutpoint, nonVoteTxIndex))
+    if (mapQueuedChanges && mapQueuedChanges->count(thisOutpoint.hash))
+    {
+        // Get txindex from current proposed changes
+        nonVoteTxIndex = mapQueuedChanges->find(thisOutpoint.hash)->second;
+    }
+    else if(!nonVoteTxPrev.ReadFromDisk(txdb, thisOutpoint, nonVoteTxIndex))
 		return error("CTransaction::ReadNonVoteAncestor() : cannot read vote ancestor %s",
 				this->vin[0].prevout.hash.ToString().c_str());
+
 	nonVoteOutPoint = thisOutpoint;
 
 	INFINITE_LOOP
 	{
-		if(!nonVoteTxPrev.IsVoteTxn())
+		if(!nonVoteTxPrev.IsVoteTxn() || nonVoteTxPrev.IsCoinStake())
 			return true;
 
 		nonVoteOutPoint = nonVoteTxPrev.vin[0].prevout;
 
-		if(!nonVoteTxPrev.ReadFromDisk(txdb, nonVoteOutPoint, nonVoteTxIndex))
+	    if (mapQueuedChanges && mapQueuedChanges->count(thisOutpoint.hash))
+	    {
+	        // Get txindex from current proposed changes
+	        nonVoteTxIndex = mapQueuedChanges->find(thisOutpoint.hash)->second;
+	    }
+	    else if(!nonVoteTxPrev.ReadFromDisk(txdb, nonVoteOutPoint, nonVoteTxIndex))
 			return error("CTransaction::ReadNonVoteAncestor() : cannot read vote ancestor %s",
 					nonVoteTxPrev.vin[0].prevout.hash.ToString().c_str());
 	}
@@ -654,13 +667,15 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
     // To help v0.1.5 clients who would see it as a negative number
     if ((int64)tx.nLockTime > std::numeric_limits<int>::max())
         return error("CTxMemPool::accept() : not accepting nLockTime beyond 2038 yet");
-
     if (tx.IsProposal())
-      {
-	//we don't check for "standard" proposals. If over 51% of the network voted on it,
-	//it's going in.
+    	//TODO 2 check if standard
+    	/*NOP*/;
 
-	if(!tx.IsProposalReedemable(txdb))
+    if (tx.IsRedeemedProposal())
+      {
+    	//TODO 2 make sure its standard
+
+    	if(!tx.IsProposalReedemable(txdb))
 	    return error("CTxMemPool::accept() : proposal not redeemable");
       }
     // Rather not work on nonstandard transactions
@@ -706,7 +721,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         }
     }
 
-    if (fCheckInputs && !tx.IsProposal())
+    if (fCheckInputs && !(tx.IsRedeemedProposal() || tx.IsProposal()))
     {
       MapPrevTx mapInputs;
       map<uint256, CTxIndex> mapUnused;
@@ -876,7 +891,7 @@ CWalletTx *CWalletTx::GetNonVoteAncestor() const
 	const CWalletTx * ourTx = this;
 
 	INFINITE_LOOP {
-		if(!ourTx->IsVoteTxn())
+		if(!ourTx->IsVoteTxn() || ourTx->IsCoinStake())
 			return (CWalletTx *)ourTx;
 
 		std::map<uint256, CWalletTx>::const_iterator x =  ourTx->pwallet->mapWallet.find(ourTx->vin[0].prevout.hash);
@@ -891,12 +906,7 @@ CWalletTx *CWalletTx::GetNonVoteAncestor() const
 
 int CWalletTx::GetBlocksToMaturity() const
 {
-	//TODO FIXME 1
-//	????? if it is a vote txn, we need to check to see if the original is coinstake/coinbase. We can't just be lazy and
-//			make voting txns mature like coinstake, because
-//		maturity also matters when staking, so that would make voting txn's not be able to stake until after maturity
-//		effectively stopping staking
-  if(IsVoteTxn())
+  if(IsVoteTxn() && !IsCoinStake())
   {
 	  CWalletTx *nonVoteTxn = this->GetNonVoteAncestor();
 	  if(nonVoteTxn)
@@ -1195,7 +1205,7 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     // be dropped).  If tx is definitely invalid, fInvalid will be set to true.
     fInvalid = false;
 
-    if (IsCoinBase() || IsProposal())
+    if (IsCoinBase() || IsRedeemedProposal() || IsProposal())
         return true; // Coinbase transactions have no inputs to fetch.
 
     for (unsigned int i = 0; i < vin.size(); i++)
@@ -1381,6 +1391,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
   return true;
 }
 
+
 bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                                  map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                                  const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash)
@@ -1389,7 +1400,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
-  if (!IsCoinBase() && !IsProposal())
+  if (!IsCoinBase() && !IsProposal() && !IsRedeemedProposal())
     {
         int64 nValueIn = 0;
         int64 nFees = 0;
@@ -1400,15 +1411,35 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
 
+
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %d %d prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
 
-	    //TODO 2 must check if vote txns are matured as well
-	    
+            if (txPrev.IsProposal())
+                return DoS(100, error("ConnectInputs() : tried to spend a proposal"));
+
+            CTransaction txNonVoteAncestor;
+            CTxIndex txNonVoteTxIndex;
+            COutPoint txNonVoteOutPoint;
+
+            if(!IsVoteTxn() || IsCoinStake())
+            {
+            	txNonVoteAncestor = txPrev;
+            	txNonVoteTxIndex = txindex;
+            	txNonVoteOutPoint = prevout;
+            }
+            else
+            {
+            	if(!txPrev.ReadNonVoteAncestor(txdb, txindex, prevout, &mapTestPool, txNonVoteAncestor, txNonVoteTxIndex, txNonVoteOutPoint))
+            		return error("ConnectInputs() : ReadNonVoteAncestor failed");
+            }
+
             // If prev is coinbase/coinstake, check that it's matured
-            if ((txPrev.IsCoinBase() || txPrev.IsCoinStake()) && !IsVoteTxn())
-                for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < COINBASE_MATURITY; pindex = pindex->pprev)
-                    if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
+            if (txNonVoteAncestor.IsCoinBase() || txNonVoteAncestor.IsCoinStake())
+                for (const CBlockIndex* pindex = pindexBlock; pindex &&
+                pindexBlock->nHeight - pindex->nHeight < COINBASE_MATURITY; pindex = pindex->pprev)
+                    if (pindex->nBlockPos == txNonVoteTxIndex.pos.nBlockPos
+                    		&& pindex->nFile == txNonVoteTxIndex.pos.nFile)
                         return error("ConnectInputs() : tried to spend coinbase/coinstake at depth %d", pindexBlock->nHeight - pindex->nHeight);
 
             // ppcoin: check transaction timestamp
@@ -1717,10 +1748,15 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             nValueOut += tx.GetValueOut();
 	    poolPerc = SHARED_POOL_MINING_PERC;
 	  }
-	else if (tx.IsProposal())
+    	else if (tx.IsProposal())
+    		//TODO 1 we have to record the proposals in the db
+    		/*NOP*/;
+
+
+	else if (tx.IsRedeemedProposal())
 	  {
-	    //we do this here rather than CheckBlock
-	    //we need to be on the main chain to check if all the votes have come in and
+	    //we do this here rather than CheckBlock because we
+	    //we need know we are on the main chain to check if all the votes have come in and
 	    //the proposal is redeemable
 	    if(!tx.IsProposalReedemable(txdb))
 	      return DoS(100, error("ConnectBlock() : proposal is not redeemable"));
@@ -1807,7 +1843,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
       {
 	//we've already checked if any proposals are redeemable at this point, so now we just
 	//have to run them
-	if(tx.IsProposal())
+	if(tx.IsRedeemedProposal())
 	  {
 	    //everyone evaluates the tx, in case it has operations for displaying a message
 	    //or upgrading the client
@@ -2661,45 +2697,6 @@ bool CBlock::CheckBlockSignature() const
     if (whichType == TX_PUBKEY)
     {
         const valtype& vchPubKey = vSolutions[0];
-        CKey key;
-        if (!key.SetPubKey(vchPubKey))
-            return false;
-        if (vchBlockSig.empty())
-            return false;
-        return key.Verify(GetHash(), vchBlockSig);
-    }
-    else if (whichType == TX_SCRIPTHASH)
-    {
-        // Output is a pay-to-script-hash
-        // Only allowed with cold minting
-
-        if (!IsProofOfStake())
-            return false;
-
-        // CoinStake scriptSig should contain 3 pushes: the signature, the pubkey and the cold minting script
-        CScript scriptSig = vtx[1].vin[0].scriptSig;
-        if (!scriptSig.IsPushOrVoteOnly())
-            return false;
-
-        vector<vector<unsigned char> > stack;
-	CTransaction txTemp;
-        if (!EvalScript(stack, scriptSig, &txTemp, 0, 0))
-            return false;
-        if (stack.size() != 3)
-            return false;
-
-        // Verify the script is a cold minting script
-        const valtype& scriptSerialized = stack.back();
-        CScript script(scriptSerialized.begin(), scriptSerialized.end());
-        if (!Solver(script, whichType, vSolutions))
-            return false;
-
-        // Verify the scriptSig pubkey matches the minting key
-        valtype& vchPubKey = stack[1];
-        if (Hash160(vchPubKey) != uint160(vSolutions[0]))
-            return false;
-
-        // Verify the block signature with the minting key
         CKey key;
         if (!key.SetPubKey(vchPubKey))
             return false;
@@ -4316,7 +4313,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
                 continue;
 
-	    if(tx.IsProposal())
+	    if(tx.IsRedeemedProposal())
 	      {
 		//if it is a proposal, we want it in the first block we that we can
                 mapPriority.insert(make_pair(-numeric_limits<double>::max(), &(*mi).second));
@@ -4402,7 +4399,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
 	    map<uint256, CTxIndex> mapTestPoolTmp(mapTestPool);
 	    int64 nTxFees;
 
-	    if(tx.IsProposal()) //if a proposal, we get the input from the funds pool
+	    if(tx.IsRedeemedProposal()) //if a proposal, we get the input from the funds pool
 	      {
 		if(pindexPrev->nSharedPoolFunds - tx.GetValueOut() - nMinFee < 0)
 		  {

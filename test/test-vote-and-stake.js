@@ -1,5 +1,5 @@
 import { compileWith }           from './framework/compilation';
-import { mineSomePowBlocks }     from './framework/mining';
+import { mineSomePowBlocks,transferFunds }     from './framework/mining';
 import { sendRpcQuery }          from './framework/query';
 import { spawnClient }           from './framework/spawn';
 import { delayExecution }        from './framework/time';
@@ -17,13 +17,19 @@ export async function test( ) {
 				     } );
 
     //mine some blocks to get some funds
-    await mineSomePowBlocks( client1, 10);
+    await mineSomePowBlocks( client2, 15);
     await delayExecution( 2 );
 
-    //make those coins ready to stake
-    await delayExecution(60 );
+    //transfer them to client 1 in one UTXO
+    await transferFunds( client2, client1, 10)
+
+    //commit the transfer
+    await delayExecution(2 );
     await mineSomePowBlocks( client2, 1);
     await delayExecution( 2 );
+
+    //wait 60 seconds before we vote
+    await delayExecution( 60 );
 
     //vote
     var rpc = await sendRpcQuery( client1, { method : 'getinfo' } );
@@ -42,18 +48,39 @@ export async function test( ) {
     await delayExecution( 2 );
 
     var rpc = await sendRpcQuery( client1, { method : 'getinfo' } );
-    expect( rpc.result.blocks ).to.be.equal( 12 );
+    expect( rpc.result.blocks ).to.be.equal( 17 );
 
-    //now try to stake, should be allowed
+    var startTime = new Date().getTime()
+
+    //now try to stake, should be allowed, and commit instantly (even though we voted)
     var rpc = await sendRpcQuery( client1, { method : 'generatestake' } );
 
-    //TODO test this with timing
+    var waitSeconds =  (new Date().getTime() - startTime)/1000;
+
+    expect (waitSeconds > 10).to.be.equal(false)
     
-    //finally make sure the other client accepts it
+    //make sure the other client accepts it
     await delayExecution( 2 );
     var rpc = await sendRpcQuery( client1, { method : 'getinfo' } );
-    expect( rpc.result.blocks ).to.be.equal( 13 );
+    expect( rpc.result.blocks ).to.be.equal( 18 );
     var rpc = await sendRpcQuery( client2, { method : 'getinfo' } );
-    expect( rpc.result.blocks ).to.be.equal( 13 );
+    expect( rpc.result.blocks ).to.be.equal( 18 );
 
+    //mine some blocks tom ature the stake
+    await delayExecution( 2 );
+    await mineSomePowBlocks( client2, 2 );
+    await delayExecution( 2 );
+
+    //now try to stake again, should be allowed, but take 60 seconds due to the
+    //STAKE_MIN_AGE time
+    var startTime = new Date().getTime()
+
+    var rpc = await sendRpcQuery( client1, { method : 'generatestake' } );
+
+    var waitSeconds =  (new Date().getTime() - startTime)/1000;
+
+    expect (waitSeconds < 40).to.be.equal(false)
+
+    var rpc = await sendRpcQuery( client2, { method : 'getinfo' } );
+    expect( rpc.result.blocks ).to.be.equal( 20 );
 }

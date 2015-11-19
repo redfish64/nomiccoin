@@ -60,3 +60,20 @@ export async function mintSomePosBlocks( client, count ) {
     return req.result;
 
 }
+
+export async function transferFunds( client1, client2, funds ) {
+
+    let rpc = await sendRpcQuery( client2, { method : 'getnewaddress' } );
+
+    expect( rpc.error == null).to.be.equal(true)
+
+    let addr = rpc.result
+
+    rpc = await sendRpcQuery( client1, { method : 'sendtoaddress',
+					     params : [ addr, funds ] } );
+    
+    expect( rpc.error == null ).to.be.equal(true)
+
+    return rpc.result;
+
+}

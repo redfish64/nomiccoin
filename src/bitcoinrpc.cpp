@@ -188,8 +188,10 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         else
         {
             in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
-	    if(tx.IsProposal())
-	      in.push_back(Pair("proposal", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+	        if(tx.IsRedeemedProposal())
+	            in.push_back(Pair("is_redeemed_proposal", true));
+	        if(tx.IsProposal())
+	            in.push_back(Pair("is_proposal", true));
 	      
             in.push_back(Pair("vout", (boost::int64_t)txin.prevout.n));
             Object o;
@@ -241,6 +243,7 @@ void TxToJSON(const CTransaction& tx, Object& txdata)
     txdata.push_back(Pair("locktime", (int)tx.nLockTime));
     txdata.push_back(Pair("is_coinbase", tx.IsCoinBase()));
     txdata.push_back(Pair("is_coinstake", tx.IsCoinStake()));
+    txdata.push_back(Pair("is_redeemed_proposal", tx.IsRedeemedProposal()));
     txdata.push_back(Pair("is_proposal", tx.IsProposal()));
     txdata.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
 
@@ -254,7 +257,7 @@ void TxToJSON(const CTransaction& tx, Object& txdata)
         {
             vin.push_back(Pair("coinbase", HexStr(txin.scriptSig).c_str()));
         }
-        else if (txin.prevout.IsProposal())
+        else if (txin.prevout.IsRedeemedProposal())
         {
             vin.push_back(Pair("proposal", HexStr(txin.scriptSig).c_str()));
         }
