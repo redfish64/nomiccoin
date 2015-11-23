@@ -1022,7 +1022,7 @@ Value createproposal(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3)
         throw runtime_error(
-			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max size 20)> [commands...]\n"
+			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> [commands...]\n"
 			    "commands are:\n"
 			    "displaymsg <msg>\n" 
 			    "upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
@@ -1035,8 +1035,6 @@ Value createproposal(const Array& params, bool fHelp)
     CProposal proposal;
     timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
-    proposal.title = std::vector<unsigned char>(params[1].get_str().begin(), params[1].get_str().end());
-
     CTransaction tx;
     tx.nTime = deadline; //the tx time is the deadline. 
     tx.vin.resize(1);
@@ -1046,7 +1044,7 @@ Value createproposal(const Array& params, bool fHelp)
     CScript pubScript;
     pubScript << OP_PUBLIC_SCRIPT;
 	
-    for(uint i = 2; i < params.size()-1; )
+    for(uint i = 1; i < params.size()-1; )
       {
 
 	string command = params[i].get_str();
@@ -1131,7 +1129,7 @@ Value createproposal(const Array& params, bool fHelp)
 	tx.vout.push_back(out);
       }
 
-    proposal.redeemTxn = tx;
+    proposal.proposalTxn = tx;
     proposal.ResetSelfHash();
 
     Object result;
@@ -1191,18 +1189,17 @@ Value getvoteinfo(const Array& params, bool fHelp)
   CBlockIndex *ourBlockIndex;
   bool isVoteWon;
   bool isVotingPeriodOver;
+  bool isRedeemed;
   int blocksBeforeRedeemable;
 
   CTxDB txdb("r");
   
-  prop.redeemTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver,
-				    blocksBeforeRedeemable );
+  if(!prop.proposalTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver,
+				    blocksBeforeRedeemable, isRedeemed ))
+	    throw JSONRPCError(-1, "Error getting proposal txn info.");
 
   Object obj;
 
-  std::string titleStr(prop.title.begin(),prop.title.end());
-
-  obj.push_back(Pair("proposalTitle", titleStr));
   obj.push_back(Pair("votesForProposal",   ValueFromAmount(votesForProposal)));
   obj.push_back(Pair("isVotingPeriodOver", isVotingPeriodOver));
   if(isVotingPeriodOver)
@@ -1211,9 +1208,10 @@ Value getvoteinfo(const Array& params, bool fHelp)
 
       if(isVoteWon)
 	{
-	  obj.push_back(Pair("isRedeemableNow",blocksBeforeRedeemable <= 0));
+	  obj.push_back(Pair("isRedeemableNow",blocksBeforeRedeemable <= 0 && !isRedeemed));
 	  if(blocksBeforeRedeemable > 0)
 	    obj.push_back(Pair("blocksBeforeRedeemable",blocksBeforeRedeemable));
+      obj.push_back(Pair("isRedeemed", isRedeemed));
 	}
       
     }
@@ -1223,7 +1221,7 @@ Value getvoteinfo(const Array& params, bool fHelp)
 		       votesForProposal /
 		       (double) ourBlockIndex->votingPeriodVotedCoins));
   obj.push_back(Pair("deadline", DateTimeStrFormat(prop.GetDeadline()).c_str()));
-  TxToJSON(prop.redeemTxn, 0, obj);
+  TxToJSON(prop.proposalTxn, 0, obj);
   
   return obj;
 }
@@ -1244,7 +1242,7 @@ Value redeemvote(const Array& params, bool fHelp)
   money_t totalVotes = 0;
 
   CTxDB txdb("r");
-  txdb.ReadProposalVoteCount(prop.redeemTxn.GetHash(), prop.GetDeadline(), totalVotes); //if fails, then no votes were cast
+  txdb.ReadProposalVoteCount(prop.proposalTxn.GetHash(), totalVotes); //if fails, then no votes were cast
 
   int remainingDepth = PROPOSAL_MATURITY_BLOCKS;
   CBlockIndex *ourBlockIndex = pindexBest;
@@ -1255,12 +1253,18 @@ Value redeemvote(const Array& params, bool fHelp)
     }
   Object obj;
 
+  //TODO 2 verify this check is in ConnectBlock or wherever
   if(remainingDepth >= 0)
     {
     throw JSONRPCError(-2, "Not enough blocks have passed");
     }
 
-  uint256 hashTx = prop.redeemTxn.GetHash();
+  //TODO 2 nice error if not enough votes?
+
+  CTransaction redeemedTransaction = prop.proposalTxn;
+  redeemedTransaction.vin[0].prevout.SetRedeemedProposal();
+
+  uint256 hashTx = redeemedTransaction.GetHash();
   
   // See if the transaction is already in a block
   // or in the memory pool:
@@ -1278,10 +1282,10 @@ Value redeemvote(const Array& params, bool fHelp)
     {
       // push to local node
       CTxDB txdb("r");
-      if (!prop.redeemTxn.AcceptToMemoryPool(txdb, false))
+      if (!redeemedTransaction.AcceptToMemoryPool(txdb, false))
 	throw JSONRPCError(-4, "TX rejected");
     }
-  RelayMessage(CInv(MSG_TX, hashTx), prop.redeemTxn);
+  RelayMessage(CInv(MSG_TX, hashTx), redeemedTransaction);
   
   return hashTx.GetHex();
 }

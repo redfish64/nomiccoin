@@ -1164,8 +1164,8 @@ void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins)
 CScript CreateVoteScript(CProposal proposal)
 {
   CScript outScript;
-  //PERF, should we force deadline to be 4 bytes to standardize the length of op_vote?
-  outScript << proposal.GetDeadline() << proposal.redeemTxn.GetHash() << OP_VOTE;
+
+  outScript << proposal.proposalTxn.GetHash() << OP_VOTE;
 
   return outScript;
 }
@@ -1208,11 +1208,10 @@ bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, const CProposal *proposa
 	  txNew.vout.push_back(txOut);
 
 	  //a null Proposal means a no vote on everything
-	  votehash_t txnHash = proposal ? proposal->redeemTxn.GetHash() : 0;
+	  votehash_t txnHash = proposal ? proposal->proposalTxn.GetHash() : 0;
 	  
 	  // Sign
-	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash,
-			     proposal ? proposal->GetDeadline() : 0))
+	  if (!SignSignature(*this, *output.tx, txNew, 0, SIGHASH_ALL, &txnHash))
 	    return false;
 
  	  vtxn.push_back(txNew);
@@ -1634,12 +1633,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         {
         	int preambleSize;
         	votehash_t txnHash;
-        	money_t deadline;
 
         	//if we are generating stake for a vote, then reinstate the vote after we stake
-        	if(pcoin->GetVoteTxnData(preambleSize, txnHash, deadline))
+        	if(pcoin->GetVoteTxnData(preambleSize, txnHash))
         	{
-        		if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL, &txnHash, deadline))
+        		if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL, &txnHash))
         			return error("CreateCoinStake : failed to sign coinstake");
         	}
         	else {

@@ -460,9 +460,8 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		//voting doesn't do anything explicitly when run.
 		//instead, votes are counted as blocks are processed.
 	        case OP_VOTE:
-	          if(stack.size() < 2)
+	          if(stack.size() < 1)
 		    return false;
-	        popstack(stack);
 	        popstack(stack);
 	        break;
 
@@ -1435,15 +1434,8 @@ bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize)
 {
   CScript::const_iterator iter = scriptSig.begin();
   
-  //first we check the deadline, which is an 8 byte number. CScript << <num> is smart enough
-  //to push less bytes for a smaller number, regardless of the maximum size, so we have to
-  //test for a realistically sized timestamp for a deadline
-  //Note also that this value may be 0 for a vote 0 call
-  if(iter == scriptSig.end() || *iter > 8)
-    return false;
-
-  iter += *iter + 1;
-
+  if(iter == scriptSig.end())
+     return false;
   //check transaction hash
   if(*iter != 32)
     return false;
@@ -1462,19 +1454,16 @@ bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize)
  * Returns true if the script is a vote script (only scriptSigs are vote scripts) and returns
  * the related data
  */
-bool GetVoteScriptData(const CScript& scriptSig, int&  preambleSize, votehash_t& txnHash, timestamp_t& deadline)
+bool GetVoteScriptData(const CScript& scriptSig, int&  preambleSize, votehash_t& txnHash)
 {
   if(!IsVoteScript( scriptSig, preambleSize))
     return false;
 
   CScript::const_iterator iter = scriptSig.begin();
+
+  //get the txn hash
   opcodetype opcode;
   vector<unsigned char> vch;
-  scriptSig.GetOp(iter, opcode,vch);
-  deadline = CastToBigNum(vch).getuint64();
-
-  //now get the txn hash
-  
   scriptSig.GetOp(iter, opcode,vch);
   txnHash = uint256(vch);
 
@@ -1650,13 +1639,12 @@ bool SignN(const vector<valtype>& multisigdata, const CKeyStore& keystore, uint2
 // Returns false if scriptPubKey could not be completely satisified.
 //
 bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash, int nHashType,
-            CScript& scriptSigRet, txnouttype& whichTypeRet, const votehash_t *voteTxnHash = 0,
-	    const timestamp_t voteDeadline = 0)
+            CScript& scriptSigRet, txnouttype& whichTypeRet, const votehash_t *voteTxnHash = 0)
 {
     scriptSigRet.clear();
 
     if(voteTxnHash != 0)
-      scriptSigRet << voteDeadline << *voteTxnHash << OP_VOTE;
+      scriptSigRet << *voteTxnHash << OP_VOTE;
 
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
@@ -1904,8 +1892,8 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     return true;
 }
 
-//bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t voteDeadline = 0)
-bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t voteDeadline)
+//bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0
+bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];
@@ -1917,7 +1905,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     txnouttype whichType;
     //this solver writes the scriptSig
     if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType,
-		voteTxnHash, voteDeadline))
+		voteTxnHash))
         return false;
 
     if (whichType == TX_SCRIPTHASH)
@@ -1942,14 +1930,14 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, true, 0);
 }
 
-bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash, const timestamp_t voteDeadline)
+bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];
     assert(txin.prevout.n < txFrom.vout.size());
     const CTxOut& txout = txFrom.vout[txin.prevout.n];
 
-    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType, voteTxnHash, voteDeadline);
+    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType, voteTxnHash);
 }
 
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType)

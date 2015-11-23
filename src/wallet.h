@@ -135,8 +135,7 @@ class CProposal
 {
  public:
   int nVersion;
-  std::vector<unsigned char> title; // a short title of the proposal
-  CTransaction redeemTxn; // txn to run if proposal succeeds. The time of this transaction
+  CTransaction proposalTxn; // proposal txn. The time of this transaction
   //is the deadline of the voting period for the proposal
   uint256 selfHash; // a checksum basically.. 
 
@@ -153,21 +152,19 @@ class CProposal
      READWRITE(selfHash);
      READWRITE(this->nVersion);
      nVersion = this->nVersion;
-     READWRITE(title);
-     READWRITE(redeemTxn);
+     READWRITE(proposalTxn);
      )
     
     void SetNull()
     {
       nVersion = 1;
-      title.clear();
-      redeemTxn = CTransaction();
+      proposalTxn = CTransaction();
       selfHash = 0;
     }
 
   timestamp_t GetDeadline() const
   {
-    return redeemTxn.nTime;
+    return proposalTxn.nTime;
   }
 
   bool VerifyHash()

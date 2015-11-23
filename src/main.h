@@ -205,7 +205,10 @@ public:
     /**
      * Used for a transaction that redeems a pass vote proposal
      */
-    void SetProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
+    void SetProposal() { hash = 0; n = static_cast<unsigned int>(-3); }
+
+    void SetRedeemedProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
+
     bool IsRedeemedProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
     bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-3)); }
 
@@ -472,18 +475,17 @@ public:
     {
       int preambleSize;
       votehash_t txnHash;
-      money_t deadline;
       
-      return GetVoteTxnData(preambleSize, txnHash, deadline);
+      return GetVoteTxnData(preambleSize, txnHash);
     }
 
-    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash, money_t& deadline) const
+    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash) const
     {
       if(vout.size() != 1)
 	return false;
       if(vin.size() != 1)
 	return false;
-      if(!GetVoteScriptData(vin[0].scriptSig, preambleSize, txnHash, deadline))
+      if(!GetVoteScriptData(vin[0].scriptSig, preambleSize, txnHash))
 	return false;
 
       //TODO 2 verify the vote comes and goes to the same address
@@ -563,11 +565,12 @@ public:
 
     //gets the kitchen sink of information about the proposal. Used to determine if proposal
     //won, whether it is redeemable yet, whether it can still be voted for, etc.
-    void GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
+    bool GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
 			    CBlockIndex *& latestBeforeDeadlineBlockIndex,
 			    bool& isVoteWon,
 			    bool& isVotingPeriodOver,
-			    int& blocksBeforeRedeemable 
+			    int& blocksBeforeRedeemable,
+			    bool& isRedeemed
 			    ) const;
 
     /**
@@ -800,7 +803,8 @@ public:
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge = false) const;  // ppcoin: get transaction coin age
-    bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta, std::map<std::pair<votehash_t, timestamp_t>,money_t>& proposalVoteCounts);
+    bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta,
+    		std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts);
     bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,const std::map<uint256, CTxIndex> *mapQueuedChanges,
 
     		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint);

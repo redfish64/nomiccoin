@@ -206,7 +206,7 @@ enum opcodetype
     //displays a message in the client
     OP_DISPLAY_MSG = 0xd2,
 
-    //votes for a proposal, args: <block deadline (epoch secs)> <txn hash>
+    //votes for a proposal, args: <txn hash>
     OP_VOTE = 0xd3,
 
     // must be first item in all public scripts. If the first item in a regular txn script,
@@ -624,14 +624,14 @@ bool IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
 bool IsMine(const CKeyStore& keystore, const CTxDestination &dest);
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);
-bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t voteDeadline = 0);
-bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0, const timestamp_t voteDeadline = 0);
+bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0);
+bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0);
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
 bool IsVoteScript(const CScript& scriptPubKey,int& votePreambleSize);
-bool GetVoteScriptData(const CScript& scriptPubKey, int&  preambleSize, votehash_t& txnHash, money_t& deadline);
+bool GetVoteScriptData(const CScript& scriptPubKey, int&  preambleSize, votehash_t& txnHash);
 
 bool IsPublicScript(const CScript& script);
 #endif

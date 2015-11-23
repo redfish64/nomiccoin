@@ -302,9 +302,9 @@ public:
     bool ReadCheckpointPubKey(std::string& strPubKey);
     bool WriteCheckpointPubKey(const std::string& strPubKey);
 
-    bool WriteProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t totalVotes);
-    bool EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline);
-    bool ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t & totalVotes);
+    bool WriteProposalVoteCount(votehash_t txnHash, money_t totalVotes);
+    bool EraseProposalVoteCount(votehash_t txnHash);
+    bool ReadProposalVoteCount(votehash_t txnHash, money_t & totalVotes);
 
 };
 

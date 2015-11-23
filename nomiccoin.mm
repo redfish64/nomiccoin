@@ -1191,6 +1191,16 @@
 </node>
 <node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
 </node>
+<node CREATED="1447928754417" ID="ID_1180192671" MODIFIED="1447928757397" TEXT="proposals">
+<node CREATED="1447928758481" ID="ID_1481281938" MODIFIED="1447928766341" TEXT="recording proposals in db for displaying information about them">
+<node CREATED="1447928768049" ID="ID_830009308" MODIFIED="1447928780061" TEXT="Do we need to do this?">
+<node CREATED="1447928781593" ID="ID_687600595" MODIFIED="1447928794189" TEXT="What if we vote on the proposals themselves, then we don&apos;t need an extra table"/>
+<node CREATED="1447928795057" ID="ID_1233439152" MODIFIED="1447928828370" TEXT="We can then just modify the redeemed proposal to be a proposal before we hash and check it.">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
 <node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
@@ -2031,6 +2041,9 @@
 <node COLOR="#ff0000" CREATED="1446689772817" ID="ID_813066186" MODIFIED="1446689795801" TEXT="Update copyright, license crap"/>
 <node COLOR="#ff0000" CREATED="1445153706299" ID="ID_1983967459" MODIFIED="1446689758370" TEXT="make viewproposal function">
 <node CREATED="1445153764363" ID="ID_275972263" MODIFIED="1445153775230" TEXT="allows user to see proposal before commiting to it in nomiccoind"/>
+</node>
+<node COLOR="#ff0000" CREATED="1448275615729" ID="ID_1913232788" MODIFIED="1448275625833" TEXT="Voting for the same thing twice is generating an error?">
+<node CREATED="1448275628401" ID="ID_201134692" MODIFIED="1448275656773" TEXT="If you run vote &apos;&lt;xxx&gt;&apos; twice immediately one after another, the second one fails saying the txn already exists. Why does it already exist?"/>
 </node>
 </node>
 <node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5"/>

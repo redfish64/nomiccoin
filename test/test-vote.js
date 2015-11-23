@@ -43,7 +43,6 @@ export async function test( ) {
     var rpc = await sendRpcQuery( client2, { method : 'createproposal',
 							 params :
 							 [deadlineStr,
-							  "test title",
 							  "displaymsg",
 							  "test msg",
 							  "spendpool",
