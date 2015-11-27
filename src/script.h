@@ -18,6 +18,8 @@
 
 typedef std::vector<unsigned char> valtype;
 
+#define MAX_PROPOSAL_TITLE_LENGTH 80
+
 class CTransaction;
 
 /** Signature hash types/flags */
@@ -203,16 +205,19 @@ enum opcodetype
     // Does nothing unless poll has been won
     OP_UPGRADE_CLIENT = 0xd1,
 
-    //displays a message in the client
-    OP_DISPLAY_MSG = 0xd2,
+    //title of proposal, args: <title (80 chars max)
+    OP_VOTE_TITLE = 0xd2,
 
     //votes for a proposal, args: <txn hash>
     OP_VOTE = 0xd3,
 
-    // must be first item in all public scripts. If the first item in a regular txn script,
-    // then txn cannot be redeemed. Takes no args
+    // must be first item in first script of proposals
     OP_PUBLIC_SCRIPT = 0xd4,
     
+    // args <deadline in epoch seconds>
+    // indicates the deadline for when the proposal is over
+    OP_VOTE_DEADLINE = 0xd5,
+
 
     // template matching params
     OP_SMALLDATA = 0xf9,
@@ -252,7 +257,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 
 
 
-bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize);
+bool IsVoteScript(const CScript& scriptSig);
 
 
 
@@ -549,11 +554,9 @@ public:
     bool IsPayToScriptHash() const;
 
     // Called by CTransaction::IsStandard
-    bool IsPushOrVoteOnly() const
+    bool IsPushOnly() const
     {
-      int preambleSize = 0;
-      IsVoteScript(*this, preambleSize); //allow vote op's in scriptSig
-        const_iterator pc = begin() + preambleSize;
+        const_iterator pc = begin();
         while (pc < end())
         {
             opcodetype opcode;
@@ -624,14 +627,18 @@ bool IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
 bool IsMine(const CKeyStore& keystore, const CTxDestination &dest);
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);
-bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0);
-bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0);
+bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn,
+		int nHashType=SIGHASH_ALL);
+bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn,
+		int nHashType=SIGHASH_ALL);
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType);
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
-bool IsVoteScript(const CScript& scriptPubKey,int& votePreambleSize);
-bool GetVoteScriptData(const CScript& scriptPubKey, int&  preambleSize, votehash_t& txnHash);
+bool IsVoteScript(const CScript& scriptPubKey);
+bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash);
 
 bool IsPublicScript(const CScript& script);
+
+bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline);
 #endif

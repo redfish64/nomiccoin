@@ -302,10 +302,12 @@ public:
     bool ReadCheckpointPubKey(std::string& strPubKey);
     bool WriteCheckpointPubKey(const std::string& strPubKey);
 
-    bool WriteProposalVoteCount(votehash_t txnHash, money_t totalVotes);
-    bool EraseProposalVoteCount(votehash_t txnHash);
-    bool ReadProposalVoteCount(votehash_t txnHash, money_t & totalVotes);
-
+    //We require the deadline when storing the vote count, so we can easily sort and look up proposals based
+    //on a particular time period (useful for upgrade client messages as well as displaying relavant proposals
+    // in the gui). It is the same as the deadline from the proposal txn specified by txnhash.
+    bool WriteProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t totalVotes);
+    bool EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline);
+    bool ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t & totalVotes);
 };
 
 

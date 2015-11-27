@@ -227,10 +227,10 @@ const char* GetOpName(opcodetype opcode)
 
     case OP_FUNDS_POOL_UNLOCKED    : return "OP_FUNDS_POOL_UNLOCKED"; 
     case OP_UPGRADE_CLIENT         : return "OP_UPGRADE_CLIENT";
-    case OP_DISPLAY_MSG            : return "OP_DISPLAY_MSG";
-    case OP_PUBLIC_SCRIPT          : return "OP_PUBLIC_SCRIPT";
+    case OP_VOTE_TITLE             : return "OP_VOTE_TITLE";
     case OP_VOTE                   : return "OP_VOTE";
-
+    case OP_PUBLIC_SCRIPT          : return "OP_PUBLIC_SCRIPT";
+    case OP_VOTE_DEADLINE		   : return "OP_VOTE_DEADLINE";
     // template matching params
     case OP_PUBKEYHASH             : return "OP_PUBKEYHASH";
     case OP_PUBKEY                 : return "OP_PUBKEY";
@@ -459,23 +459,18 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 
 		//voting doesn't do anything explicitly when run.
 		//instead, votes are counted as blocks are processed.
-	        case OP_VOTE:
-	          if(stack.size() < 1)
-		    return false;
-	        popstack(stack);
-	        break;
+        case OP_VOTE:
+        	if(stack.size() < 1)
+        		return false;
+    	    popstack(stack);
+    	    break;
 
-	    case OP_DISPLAY_MSG:
-	      {
-		if(stack.size() < 1 || !runningPublicScript)
-		  return false;
-		CProposalMessage pm;
-		pm.message = stacktop(-1);
-		pm.initialApperanceBlock = blockHeight;
-		appState->add(pm);
-		popstack(stack);
-		break;
-	      }
+	    case OP_VOTE_TITLE: {
+					if (stack.size() < 1 || !runningPublicScript)
+						return false;
+					popstack(stack);
+					break;
+				}
 	    case OP_UPGRADE_CLIENT:
 	      {
 	      //note that we don't do much verification on this, because since half the network
@@ -1233,22 +1228,31 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
     return true;
 }
 
-
+#define VOTE_PREAMBLE_SIZE 34
 
 /**
-   Removes all ops besides those related to a vote
+ * Returns true if the script is a vote script (only scriptSigs are vote scripts)
  */
-void RemoveAllButVoteOp(CScript &scriptSig)
+bool IsVoteScript(const CScript& scriptSig)
 {
-  //the vote op is always the first thing
+  CScript::const_iterator iter = scriptSig.begin();
 
-  //if its a vote script
-  int votePreambleSize;
-  if(IsVoteScript(scriptSig, votePreambleSize))
-    scriptSig = CScript(scriptSig.begin(), scriptSig.begin() + votePreambleSize);
-  else
-    scriptSig.clear();
+  if(iter == scriptSig.end())
+     return false;
+  //check transaction hash
+  if(*iter != 32)
+    return false;
+
+  iter += 33;
+
+  if(*iter != OP_VOTE)
+    return false;
+
+  return true;
 }
+
+
+
 
 bool IsPublicScript(const CScript& script)
 {
@@ -1257,7 +1261,7 @@ bool IsPublicScript(const CScript& script)
 
 
 /**
- * Evaluates a proposal txn on behalf of a regular (non-redeeming) client.
+ * Evaluates a proposal txn on behalf of clients.
  * This is where we display msgs and upgrade the os.
  */
 void EvalProposalForPublic(CTxDB& txdb, CTransaction& tx)
@@ -1291,9 +1295,10 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
     scriptCode.FindAndDelete(CScript(OP_CODESEPARATOR));
 
     // Blank out other inputs' signatures, but leave the vote ops if any.
-    for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-      RemoveAllButVoteOp(txTmp.vin[i].scriptSig);
-    txTmp.vin[nIn].scriptSig = scriptCode;
+    if(!txTo.IsVoteTxn())
+    	txTmp.vin[i].scriptSig.clear();
+
+    txTmp.vin[nIn].scriptSig << scriptCode;
 
     // Blank out some of the outputs
     if ((nHashType & 0x1f) == SIGHASH_NONE)
@@ -1427,36 +1432,14 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
     return true;
 }
 
-/**
- * Returns true if the script is a vote script (only scriptSigs are vote scripts)
- */
-bool IsVoteScript(const CScript& scriptSig, int& votePreambleSize)
-{
-  CScript::const_iterator iter = scriptSig.begin();
-  
-  if(iter == scriptSig.end())
-     return false;
-  //check transaction hash
-  if(*iter != 32)
-    return false;
-
-  iter += 33;
-
-  if(*iter != OP_VOTE)
-    return false;
-
-  votePreambleSize = iter - scriptSig.begin() +1;
-
-  return true;
-}
 
 /**
  * Returns true if the script is a vote script (only scriptSigs are vote scripts) and returns
  * the related data
  */
-bool GetVoteScriptData(const CScript& scriptSig, int&  preambleSize, votehash_t& txnHash)
+bool GetVoteScriptData(const CScript& scriptSig, votehash_t& txnHash)
 {
-  if(!IsVoteScript( scriptSig, preambleSize))
+  if(!IsVoteScript( scriptSig))
     return false;
 
   CScript::const_iterator iter = scriptSig.begin();
@@ -1467,13 +1450,43 @@ bool GetVoteScriptData(const CScript& scriptSig, int&  preambleSize, votehash_t&
   scriptSig.GetOp(iter, opcode,vch);
   txnHash = uint256(vch);
 
-  preambleSize = iter - scriptSig.begin()+1;
-
   return true;
 }
 
 
+//TODO 2 validate that proposals are in the correct format, which is:
+// 1. First output begins with OP_PUBLIC_SCRIPT
+//     Contains OP_VOTE_DEADLINE as second item
+//     Contains OP_PROPOSAL_TITLE as third item
+//     Optionally contains OP_UPGRADE_CLIENT as fourth item
+//    First output must have zero funds spent
+// 2. May contain one or more additional outputs which spend the funds
+//    pool (output value > 0)
 
+
+
+bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline)
+{
+	  CScript::const_iterator iter = scriptPubKey.begin();
+	  opcodetype opcode;
+	  vector<unsigned char> vch;
+
+	  if(iter == scriptPubKey.end())
+	     return false;
+
+	  if(*iter != OP_PUBLIC_SCRIPT)
+		  return false;
+
+	  iter++;
+
+	  scriptPubKey.GetOp(iter, opcode, vch);
+	  deadline = CastToBigNum(vch).getuint64();
+
+	  if(*iter != OP_VOTE_DEADLINE)
+		  return false;
+
+	  return true;
+}
 
 //
 // Return public keys or hashes from scriptPubKey, for 'standard' transaction types.
@@ -1639,12 +1652,10 @@ bool SignN(const vector<valtype>& multisigdata, const CKeyStore& keystore, uint2
 // Returns false if scriptPubKey could not be completely satisified.
 //
 bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash, int nHashType,
-            CScript& scriptSigRet, txnouttype& whichTypeRet, const votehash_t *voteTxnHash = 0)
+            CScript& scriptSigRet, txnouttype& whichTypeRet)
 {
     scriptSigRet.clear();
 
-    if(voteTxnHash != 0)
-      scriptSigRet << *voteTxnHash << OP_VOTE;
 
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
@@ -1875,7 +1886,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     // Additional validation for spend-to-script-hash transactions:
     if (fValidatePayToScriptHash && scriptPubKey.IsPayToScriptHash())
     {
-        if (!scriptSig.IsPushOrVoteOnly()) // scriptSig must be literals-only
+        if (!IsVoteScript(scriptSig) && !scriptSig.IsPushOnly()) // scriptSig must be literals-only
             return false;            // or validation fails
 
         const valtype& pubKeySerialized = stackCopy.back();
@@ -1892,8 +1903,8 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     return true;
 }
 
-//bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL, const votehash_t *voteTxnHash = 0
-bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash)
+bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn,
+		int nHashType)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];
@@ -1904,8 +1915,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
 
     txnouttype whichType;
     //this solver writes the scriptSig
-    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType,
-		voteTxnHash))
+    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType))
         return false;
 
     if (whichType == TX_SCRIPTHASH)
@@ -1930,14 +1940,15 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, true, 0);
 }
 
-bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType, const votehash_t *voteTxnHash)
+bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn,
+		int nHashType)
 {
     assert(nIn < txTo.vin.size());
     CTxIn& txin = txTo.vin[nIn];
     assert(txin.prevout.n < txFrom.vout.size());
     const CTxOut& txout = txFrom.vout[txin.prevout.n];
 
-    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType, voteTxnHash);
+    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
 }
 
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, bool fValidatePayToScriptHash, int nHashType)

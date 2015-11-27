@@ -19,7 +19,6 @@ export async function test( ) {
     expect( rpc.result ).to.equal( 0 );
 
     //mine some blocks to get some funds
-    //TODO 3 why does the first 2 blocks not give us any money?
     await mineSomePowBlocks( client1, 10);
     await delayExecution( 2 );
     await mineSomePowBlocks( client2, 2);
@@ -43,8 +42,7 @@ export async function test( ) {
     var rpc = await sendRpcQuery( client2, { method : 'createproposal',
 							 params :
 							 [deadlineStr,
-							  "displaymsg",
-							  "test msg",
+							  "test title",
 							  "spendpool",
 							  propRecvAddr,
 							  "2.5"

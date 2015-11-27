@@ -1,12 +1,12 @@
 export var fastChain = {
-
-    GENESIS_MERKLE_HASH        : `hash_t("0xb0c01c59825e8df457a272471b18d4c60984fccfc39aa175030654760dcf0886")`,
-    GENESIS_HASH               : `hash_t("0x898a93d813df827f2ba84ea5bbacc17aa55b3b0461b699ed5ddd81fe868e5b61")`,
-    GENESIS_TIME               : `1441976184`,
-    GENESIS_NONCE              : `172958`,
+    GENESIS_MERKLE_HASH        : `hash_t("0x3e3902f8875794e3158c2b8f89a1751ead5a097007d02d990a4e5cf6f61fd5c2")`,
+    GENESIS_HASH               : `hash_t("0x7b8730ed215439409d6aeb8beb68208f6fce2d7797417db5309132db3e469d2e")`,
+    GENESIS_TIME               : `1444122312`,
+    GENESIS_NONCE              : `2182928`,
+	NULL_PROPOSAL_TXN_HASH     : `hash_t("0xd3a481e60585e922e51626f2a46ec187b4d837117670e5572710db4f91e78918")`,
 
     BLOCK_CHECKPOINTS          : `boost::assign::map_list_of(0, GENESIS_HASH)`,
-    STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0x0e00670b)`,
+    STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0xfd11f4e7)`,
 
     POW_MAX_BLOCK              : `std::numeric_limits<blockheight_t>::max()`,
 
@@ -62,10 +62,11 @@ export var mediumFastChain = {
 
 export var withMinStakeAgeChain = {
 
-    GENESIS_MERKLE_HASH        : `hash_t("0xb0c01c59825e8df457a272471b18d4c60984fccfc39aa175030654760dcf0886")`,
-    GENESIS_HASH               : `hash_t("0x898a93d813df827f2ba84ea5bbacc17aa55b3b0461b699ed5ddd81fe868e5b61")`,
-    GENESIS_TIME               : `1441976184`,
-    GENESIS_NONCE              : `172958`,
+    GENESIS_MERKLE_HASH        : `hash_t("0xdca31aacad33f707c716747c1e23f6bcfb3c14e38fadabd357ac0ea9a2245e4c")`,
+    GENESIS_HASH               : `hash_t("0x429c4c247ed08dd13e0020edd15ddcd0d2cda5694856a8ad4f31ffda4ff75a67")`,
+    GENESIS_TIME               : `1444122312`,
+    GENESIS_NONCE              : `2182928`,
+	NULL_PROPOSAL_TXN_HASH     : `hash_t("0x5b355afb7afc7f8b4ad47354d524046ced5e3953a5dc8561dc4848aa1ee76cbb")`,
 
     BLOCK_CHECKPOINTS          : `boost::assign::map_list_of(0, GENESIS_HASH)`,
     STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0x0e00670b)`,

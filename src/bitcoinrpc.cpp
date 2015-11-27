@@ -188,8 +188,6 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         else
         {
             in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
-	        if(tx.IsRedeemedProposal())
-	            in.push_back(Pair("is_redeemed_proposal", true));
 	        if(tx.IsProposal())
 	            in.push_back(Pair("is_proposal", true));
 	      
@@ -243,7 +241,6 @@ void TxToJSON(const CTransaction& tx, Object& txdata)
     txdata.push_back(Pair("locktime", (int)tx.nLockTime));
     txdata.push_back(Pair("is_coinbase", tx.IsCoinBase()));
     txdata.push_back(Pair("is_coinstake", tx.IsCoinStake()));
-    txdata.push_back(Pair("is_redeemed_proposal", tx.IsRedeemedProposal()));
     txdata.push_back(Pair("is_proposal", tx.IsProposal()));
     txdata.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
 
@@ -257,7 +254,7 @@ void TxToJSON(const CTransaction& tx, Object& txdata)
         {
             vin.push_back(Pair("coinbase", HexStr(txin.scriptSig).c_str()));
         }
-        else if (txin.prevout.IsRedeemedProposal())
+        else if (txin.prevout.IsProposal())
         {
             vin.push_back(Pair("proposal", HexStr(txin.scriptSig).c_str()));
         }
@@ -331,7 +328,6 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fTxI
     result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
     result.push_back(Pair("sharedpoolfunds", ValueFromAmount(blockindex->nSharedPoolFunds)));
     result.push_back(Pair("sharedpoolfunds",   ValueFromAmount(blockindex->nSharedPoolFunds)));
-    result.push_back(Pair("votedCoinsDelta",   ValueFromAmount(blockindex->votedCoinsDelta)));
     result.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(blockindex->votingPeriodVotedCoins)));
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
@@ -662,7 +658,6 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("sharedpoolfunds",   ValueFromAmount(pindexBest->nSharedPoolFunds)));
-    obj.push_back(Pair("votedCoinsDelta",   ValueFromAmount(pindexBest->votedCoinsDelta)));
     obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(pindexBest->votingPeriodVotedCoins)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (fUseProxy ? addrProxy.ToStringIPPort() : string())));
@@ -1018,126 +1013,108 @@ int GetOsId(const char *str)
   
 }
 
-Value createproposal(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 3)
-        throw runtime_error(
-			    "createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> [commands...]\n"
-			    "commands are:\n"
-			    "displaymsg <msg>\n" 
-			    "upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
-			    "<git commit/tag> "
-			    "[<os1 type> <sha256sum of binary>] "
-			    "[<os2 type> <sha256sum of binary>] ... "
-			    "spendpool <toaddress> <amt>\n"
-			    );
+Value createproposal(const Array& params, bool fHelp) {
+	if (fHelp || params.size() < 2)
+		throw runtime_error(
+				"createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max 80 chars)> [commands...]\n"
+					"commands are:\n"
+					"upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
+					"<git commit/tag> "
+					"[<os1 type> <sha256sum of binary>] "
+					"[<os2 type> <sha256sum of binary>] ... "
+					"spendpool <toaddress> <amt>\n\n"
+					"There may be only one upgradeclient call.");
 
-    CProposal proposal;
-    timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
+	CProposal proposal;
+	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
-    CTransaction tx;
-    tx.nTime = deadline; //the tx time is the deadline. 
-    tx.vin.resize(1);
-    tx.vin[0].prevout.SetProposal();
+	string title = params[1].get_str();
 
-    bool needPublicScript = false;
-    CScript pubScript;
-    pubScript << OP_PUBLIC_SCRIPT;
-	
-    for(uint i = 1; i < params.size()-1; )
-      {
+	if(title.length() > MAX_PROPOSAL_TITLE_LENGTH)
+		throw JSONRPCError(-5, "Title too long");
 
-	string command = params[i].get_str();
-
-	if(command.compare("displaymsg")==0)
-	  {
-	    string msg = params[i+1].get_str();
-
-	    const std::vector<unsigned char> charvect(msg.begin(), msg.end());
-	    
-	    pubScript << charvect << OP_DISPLAY_MSG;
-
-	    i+=2;
-
-	    needPublicScript = true;
-	  }
-	else if (command.compare("upgradeclient")==0)
-	  {
-	    int clientVersion = atoi(params[++i].get_str().c_str());
-	    int deadlineEpoch = ConvertTimeishToEpochSecs(params[++i].get_str());
-	    string gitStr = params[++i].get_str();
-
-	    vector<pair<int,uint256> > osIdAndBinaryHashes;
-	    i++;
-	    for(;i < params.size()-1; i+=2)
-	      {
-		int os_id = GetOsId(params[i].get_str().c_str());
-		if(os_id == -1)
-		    break;
-
-		uint256 binaryHash(params[i+1].get_str());
-
-		osIdAndBinaryHashes.push_back(make_pair(os_id, binaryHash));
-	      }
+	CTransaction tx;
+	tx.vin.resize(1);
+	tx.vin[0].prevout.SetProposal();
+	const std::vector<unsigned char> titlecharvect(title.begin(), title.end());
 
 
-	    pair<int,uint256> p;
-	    for(int i = osIdAndBinaryHashes.size()-1; i>=0; i--)
-	      {
-		p =  osIdAndBinaryHashes[i];
-		pubScript = pubScript << p.second
-				      << p.first;
-	      }
-	    
-	    pubScript = pubScript << osIdAndBinaryHashes.size()
-				  << std::vector<unsigned char>(gitStr.begin(), gitStr.end())
-				  << deadlineEpoch
-				  << clientVersion 
-				  << OP_UPGRADE_CLIENT;
+	CScript pubScript;
+	pubScript << OP_PUBLIC_SCRIPT << deadline << OP_VOTE_DEADLINE << titlecharvect << OP_VOTE_TITLE;
 
-	    needPublicScript = true;
-	  }
-	else if (command.compare("spendpool")==0)
-	  {
-	    CBitcoinAddress address(params[++i].get_str());
-	    if (!address.IsValid())
-	      throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
-	    
-	    Value amtVal = params[++i];
-	    ConvertTo<double>(amtVal);
-	    int64 amt = AmountFromValue(amtVal);
-	    
-	    if (amt < MIN_TXOUT_AMOUNT)
-	      throw JSONRPCError(-101, "Send amount too small");
+	bool upgradedClientAlready = false;
 
-	    CScript sendMoney;
-	    sendMoney.SetDestination(address.Get());
-	    
-	    CTxOut out(amt, sendMoney);
-	    tx.vout.push_back(out);
+	for (uint i = 2; i < params.size() - 1;) {
 
-	    ++i;
-	  }
-	else
-	  throw runtime_error("don't understand command "+command );
-      }
+		string command = params[i].get_str();
 
-    if(needPublicScript)
-      {
-	CTxOut out(0, pubScript);
-	
-	tx.vout.push_back(out);
-      }
+		if (command.compare("upgradeclient") == 0) {
+			if(upgradedClientAlready)
+				throw JSONRPCError(-5, "Only one upgrade client command is allowed");
 
-    proposal.proposalTxn = tx;
-    proposal.ResetSelfHash();
+			int clientVersion = atoi(params[++i].get_str().c_str());
+			int deadlineEpoch =
+					ConvertTimeishToEpochSecs(params[++i].get_str());
+			string gitStr = params[++i].get_str();
 
-    Object result;
+			vector<pair<int, uint256> > osIdAndBinaryHashes;
+			i++;
+			for (; i < params.size() - 1; i += 2) {
+				int os_id = GetOsId(params[i].get_str().c_str());
+				if (os_id == -1)
+					break;
 
-    result.push_back(Pair("voteblob", ConvertProposalToBlob(proposal)));
-    TxToJSON(tx, 0, result);
+				uint256 binaryHash(params[i + 1].get_str());
 
-    return result;
+				osIdAndBinaryHashes.push_back(make_pair(os_id, binaryHash));
+			}
+
+			pair<int, uint256> p;
+			for (int i = osIdAndBinaryHashes.size() - 1; i >= 0; i--) {
+				p = osIdAndBinaryHashes[i];
+				pubScript = pubScript << p.second << p.first;
+			}
+
+			pubScript = pubScript << osIdAndBinaryHashes.size() << std::vector<
+					unsigned char>(gitStr.begin(), gitStr.end())
+					<< deadlineEpoch << clientVersion << OP_UPGRADE_CLIENT;
+
+			upgradedClientAlready = true;
+		} else if (command.compare("spendpool") == 0) {
+			CBitcoinAddress address(params[++i].get_str());
+			if (!address.IsValid())
+				throw JSONRPCError(-5, "Invalid " COIN_NAME " address");
+
+			Value amtVal = params[++i];
+			ConvertTo<double> (amtVal);
+			int64 amt = AmountFromValue(amtVal);
+
+			if (amt < MIN_TXOUT_AMOUNT)
+				throw JSONRPCError(-101, "Send amount too small");
+
+			CScript sendMoney;
+			sendMoney.SetDestination(address.Get());
+
+			CTxOut out(amt, sendMoney);
+			tx.vout.push_back(out);
+
+			++i;
+		} else
+			throw runtime_error("don't understand command " + command);
+	}
+
+	CTxOut publicOut(0, pubScript);
+	tx.vout.insert(tx.vout.begin(), publicOut);
+
+	proposal.proposalTxn = tx;
+	proposal.ResetSelfHash();
+
+	Object result;
+
+	result.push_back(Pair("voteblob", ConvertProposalToBlob(proposal)));
+	TxToJSON(tx, 0, result);
+
+	return result;
 }
 
 Value vote(const Array& params, bool fHelp)
@@ -1189,13 +1166,10 @@ Value getvoteinfo(const Array& params, bool fHelp)
   CBlockIndex *ourBlockIndex;
   bool isVoteWon;
   bool isVotingPeriodOver;
-  bool isRedeemed;
-  int blocksBeforeRedeemable;
 
   CTxDB txdb("r");
   
-  if(!prop.proposalTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver,
-				    blocksBeforeRedeemable, isRedeemed ))
+  if(!prop.proposalTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver))
 	    throw JSONRPCError(-1, "Error getting proposal txn info.");
 
   Object obj;
@@ -1206,14 +1180,6 @@ Value getvoteinfo(const Array& params, bool fHelp)
     {
       obj.push_back(Pair("isVoteWon", isVoteWon));
 
-      if(isVoteWon)
-	{
-	  obj.push_back(Pair("isRedeemableNow",blocksBeforeRedeemable <= 0 && !isRedeemed));
-	  if(blocksBeforeRedeemable > 0)
-	    obj.push_back(Pair("blocksBeforeRedeemable",blocksBeforeRedeemable));
-      obj.push_back(Pair("isRedeemed", isRedeemed));
-	}
-      
     }
   obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(ourBlockIndex->votingPeriodVotedCoins)));
   if(pindexBest->votingPeriodVotedCoins != 0)
@@ -1224,92 +1190,6 @@ Value getvoteinfo(const Array& params, bool fHelp)
   TxToJSON(prop.proposalTxn, 0, obj);
   
   return obj;
-}
-
-Value redeemvote(const Array& params, bool fHelp)
-{
-  if (fHelp || params.size() != 1)
-    throw runtime_error(
-			"redeemvote <proposalblob>\n"
-			"Adds the proposal txn to the blockchain. This may only be done 500 blocks after the deadline has passed\n"
-			);
-  
-  CProposal prop;
-
-  if(!ConvertBlobToProposal(params[0].get_str(),prop))
-    throw JSONRPCError(-1, "Blob invalid");
-
-  money_t totalVotes = 0;
-
-  CTxDB txdb("r");
-  txdb.ReadProposalVoteCount(prop.proposalTxn.GetHash(), totalVotes); //if fails, then no votes were cast
-
-  int remainingDepth = PROPOSAL_MATURITY_BLOCKS;
-  CBlockIndex *ourBlockIndex = pindexBest;
-
-  while(prop.GetDeadline() < ourBlockIndex->nTime && ourBlockIndex->pprev && --remainingDepth >= 0)
-    {
-      ourBlockIndex = ourBlockIndex->pprev;
-    }
-  Object obj;
-
-  //TODO 2 verify this check is in ConnectBlock or wherever
-  if(remainingDepth >= 0)
-    {
-    throw JSONRPCError(-2, "Not enough blocks have passed");
-    }
-
-  //TODO 2 nice error if not enough votes?
-
-  CTransaction redeemedTransaction = prop.proposalTxn;
-  redeemedTransaction.vin[0].prevout.SetRedeemedProposal();
-
-  uint256 hashTx = redeemedTransaction.GetHash();
-  
-  // See if the transaction is already in a block
-  // or in the memory pool:
-  CTransaction existingTx;
-  uint256 hashBlock = 0;
-  
-  if (GetTransaction(hashTx, existingTx, hashBlock))
-    {
-      if (hashBlock != 0)
-	throw JSONRPCError(-3, string("transaction already in block ")+hashBlock.GetHex());
-      // Not in block, but already in the memory pool; will drop
-      // through to re-relay it.
-    }
-  else
-    {
-      // push to local node
-      CTxDB txdb("r");
-      if (!redeemedTransaction.AcceptToMemoryPool(txdb, false))
-	throw JSONRPCError(-4, "TX rejected");
-    }
-  RelayMessage(CInv(MSG_TX, hashTx), redeemedTransaction);
-  
-  return hashTx.GetHex();
-}
-
-Value getproposalmessages(const Array& params, bool fHelp)
-{
-  if (fHelp)
-    throw runtime_error(
-			"getproposalmessages\n"
-			"Reads the messages from recent passed proposals."
-			);
-
-  Array ret;
-  
-  BOOST_FOREACH(CProposalMessage message,pindexBest->appState.messages)
-    {
-      Object obj;
-      obj.push_back(Pair("block",message.initialApperanceBlock));
-      obj.push_back(Pair("messageText",std::string(message.message.begin(), message.message.end())));
-
-      ret.push_back(obj);
-    }
-
-  return ret;
 }
 
 Value signmessage(const Array& params, bool fHelp)
@@ -3898,8 +3778,6 @@ static const CRPCCommand vRPCCommands[] =
     { "createproposal",   &createproposal,   true },
     { "vote",   &vote,   false },
     { "getvoteinfo",   &getvoteinfo,   true },
-    { "redeemvote",   &redeemvote,   false },
-    { "getproposalmessages",   &getproposalmessages,   true },
     { "getupgradeinfo",   &getupgradeinfo,   true },
 #ifdef TESTING
     { "generatework",           &generatework,           true },

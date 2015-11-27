@@ -953,7 +953,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1447807594778" POSITION="right" TEXT="coding">
+<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1448419517093" POSITION="right" TEXT="coding">
 <node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1447661461488" TEXT="new ops">
 <node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1447555634772" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
@@ -1056,11 +1056,18 @@
 </node>
 </node>
 <node CREATED="1444811335783" ID="ID_1202491412" MODIFIED="1444811385763" TEXT="OP_DISPLAY_MSG &lt;msg&gt;"/>
-<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1445913589636" TEXT="OP_VOTE &lt;block deadline&gt; &lt;txn hash&gt;">
+<node CREATED="1445068782820" ID="ID_769852395" MODIFIED="1448276287165" TEXT="OP_VOTE">
 <font NAME="SansSerif" SIZE="12"/>
-<node CREATED="1445068899691" ID="ID_1371650880" MODIFIED="1445068912608" TEXT="block deadline is an epoch time"/>
 <node CREATED="1445068913043" ID="ID_257750203" MODIFIED="1445068957145" TEXT="Vote is only valid if it appears in a block where the block&apos;s epoch time &lt;= the deadline"/>
-<node CREATED="1445068957748" ID="ID_1675412541" MODIFIED="1445912922807" TEXT="txn is a proposal txn"/>
+<node CREATED="1448276312073" ID="ID_1838529454" MODIFIED="1448276318333" TEXT="op goes into script sig only"/>
+<node CREATED="1448276301713" ID="ID_43847169" MODIFIED="1448276310429" TEXT="input must be the proposal txn"/>
+<node CREATED="1448276461993" ID="ID_992354813" MODIFIED="1448276512526" TEXT="If we do this, then the proposal txn must have one output that doesn&apos;t send any money (which people can link to for voting)">
+<node CREATED="1448276550809" ID="ID_1350998216" MODIFIED="1448276555477" TEXT="It still seems worth it to me"/>
+<node CREATED="1448276555777" ID="ID_969773445" MODIFIED="1448276578661" TEXT="It will even make block explorers more easily updated to link to what was voted on, etc"/>
+</node>
+<node CREATED="1448276986721" ID="ID_238477079" MODIFIED="1448276992293" TEXT="What about OP_VOTE 0?">
+<node CREATED="1448277020753" ID="ID_226339612" MODIFIED="1448277029701" TEXT="Maybe a special proposal in the genesis?"/>
+</node>
 <node CREATED="1445507643238" ID="ID_1522598173" MODIFIED="1445509581095" TEXT="Should we allow to vote with premature stakes/coinbase?">
 <node CREATED="1445507676853" ID="ID_1640787620" MODIFIED="1445509581095" TEXT="For coinbase, no">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
@@ -1115,6 +1122,11 @@
 <node CREATED="1447661487818" ID="ID_1481132170" MODIFIED="1447661489795" TEXT="FUTURE">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
+</node>
+<node CREATED="1448278772906" ID="ID_1693300060" MODIFIED="1448278776006" TEXT="OP_VOTE_DEADLINE">
+<node CREATED="1448278777706" ID="ID_491918253" MODIFIED="1448278812189" TEXT="Must be first command in first output script of proposal. Indicates the vote deadline"/>
+<node CREATED="1448278856601" ID="ID_250783010" MODIFIED="1448278878149" TEXT="Votes will not be accepted into a block if the block timestamp is greater than OP_VOTE_DEADLINE"/>
+<node COLOR="#ff0000" CREATED="1448279054474" ID="ID_658477948" MODIFIED="1448279057625" TEXT="TODO"/>
 </node>
 </node>
 <node CREATED="1445911135323" ID="ID_1928758003" MODIFIED="1447661498847" TEXT="checkpoints">
@@ -1198,13 +1210,77 @@
 <node CREATED="1447928795057" ID="ID_1233439152" MODIFIED="1447928828370" TEXT="We can then just modify the redeemed proposal to be a proposal before we hash and check it.">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
+<node CREATED="1448277080562" ID="ID_872950358" MODIFIED="1448278754530" TEXT="Wait, where is deadline stored now?">
+<node CREATED="1448277089217" ID="ID_1548992646" MODIFIED="1448277119301" TEXT="We can&apos;t place it is the proposal anymore, because that gets added to the block, and will be rejected if too far forward in the future"/>
+<node CREATED="1448277157954" ID="ID_1183716287" MODIFIED="1448277174614" TEXT="Unless we put a special condition to allow proposals, regardless of timestamp, in any block"/>
+<node CREATED="1448277220825" ID="ID_385965659" MODIFIED="1448278766527" TEXT="Or we have a special command, OP_VOTE_DEADLINE?">
+<node CREATED="1448278719802" ID="ID_1858360917" MODIFIED="1448278725373" TEXT="I think this is the best bet"/>
+<node CREATED="1448278728553" ID="ID_94728280" MODIFIED="1448278746157" TEXT="We don&apos;t want to keep overloading the meaning of fields, which we would be doing by using timestamp"/>
+<node COLOR="#ff0000" CREATED="1448278750185" ID="ID_943414775" MODIFIED="1448278752801" TEXT="TODO"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1448276869625" ID="ID_929854646" MODIFIED="1448276958809">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      proposals first output must give zero coin. All public stuff (display msg/ upgrade) will be there.
+    </p>
+    <p>
+      When voting, votes will be attached to this first proposal as the first input for it.
+    </p>
+  </body>
+</html>
+</richcontent>
+<node COLOR="#ff0000" CREATED="1448276959945" ID="ID_1864282986" MODIFIED="1448276961921" TEXT="TODO"/>
+</node>
+<node CREATED="1448279065570" ID="ID_1125321953" MODIFIED="1448279081373" TEXT="Redeemed proposal timestamp will be a valid timestamp">
+<node CREATED="1448279084434" ID="ID_1576675116" MODIFIED="1448279131741" TEXT="We don&apos;t want to overload fields, in this case, the timestamp of a transaction, so we use a separate timestamp for redeemed proposals, rather than reusing the timestamp of the proposal"/>
+<node COLOR="#ff0000" CREATED="1448279133610" ID="ID_132414689" MODIFIED="1448279136002" TEXT="TODO"/>
+</node>
+<node CREATED="1448279137730" ID="ID_54799089" MODIFIED="1448279145181" TEXT="Do we even need a redeemed proposal?">
+<node CREATED="1448279147849" ID="ID_947401144" MODIFIED="1448279236469" TEXT="If we put some sort of proposal timer, we could potentially execute it without redeeming it"/>
+<node CREATED="1448279237714" ID="ID_948535357" MODIFIED="1448279247853" TEXT="It would simplify things from a user perspective"/>
+<node CREATED="1448279257994" ID="ID_1907372791" MODIFIED="1448281019637" TEXT="But how would we implement this timer?">
+<node CREATED="1448279348074" ID="ID_1505259068" MODIFIED="1448279437406" TEXT="Maybe make it the &quot;timer&quot; rounded to some integral period, say 60 seconds"/>
+<node CREATED="1448279438395" ID="ID_1562115853" MODIFIED="1448279467157" TEXT="When a block is retrieved, it will increment a master time value"/>
+<node CREATED="1448279467889" ID="ID_472442027" MODIFIED="1448279487694" TEXT="We step through the time values to evaluate each proposal"/>
+<node CREATED="1448279488025" ID="ID_1028515846" MODIFIED="1448279499781" TEXT="If it passed, we display the message, ask for an upgrade, etc."/>
+<node CREATED="1448279514225" ID="ID_1310484320" MODIFIED="1448279542430" TEXT="When we disconnect a block, we undisplay messages, remove the upgrade requests etc, by reverse stepping downwards."/>
+<node CREATED="1448280089106" ID="ID_1746451642" MODIFIED="1448281024970" TEXT="Unless there is a way to select a range from the db?">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1448280673633" ID="ID_547930257" MODIFIED="1448280795134" TEXT="Yes, we can"/>
+<node CREATED="1448280687841" ID="ID_1804324738" MODIFIED="1448280831134" TEXT="There is a cursor, we start with Pair(&quot;timer&quot;, timestamp), and continue until we start getting keys that aren&apos;t &quot;timer&quot;.&#xa;">
+<node CREATED="1448281032122" ID="ID_981311779" MODIFIED="1448281036742" TEXT="See LoadBlockIndex for details"/>
+</node>
+<node COLOR="#ff0000" CREATED="1448280972178" ID="ID_60995417" MODIFIED="1448280976129" TEXT="TODO">
+<font NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1448279935857" ID="ID_1412102479" MODIFIED="1448279950469" TEXT="Do we need this timer? Can we get away without it?">
+<node CREATED="1448279951889" ID="ID_1708913089" MODIFIED="1448279964557" TEXT="Suppose instead of display msg, a proposal just has a title"/>
+<node CREATED="1448279965186" ID="ID_1289366950" MODIFIED="1448279980942" TEXT="We still need to enforce upgrades, though"/>
+<node CREATED="1448280075858" ID="ID_1489621963" MODIFIED="1448281051522" TEXT="So, yes we need it">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1448280998713" ID="ID_296712741" MODIFIED="1448281013450" TEXT="Get rid of redeemed proposal, replace with timer">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node COLOR="#ff0000" CREATED="1448279250314" ID="ID_1157784622" MODIFIED="1448279256065" TEXT="TODO">
+<font NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 </node>
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
 <node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
-<node CREATED="1444996931023" ID="ID_1706006000" MODIFIED="1447030485468" TEXT="voting">
+<node CREATED="1444996931023" FOLDED="true" ID="ID_1706006000" MODIFIED="1448517289431" TEXT="voting">
 <node CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445912547983" TEXT="Cannot take place for the first few blocks... to give people a chance to register to vote">
 <node CREATED="1445912557723" ID="ID_514581827" MODIFIED="1445912615743" TEXT="A proposal can be created right away, but its deadline has to be a few weeks out"/>
 <node COLOR="#ff0000" CREATED="1445912527931" ID="ID_1714713472" MODIFIED="1445912530635" TEXT="TODO"/>
@@ -1305,9 +1381,71 @@
 </node>
 </node>
 </node>
+<node CREATED="1448419534660" ID="ID_753847637" MODIFIED="1448419695856" TEXT="When we calculate the total active voters, we can&apos;t use the proposal period to do this. This is because if a proposal is very short, then the active voter count will not be increased for long, and if it is very long (consider null vote which is foerver) the voter count from that would last too long.&#xa;&#xa;So we need to take a count based on whether the coins were voted for in the last 2 weeks or so">
+<node CREATED="1448419698252" ID="ID_1601789760" MODIFIED="1448419726800" TEXT="What if a user revotes with their coins?">
+<node CREATED="1448419728260" ID="ID_527924393" MODIFIED="1448419743144" TEXT="If the previous coins were older than 2 weeks, than we add the votes as normal"/>
+<node CREATED="1448419743612" ID="ID_1545022325" MODIFIED="1448419805168" TEXT="If they are less than 2 weeks, how do we handle this???">
+<node CREATED="1448419899508" ID="ID_469454889" MODIFIED="1448420438040" TEXT="Normally we&apos;d add to the vote delta when the vote occurs, and then after 2 weeks worth of blocks, we go back to that block to subtract the delta due to the expiry of those coins.&#xa;&#xa;But if in the meantime, a vote is changed, the date of expiry of those coins now change.">
+<node CREATED="1448420439948" ID="ID_362802365" MODIFIED="1448420784983">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Suppose when we see the new vote, we subtract from the delta of the original block.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      So the delta is no longer the delta, but the 2 week future delta.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Since we subtracted those coins in the current block, we can remove it from the 2 week future delta
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1448437955642" ID="ID_1949963049" MODIFIED="1448437993982" TEXT="The problem is there is no easy way to get a blockindex from a transaction"/>
+</node>
+<node CREATED="1448437995426" ID="ID_16120178" MODIFIED="1448438167649">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      What if when we process a new block, we also load the one from two weeks ago.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Any transaction output that remains unspent and is a vote (there'll only be one), we subtract from the vote total
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Whenever a vote gets spent, it's also gets subtracted, then.
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1448438171122" ID="ID_269334690" MODIFIED="1448438225278" TEXT="It&apos;s a little weird, because whenever a vote is spent, that vote gets subtracted from the vote total, which means it won&apos;t get its full vote period worth.&#xa;"/>
+</node>
+<node COLOR="#ff0000" CREATED="1448420794396" ID="ID_1563933166" MODIFIED="1448420797444" TEXT="TODO"/>
+</node>
+</node>
+</node>
+</node>
 </node>
 <node CREATED="1446306157404" ID="ID_70177628" MODIFIED="1446306160213" TEXT="voting results">
-<node CREATED="1446192619433" ID="ID_1763214564" MODIFIED="1447578305213" TEXT="How do we want to programmatically organize this?">
+<node CREATED="1446192619433" FOLDED="true" ID="ID_1763214564" MODIFIED="1448419524943" TEXT="How do we want to programmatically organize this?">
 <node CREATED="1446192796937" ID="ID_1303816729" MODIFIED="1446192799574" TEXT="Operations">
 <node CREATED="1446192801034" FOLDED="true" ID="ID_621414025" MODIFIED="1446194703223" TEXT="1.Create and save upgrade and messages">
 <node CREATED="1446192819546" ID="ID_369438490" MODIFIED="1446192824493" TEXT="Save to db each object"/>
@@ -1535,6 +1673,11 @@
 </node>
 </node>
 </node>
+<node CREATED="1448332102526" ID="ID_1565572790" MODIFIED="1448332112027" TEXT="What if we&apos;re out of funds when the proposal passes?">
+<node CREATED="1448332119158" ID="ID_484161131" MODIFIED="1448332137434" TEXT="Then the output can&apos;t be spent in that block">
+<node COLOR="#ff0000" CREATED="1448332145318" ID="ID_1644556873" MODIFIED="1448332148358" TEXT="TODO"/>
+</node>
+</node>
 </node>
 <node CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445910211426" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?">
 <node CREATED="1445910086563" ID="ID_1227024573" MODIFIED="1445910107446" TEXT="Here are a list of reasons: https://www.reddit.com/r/peercoin/comments/1s3y70/analysis_peercoin_01ppc_destroyed_when_a/"/>
@@ -1584,14 +1727,18 @@
 </node>
 <node CREATED="1447763408743" ID="ID_38651663" MODIFIED="1447763425290" TEXT="vote">
 <node CREATED="1447763416015" ID="ID_1131989645" MODIFIED="1447763430491" TEXT="vote 0"/>
-<node CREATED="1447763426055" ID="ID_1142244030" MODIFIED="1447763428890" TEXT="vote proposal"/>
+<node CREATED="1447763426055" ID="ID_1142244030" MODIFIED="1448324649209" TEXT="vote proposal blob"/>
 </node>
 <node CREATED="1447763431655" ID="ID_246318994" MODIFIED="1447763484763" TEXT="view proposals by date">
 <node CREATED="1447764092536" ID="ID_743750875" MODIFIED="1447764111420" TEXT="Double click, or Right click and select &quot;Vote&quot; will go to vote screen"/>
-<node CREATED="1447764436199" ID="ID_29756923" MODIFIED="1447764448642" TEXT="Right click and select &quot;Redeem&quot; for proposals not redeemed yet but passed"/>
 <node CREATED="1447764117119" ID="ID_1643825416" MODIFIED="1447764123817" TEXT="Message"/>
+<node CREATED="1448324458293" ID="ID_1743686814" MODIFIED="1448324476746" TEXT="Only proposals with &gt;10% votes are shown">
+<node CREATED="1448324479581" ID="ID_1214034160" MODIFIED="1448324521993" TEXT="We can&apos;t show all proposals, to prevent someone from trying to copycat an existing proposal and confuse users as to which one is real"/>
 </node>
-<node CREATED="1447763485407" ID="ID_860643160" MODIFIED="1447763528447" TEXT="redeem proposal"/>
+</node>
+<node CREATED="1448324539973" ID="ID_1313359187" MODIFIED="1448324563050" TEXT="view past proposals">
+<node CREATED="1448324566205" ID="ID_671414816" MODIFIED="1448324638889" TEXT="Similiar to view proposals by date, except it shows only proposals from the past. Keeps only show proposals with &gt;10% vote rule, so that only proposals seen in &quot;view proposals by date&quot; screen are shown here"/>
+</node>
 </node>
 <node CREATED="1447807572645" ID="ID_45748042" MODIFIED="1447807590335" TEXT="We should have different levels of votes needed for different proposals">
 <node CREATED="1447807597482" ID="ID_426317586" MODIFIED="1447807600908" TEXT="Display message only">
@@ -1941,7 +2088,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1445725518478" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" FOLDED="true" ID="ID_1068705924" MODIFIED="1448534681691" POSITION="right" TEXT="testing">
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -2000,9 +2147,11 @@
 <node CREATED="1447832396912" ID="ID_633962532" MODIFIED="1447832432044" TEXT="A vote txn can run after a stake, regardless of maturity, but it shouldn&apos;t mask the fact the original stake/base txn is not mature"/>
 </node>
 <node COLOR="#ff0000" CREATED="1447832556552" ID="ID_709836296" MODIFIED="1447832566127" TEXT="Test that we can&apos;t spend an unredeemed proposal"/>
+<node COLOR="#ff0000" CREATED="1448533852744" ID="ID_1682001645" MODIFIED="1448533877437" TEXT="Test voting for invalid proposal with bad checksum"/>
+<node COLOR="#ff0000" CREATED="1448533877736" ID="ID_38188672" MODIFIED="1448533888833" TEXT="Test voting for proposal with txn hash that doesn&apos;t exist"/>
 </node>
 </node>
-<node COLOR="#ff0000" CREATED="1445334536006" ID="ID_97324318" MODIFIED="1445833459121" POSITION="right" TEXT="distribution">
+<node CREATED="1445334536006" FOLDED="true" ID="ID_97324318" MODIFIED="1448533872216" POSITION="right" TEXT="distribution">
 <node CREATED="1445392911554" ID="ID_445087297" MODIFIED="1445392913518" TEXT="old">
 <node CREATED="1445334542478" ID="ID_787565242" MODIFIED="1445335182332" TEXT="Code contributers percentage"/>
 <node CREATED="1445334818975" ID="ID_1454056122" MODIFIED="1445334827594" TEXT="Give some to testnet participants"/>
@@ -2035,7 +2184,7 @@
 <node CREATED="1445833571817" ID="ID_1682632704" MODIFIED="1445833599757" TEXT="Idea is that a good set of founders will lead the coin in a proper direction, and is very important early on"/>
 </node>
 </node>
-<node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1445136397125" POSITION="right" TEXT="TODO">
+<node CREATED="1445136395713" FOLDED="true" ID="ID_1081486889" MODIFIED="1448348034756" POSITION="right" TEXT="TODO">
 <node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
 <node CREATED="1445137019409" ID="ID_1330490338" MODIFIED="1445137021301" TEXT="2">
 <node COLOR="#ff0000" CREATED="1446689772817" ID="ID_813066186" MODIFIED="1446689795801" TEXT="Update copyright, license crap"/>
@@ -2050,10 +2199,10 @@
 <node CREATED="1445137039753" ID="ID_1243866097" MODIFIED="1445137040157" TEXT="3"/>
 <node CREATED="1445137040689" ID="ID_809292046" MODIFIED="1445137041165" TEXT="4"/>
 </node>
-<node CREATED="1445679752945" ID="ID_1262595952" MODIFIED="1445679755269" POSITION="right" TEXT="bugs">
+<node CREATED="1445679752945" FOLDED="true" ID="ID_1262595952" MODIFIED="1448348035902" POSITION="right" TEXT="bugs">
 <node CREATED="1445679756465" ID="ID_740240627" MODIFIED="1445679757349" TEXT="non standard tx type from createproposal "/>
 </node>
-<node CREATED="1445397232564" ID="ID_75830749" MODIFIED="1445397235328" POSITION="right" TEXT="external stuff">
+<node CREATED="1445397232564" FOLDED="true" ID="ID_75830749" MODIFIED="1448348036967" POSITION="right" TEXT="external stuff">
 <node CREATED="1445397236852" ID="ID_1563557230" MODIFIED="1445397239912" TEXT="whitepaper"/>
 <node CREATED="1445397241460" ID="ID_857293888" MODIFIED="1445397245432" TEXT="website"/>
 <node CREATED="1445397245772" ID="ID_776958830" MODIFIED="1445397248280" TEXT="blockexplorer"/>
@@ -2067,7 +2216,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1445065459758" POSITION="right" TEXT="bitcoin analysis">
+<node CREATED="1445065454955" FOLDED="true" ID="ID_1110428196" MODIFIED="1448348039440" POSITION="right" TEXT="bitcoin analysis">
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -2235,6 +2384,69 @@
 </node>
 <node CREATED="1446951027596" ID="ID_903403547" MODIFIED="1446951027596" TEXT=""/>
 </node>
+</node>
+</node>
+<node CREATED="1448351345469" ID="ID_93818797" MODIFIED="1448351349265" POSITION="right" TEXT="coding plan">
+<node CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448351364737" TEXT="ConnectBlock must handle vote winning">
+<node CREATED="1448351366741" ID="ID_1087908550" MODIFIED="1448351408137" TEXT="When a proposal wins a vote, if we can claim it, we need to add it as part of the wallet, a UTXO I suppose"/>
+</node>
+<node CREATED="1448351435941" ID="ID_414627149" MODIFIED="1448351450137" TEXT="we must check that proposols are standard in accepttxn"/>
+<node CREATED="1448351493701" ID="ID_152074230" MODIFIED="1448351505609" TEXT="check on voting, does it work right considering our vote deadline stuff?">
+<node CREATED="1448352041685" ID="ID_878453415" MODIFIED="1448352050809" TEXT="We can only accept votes that get in a block before the deadline"/>
+</node>
+<node CREATED="1448353553029" ID="ID_1632545927" MODIFIED="1448353583377" TEXT="When we create a block, we must not only make sure no voting txn for a deadline too late gets in, but also remove it from the memory pool if that is the case"/>
+<node CREATED="1448355169573" ID="ID_1965398007" MODIFIED="1448355198249" TEXT="Since coinstakes automatically reinstate votes, they can be vote txns as well">
+<node CREATED="1448355199637" ID="ID_1338307251" MODIFIED="1448355206897" TEXT="This is kind of confusing, should we eliminate this?">
+<node CREATED="1448355235733" ID="ID_524305088" MODIFIED="1448355242801" TEXT="How many outputs does a stake have, 1 or 2?">
+<node CREATED="1448355465501" ID="ID_1062812021" MODIFIED="1448355473889" TEXT="2 or 3 if we are doing the coinstake splitting"/>
+</node>
+<node CREATED="1448356168765" ID="ID_1427876006" MODIFIED="1448356215550" TEXT="I think it would be best to eliminate it. Since we are handling orphans properly now, we should be able to create additional vote txns for our stake stuff, rather than making stakes do voting directly">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1448356494389" ID="ID_1548590035" MODIFIED="1448356507866" TEXT="make sure that when we create a block after the deadline for a proposal, it doesn&apos;t subtract votes"/>
+<node CREATED="1448517301717" ID="ID_135799089" MODIFIED="1448517315145" TEXT="How do we identify a vote transaction?">
+<node CREATED="1448517316533" ID="ID_901042945" MODIFIED="1448517329433" TEXT="Should we keep OP_VOTE?">
+<node CREATED="1448517366158" ID="ID_1749193015" MODIFIED="1448517394105" TEXT="We no longer need it with the original &lt;txnhash&gt; argument"/>
+<node CREATED="1448518595669" ID="ID_976405316" MODIFIED="1448518611185" TEXT="This seems like the best way. We don&apos;t want identifying a vote txn to be too complex">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1448534686816" ID="ID_1958439265" MODIFIED="1448534696196" TEXT="What about voting and multisig?">
+<node CREATED="1448543639673" ID="ID_367496352" MODIFIED="1448543715109">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Voting and multisig and voting with P2SH&#160;will be handled by the fact that a vote's output script must exactly match the output script of the UTXO it is voting against.
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node COLOR="#ff0000" CREATED="1448543723977" ID="ID_45634497" MODIFIED="1448543726866" TEXT="TODO"/>
+</node>
+<node CREATED="1448543727481" ID="ID_515558122" MODIFIED="1448543789103">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      We cannot link votes against proposal outputs. This is because an output can have only one input.
+    </p>
+    <p>
+      So multiple voters could not then vote on a single proposal
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1448543901513" ID="ID_528968663" MODIFIED="1448543911002" TEXT="We have to go back to op_vote &lt;txn hash&gt;"/>
+<node COLOR="#ff0000" CREATED="1448543793433" ID="ID_1454424754" MODIFIED="1448543800993" TEXT="TODO"/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">

@@ -203,14 +203,11 @@ public:
     bool IsNull() const { return (hash == 0 && n == static_cast<unsigned int>(-1)); }
 
     /**
-     * Used for a transaction that redeems a pass vote proposal
+     * Used for a transaction that represents a vote proposal
      */
-    void SetProposal() { hash = 0; n = static_cast<unsigned int>(-3); }
+    void SetProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
 
-    void SetRedeemedProposal() { hash = 0; n = static_cast<unsigned int>(-2); }
-
-    bool IsRedeemedProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
-    bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-3)); }
+    bool IsProposal() const { return (hash == 0 && n == static_cast<unsigned int>(-2)); }
 
     friend bool operator<(const COutPoint& a, const COutPoint& b)
     {
@@ -473,22 +470,25 @@ public:
 
     bool IsVoteTxn() const
     {
-      int preambleSize;
+    	if(vin.size() != 1)
+    		return false;
       votehash_t txnHash;
       
-      return GetVoteTxnData(preambleSize, txnHash);
+      return GetVoteTxnData(txnHash);
     }
 
-    bool GetVoteTxnData(int& preambleSize, votehash_t& txnHash) const
+    bool GetVoteTxnData(votehash_t& txnHash) const
     {
       if(vout.size() != 1)
 	return false;
       if(vin.size() != 1)
 	return false;
-      if(!GetVoteScriptData(vin[0].scriptSig, preambleSize, txnHash))
-	return false;
+
+      if(!GetVoteScriptData(vin[0].scriptSig, txnHash))
+    	  return false;
 
       //TODO 2 verify the vote comes and goes to the same address
+
       return true;
     }
 
@@ -549,28 +549,18 @@ public:
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
     }
 
-    //true if the txn is used to redeem a proposal
-    bool IsRedeemedProposal() const
-    {
-        return (vin.size() == 1 && vin[0].prevout.IsRedeemedProposal() && vout.size() >= 1);
-    }
-
     //true if the txn is a proposal
     bool IsProposal() const
     {
         return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
     }
 
-    bool IsProposalReedemable(CTxDB& txdb) const;
-
-    //gets the kitchen sink of information about the proposal. Used to determine if proposal
-    //won, whether it is redeemable yet, whether it can still be voted for, etc.
+    //gets some information about the proposal. Used to determine if proposal
+    //won, whether it is passed, whether it can still be voted for, etc.
     bool GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
 			    CBlockIndex *& latestBeforeDeadlineBlockIndex,
 			    bool& isVoteWon,
-			    bool& isVotingPeriodOver,
-			    int& blocksBeforeRedeemable,
-			    bool& isRedeemed
+			    bool& isVotingPeriodOver
 			    ) const;
 
     /**
@@ -803,11 +793,14 @@ public:
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(CTxDB& txdb, uint64& nCoinAge, bool ignoreStakeAge = false) const;  // ppcoin: get transaction coin age
-    bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx& inputs, money_t & delta,
-    		std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts);
+
+    bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs,
+    		money_t& currentTotalVotes, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts);
     bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,const std::map<uint256, CTxIndex> *mapQueuedChanges,
 
     		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint);
+
+    timestamp_t GetVoteDeadline() const;
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
@@ -1217,48 +1210,6 @@ enum BlockIndexObjectType
 class CAppState;
 
 
-/**
- * A message delivered to all users, which only appears if 51% voted for it. Why?
- * So people can float ideas out there and see what the public reaction would be, such as 
- * "Would you support raising the interest rate to 8%?".
- */
-class CProposalMessage
-{
- public:
-  int type; 
-  int initialApperanceBlock;
-  std::vector<unsigned char> message;
-
-  CProposalMessage()
-    {
-      SetNull();
-    }
-
-  void SetNull()
-  {
-    type = 0;
-    initialApperanceBlock = 0;
-    message.clear();
-    }
-
-  IMPLEMENT_SERIALIZE
-    (
-     READWRITE(type);
-     READWRITE(initialApperanceBlock);
-     READWRITE(message);
-     );
-
-  bool SaveToDb(CTxDB& db);
-
-  bool Run(CTxDB& db, CBlockIndex *pindex, CAppState& aps, bool& removeFromNextBlock);
-
-  uint256 GetHash() const
-  {
-    return SerializeHash(*this);
-  }
-  
-};
-
 //os ids, for upgrading client, position corresponds to id number
 //(add new ones to the bottom, obviously)
 extern const char *OS_ID[];
@@ -1333,7 +1284,6 @@ class CAppState
 {
  public:
   int version;
-  std::vector<CProposalMessage> messages;
   CUpgradeRequest ur;
 
   CAppState()
@@ -1344,7 +1294,6 @@ class CAppState
   void SetNull()
   {
     version=0;
-    messages.clear();
     ur.SetNull();
   }
 
@@ -1352,15 +1301,9 @@ class CAppState
   IMPLEMENT_SERIALIZE
     (
      READWRITE(version);
-     READWRITE(messages);
      READWRITE(ur);
      );
 
-  void add(const CProposalMessage & message)
-  {
-    messages.push_back(message);
-  }
-    
   void add(const CUpgradeRequest & otherUr)
   {
     ur.mergeUpgradeRequest(otherUr);
@@ -1395,9 +1338,9 @@ public:
 
     //nomiccoin:
     money_t nSharedPoolFunds; // the size of the spending pool which can be voted on
-    money_t votedCoinsDelta; // the change in the number voting coting in this block
     money_t votingPeriodVotedCoins; //the total number of coins that were voted with in the given
-    //voting period (used as the divisor to determine whether a particular vote won)
+    //VOTE_REG_PERIOD_BLOCKS voting period and remain unspent. This is used as the divisor to determine the percentage
+    // of a particular vote and thus whether it won
 
     unsigned int nFlags;  // ppcoin: block index flags
     enum
@@ -1436,7 +1379,6 @@ public:
         nMint = 0;
         nMoneySupply = 0;
 	nSharedPoolFunds = 0;
-	votedCoinsDelta=0;
 	votingPeriodVotedCoins=0;
         nFlags = 0;
         nStakeModifier = 0;
@@ -1466,7 +1408,6 @@ public:
 
 	nMoneySupply = 0;
 	nSharedPoolFunds = 0;
-	votedCoinsDelta=0;
 	votingPeriodVotedCoins=0;
         nFlags = 0;
         nStakeModifier = 0;
@@ -1636,6 +1577,8 @@ public:
     {
         printf("%s\n", ToString().c_str());
     }
+
+    bool GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes);
 };
 
 
@@ -1724,6 +1667,7 @@ public:
     {
         printf("%s\n", ToString().c_str());
     }
+
 };
 
 
@@ -2109,7 +2053,7 @@ class CProposalVoteCount
 {
  public:
   int nVersion;
-  uint256 txnHash; //hash of txn that redeems vote
+  uint256 txnHash; //hash of proposal txn
   money_t totalVotes; //the current number of votes
 
   CProposalVoteCount()
@@ -2135,6 +2079,9 @@ class CProposalVoteCount
 
 extern bool IsVoteWon(money_t totalVotes, money_t voterParticipation);
 
+class CProposal;
+extern bool CreateVoteTxn(const CKeyStore *keyStore, const CTransaction& tran, int outputIndex ,
+		uint256 proposalHash, CTransaction& txNew);
 
 
 #endif
