@@ -2088,7 +2088,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445505324701" FOLDED="true" ID="ID_1068705924" MODIFIED="1448534681691" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1448614809710" POSITION="right" TEXT="testing">
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -2149,6 +2149,7 @@
 <node COLOR="#ff0000" CREATED="1447832556552" ID="ID_709836296" MODIFIED="1447832566127" TEXT="Test that we can&apos;t spend an unredeemed proposal"/>
 <node COLOR="#ff0000" CREATED="1448533852744" ID="ID_1682001645" MODIFIED="1448533877437" TEXT="Test voting for invalid proposal with bad checksum"/>
 <node COLOR="#ff0000" CREATED="1448533877736" ID="ID_38188672" MODIFIED="1448533888833" TEXT="Test voting for proposal with txn hash that doesn&apos;t exist"/>
+<node COLOR="#ff0000" CREATED="1448614813086" ID="ID_1718579596" MODIFIED="1448614825406" TEXT="Test proposal with huge title, make sure it doesn&apos;t use too much memory"/>
 </node>
 </node>
 <node CREATED="1445334536006" FOLDED="true" ID="ID_97324318" MODIFIED="1448533872216" POSITION="right" TEXT="distribution">
@@ -2387,10 +2388,10 @@
 </node>
 </node>
 <node CREATED="1448351345469" ID="ID_93818797" MODIFIED="1448351349265" POSITION="right" TEXT="coding plan">
-<node CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448351364737" TEXT="ConnectBlock must handle vote winning">
+<node COLOR="#ff0000" CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448585432026" TEXT="ConnectBlock must handle vote winning">
 <node CREATED="1448351366741" ID="ID_1087908550" MODIFIED="1448351408137" TEXT="When a proposal wins a vote, if we can claim it, we need to add it as part of the wallet, a UTXO I suppose"/>
 </node>
-<node CREATED="1448351435941" ID="ID_414627149" MODIFIED="1448351450137" TEXT="we must check that proposols are standard in accepttxn"/>
+<node COLOR="#ff0000" CREATED="1448351435941" ID="ID_414627149" MODIFIED="1448585424594" TEXT="we must check that proposols are standard in accepttxn"/>
 <node CREATED="1448351493701" ID="ID_152074230" MODIFIED="1448351505609" TEXT="check on voting, does it work right considering our vote deadline stuff?">
 <node CREATED="1448352041685" ID="ID_878453415" MODIFIED="1448352050809" TEXT="We can only accept votes that get in a block before the deadline"/>
 </node>

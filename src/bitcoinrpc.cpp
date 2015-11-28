@@ -722,7 +722,7 @@ Value getupgradeinfo(const Array& params, bool fHelp)
 		       std::string(ur.upgradeGitCommit.begin(),
 				   ur.upgradeGitCommit.end())));
 
-    std::pair<int,uint256> p;
+    std::pair<int,uint160> p;
 
     Array distDataArray;
     
@@ -730,7 +730,7 @@ Value getupgradeinfo(const Array& params, bool fHelp)
       {
 	Object distData;
 	distData.push_back(Pair("osId", OS_ID[p.first]));
-	distData.push_back(Pair("sha256Hash",
+	distData.push_back(Pair("binaryHash",
 				p.second.GetHex()));
 	distDataArray.push_back(distData);
       }
@@ -1053,11 +1053,18 @@ Value createproposal(const Array& params, bool fHelp) {
 				throw JSONRPCError(-5, "Only one upgrade client command is allowed");
 
 			int clientVersion = atoi(params[++i].get_str().c_str());
+
+			if(clientVersion <= CLIENT_VERSION)
+				throw JSONRPCError(-5, "Client version should be greater than the current version");
+
 			int deadlineEpoch =
 					ConvertTimeishToEpochSecs(params[++i].get_str());
 			string gitStr = params[++i].get_str();
+			uint160 gitHash = uint160(gitStr);
 
-			vector<pair<int, uint256> > osIdAndBinaryHashes;
+			typedef map<char, uint256> map_t;
+			map_t osIdToBinaryHashes;
+
 			i++;
 			for (; i < params.size() - 1; i += 2) {
 				int os_id = GetOsId(params[i].get_str().c_str());
@@ -1066,17 +1073,21 @@ Value createproposal(const Array& params, bool fHelp) {
 
 				uint256 binaryHash(params[i + 1].get_str());
 
-				osIdAndBinaryHashes.push_back(make_pair(os_id, binaryHash));
+				if(osIdToBinaryHashes.count((char)os_id))
+					throw JSONRPCError(-5, "Repeat of os id");
+
+				osIdToBinaryHashes[(char)os_id] = binaryHash;
 			}
 
-			pair<int, uint256> p;
-			for (int i = osIdAndBinaryHashes.size() - 1; i >= 0; i--) {
-				p = osIdAndBinaryHashes[i];
+			if(osIdToBinaryHashes.size() > MAXIMUM_OS_BINARY_HASHES)
+				throw JSONRPCError(-5, "Too many binary os's");
+
+			BOOST_FOREACH(map_t::value_type p, osIdToBinaryHashes)
+			{
 				pubScript = pubScript << p.second << p.first;
 			}
 
-			pubScript = pubScript << osIdAndBinaryHashes.size() << std::vector<
-					unsigned char>(gitStr.begin(), gitStr.end())
+			pubScript = pubScript << osIdToBinaryHashes.size() << gitHash
 					<< deadlineEpoch << clientVersion << OP_UPGRADE_CLIENT;
 
 			upgradedClientAlready = true;
@@ -1116,6 +1127,8 @@ Value createproposal(const Array& params, bool fHelp) {
 
 	return result;
 }
+
+//TODO 2 make a command to generate a uint160 for a binary blob
 
 Value vote(const Array& params, bool fHelp)
 {

@@ -203,3 +203,12 @@ int PROPOSAL_MATURITY_BLOCKS = 500;
 int PROPOSAL_MESSAGE_PRESENCE_BLOCKS = 1 * WEEK / TARGET_SPACING;
 
 hash_t NULL_PROPOSAL_TXN_HASH = 0x0;
+
+//the minimum time a deadline can occur after a proposal has been entered into the blockchain
+timestamp_t MIN_PROPOSAL_DEADLINE_TIME = 6 * HOUR;
+
+//this is the maximum time that a deadline can be set after a proposal is entered into the blockchain
+//It should always be less than VOTE_REG_PERIOD_BLOCKS, or it will be possible for voters to supercharge
+//their vote by having it expired in the VOTE_REG_PERIOD_BLOCKS, but still before the deadline of the
+//proposal (thereby being added to the numerator and not the denominator of the equation)
+timestamp_t MAX_PROPOSAL_DEADLINE_TIME = 12 * DAY;

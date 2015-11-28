@@ -373,6 +373,7 @@ static bool IsValidPubKey(valtype const & vchPubKey)
     return true;
 }
 
+
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		const CTransaction* txTo, //needed only if runningPublicScript is false
 		unsigned int nIn, int nHashType, bool runningPublicScript,
@@ -484,7 +485,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      popstack(stack);
 	      ur.upgradeDeadline = CBigNum(stacktop(-1)).getuint64();
 	      popstack(stack);
-	      ur.upgradeGitCommit = stacktop(-1);
+	      ur.upgradeGitCommit = uint160(stacktop(-1));
 	      popstack(stack);
 
 	      int upgradeDistCount = CBigNum(stacktop(-1)).getint();
@@ -496,10 +497,10 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 		  if(osId < 0 || osId > OS_ID_LENGTH)
 		    return false; //os id is wrong, something it out of wack
 		  popstack(stack);
-		  uint256 sha256hash = CBigNum(stacktop(-1)).getuint256();
+		  uint160 distHash = uint160(stacktop(-1));
 		  popstack(stack);
 		  
-		  ur.upgradeDistData.push_back(make_pair(osId, sha256hash));
+		  ur.upgradeDistData.push_back(make_pair(osId, distHash));
 	      	}
 
 	      appState->add(ur);
@@ -1282,7 +1283,6 @@ void EvalProposalForPublic(CTxDB& txdb, CTransaction& tx)
 
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
-  //TODO 2 handle vote scripts
     if (nIn >= txTo.vin.size())
     {
         printf("ERROR: SignatureHash() : nIn=%d out of range\n", nIn);
@@ -1296,7 +1296,8 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
 
     // Blank out other inputs' signatures, but leave the vote ops if any.
     if(!txTo.IsVoteTxn())
-    	txTmp.vin[i].scriptSig.clear();
+    	for (unsigned int i = 0; i < txTmp.vin.size(); i++)
+    		txTmp.vin[i].scriptSig.clear();
 
     txTmp.vin[nIn].scriptSig << scriptCode;
 
@@ -1454,16 +1455,79 @@ bool GetVoteScriptData(const CScript& scriptSig, votehash_t& txnHash)
 }
 
 
-//TODO 2 validate that proposals are in the correct format, which is:
+
+//validate that proposals are in the correct format, which is:
 // 1. First output begins with OP_PUBLIC_SCRIPT
 //     Contains OP_VOTE_DEADLINE as second item
 //     Contains OP_PROPOSAL_TITLE as third item
 //     Optionally contains OP_UPGRADE_CLIENT as fourth item
-//    First output must have zero funds spent
-// 2. May contain one or more additional outputs which spend the funds
-//    pool (output value > 0)
+bool CheckProposalPublicScript(const CScript& scriptPubKey)
+{
+	  CScript::const_iterator iter = scriptPubKey.begin();
+	  opcodetype opcode;
 
+	  if(iter == scriptPubKey.end())
+	     return false;
 
+	  if(*iter != OP_PUBLIC_SCRIPT)
+		  return false;
+
+	  iter++;
+	  scriptPubKey.GetOp(iter, opcode);
+	  if(*iter != OP_VOTE_DEADLINE)
+		  return false;
+
+	  CScript::const_iterator start = iter;
+	  scriptPubKey.GetOp(iter, opcode);
+	  //-1 for the op itself
+	  if(iter-start-1 > MAX_PROPOSAL_TITLE_LENGTH)
+		  return false;
+	  if(*iter != OP_VOTE_TITLE)
+		  return false;
+	  if(iter == scriptPubKey.end())
+		  return true;
+
+	  //there may be an upgrade request after all of that
+	  int osIds = 0;
+
+	  while(osIds < MAXIMUM_OS_BINARY_HASHES)
+	  {
+		  if(iter == scriptPubKey.end())
+			  return false;
+
+		  if(//*iter >= OP_0 ||  //OP_0 is actually zero so this always is true
+				  *iter <= OP_0 + MAXIMUM_OS_BINARY_HASHES)
+		  {
+			  iter++;
+			  break;
+		  }
+
+		  //binary hash
+		  start = iter;
+		  scriptPubKey.GetOp(iter, opcode);
+		  if(iter-start-1 != 20)
+			  return false;
+
+		  //os id
+		  if(//*iter < OP_0 ||  //OP_0 is actually zero so this always is false
+				  *iter > OP_0 + OS_ID_LENGTH)
+			  return false;
+
+		  scriptPubKey.GetOp(iter, opcode);
+	  }
+
+	  //git hash 160 bits
+	  start = iter;
+	  scriptPubKey.GetOp(iter, opcode);
+	  if(iter-start-1 != 20)
+		  return false;
+
+	  //upgrade deadline seconds from epoch
+	  scriptPubKey.GetOp(iter, opcode);
+
+	  return true;
+
+}
 
 bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline)
 {
@@ -1596,6 +1660,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
             }
             else if (opcode2 == OP_SMALLDATA)
             {
+            	//TODO 2 change this to be greater than the size of a proposal
                 // small pushdata, <= 80 bytes
                 if (vch1.size() > 80)
                     break;

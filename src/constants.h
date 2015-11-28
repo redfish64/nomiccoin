@@ -24,6 +24,9 @@
 
 #define COIN_BUGTRACKER  "http://github.com/nomiccoin/nomiccoind/issues"
 
+//maximum os binary hashes in a proposal
+#define MAXIMUM_OS_BINARY_HASHES 5
+
 extern uint16_t                          COIN_PORT;
 extern uint16_t                          RPC_PORT;
 
@@ -113,3 +116,7 @@ extern int PROPOSAL_MATURITY_BLOCKS;
 extern int PROPOSAL_MESSAGE_PRESENCE_BLOCKS;
 
 extern hash_t NULL_PROPOSAL_TXN_HASH;
+
+extern timestamp_t MIN_PROPOSAL_DEADLINE_TIME;
+
+extern timestamp_t MAX_PROPOSAL_DEADLINE_TIME;

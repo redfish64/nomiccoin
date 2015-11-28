@@ -640,5 +640,7 @@ bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash);
 
 bool IsPublicScript(const CScript& script);
 
+bool CheckProposalPublicScript(const CScript& scriptPubKey);
+
 bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline);
 #endif

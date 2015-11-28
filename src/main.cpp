@@ -83,6 +83,7 @@ const char *OS_ID[] =
     "WIN64",
   };
 
+//if this becomes greater than 16, you must ypdate CheckProposalPublicScript in script.cpp
 const int OS_ID_LENGTH = (sizeof(OS_ID)/sizeof(char *));
 
 // Settings
@@ -596,6 +597,8 @@ bool CTransaction::IsRestrictedCoinStake() const
     return true;
 }
 
+
+
 bool CTransaction::CheckTransaction() const
 {
     // Basic checks that don't depend on any context
@@ -607,9 +610,10 @@ bool CTransaction::CheckTransaction() const
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
 
-    // Check for negative or overflow output values
+    // Check for negative or overflow output values... proposals only check the private vouts (above 0)
+    // we do further checks on proposals below
     int64 nValueOut = 0;
-    for (size_t i = 0; i < vout.size(); i++)
+    for (size_t i = IsProposal() ? 1 : 0; i < vout.size(); i++)
     {
         const CTxOut& txout = vout[i];
         if (txout.IsEmpty() && (!IsCoinBase()) && (!IsCoinStake()))
@@ -638,6 +642,18 @@ bool CTransaction::CheckTransaction() const
         if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
             return DoS(100, error("CTransaction::CheckTransaction() : coinbase script size"));
     }
+    else if(IsProposal())
+    {
+    	//First output must have zero funds spent
+    	if(vout[0].nValue != 0)
+            return DoS(100, error("CTransaction::CheckTransaction() : proposal public script has funds"));
+
+    	if(!CheckProposalPublicScript(vout[0].scriptPubKey))
+            return DoS(100, error("CTransaction::CheckTransaction() : proposal public script not standard"));
+
+    	timestamp_t deadline;
+    	GetVoteDeadlineForProposal(vout[0].scriptPubKey, deadline);
+    }
     else
     {
         BOOST_FOREACH(const CTxIn& txin, vin)
@@ -665,9 +681,6 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 	// To help v0.1.5 clients who would see it as a negative number
 	if ((int64) tx.nLockTime > std::numeric_limits<int>::max())
 		return error("CTxMemPool::accept() : not accepting nLockTime beyond 2038 yet");
-	if (tx.IsProposal())
-		//TODO 2 check if standard
-		/*NOP*/;
 
 	// Rather not work on nonstandard transactions
 	else if (!tx.IsStandard())
@@ -707,6 +720,11 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 			}
 			break;
 		}
+	}
+
+	if(tx.IsProposal())
+	{
+		if(tx.IsDeadlineValid(GetAdjustedTime()));
 	}
 
 	if(tx.IsVoteTxn())
@@ -2063,11 +2081,11 @@ void UpdateUpgradeStatusForNewPindexBest()
 		std::string(ur.upgradeGitCommit.begin(), ur.upgradeGitCommit.end()).c_str()
   	  );
 
-  std::pair<int, uint256> p;
+  std::pair<int, uint160> p;
 
   BOOST_FOREACH(p, ur.upgradeDistData)
   {
-	  printf("Binary OS  Binary SHA256 sum");
+	  printf("Binary OS  Binary Hash");
 	if(p.first == CLIENT_OS_ID)
 		printf("* %8s  %s\n", OS_ID[CLIENT_OS_ID], p.second.GetHex().c_str());
 	else
@@ -2387,6 +2405,12 @@ bool CBlock::CheckBlock() const
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
+
+        if(tx.IsProposal())
+        {
+        	if(!tx.IsDeadlineValid(GetBlockTime()))
+                return DoS(50, error("CheckBlock() : proposal has a deadline out of range"));
+        }
     }
 
     // Check for duplicate txids. This is caught by ConnectInputs(),
@@ -5036,3 +5060,16 @@ void CAppState::receiveNewBlock(CBlockIndex *pindex, CAppState& appStateOut)
   appStateOut.ur = ur;
 }
 
+bool CTransaction::IsDeadlineValid(timestamp_t timeOfProposal) const
+{
+	timestamp_t deadline;
+	GetVoteDeadlineForProposal(vout[0].scriptPubKey, deadline);
+
+	if(deadline < timeOfProposal + MIN_PROPOSAL_DEADLINE_TIME)
+		return error("CTxMemPool::accept() : Deadline is before the min proposal deadline time");
+
+	if(deadline > timeOfProposal + MAX_PROPOSAL_DEADLINE_TIME)
+		return error("CTxMemPool::accept() : Deadline is after the max proposal deadline time");
+
+	return true;
+}

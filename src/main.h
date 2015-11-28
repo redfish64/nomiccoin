@@ -555,6 +555,8 @@ public:
         return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
     }
 
+    bool IsDeadlineValid(timestamp_t timeOfProposal) const;
+
     //gets some information about the proposal. Used to determine if proposal
     //won, whether it is passed, whether it can still be voted for, etc.
     bool GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
@@ -1225,14 +1227,14 @@ class CUpgradeRequest
   int upgradeVersion;//zero if no upgrade. Value of the CLIENT_VERSION constant of the
   //upgraded version
   
-  std::vector<unsigned char> upgradeGitCommit; //git commit of upgrade.
+  uint160 upgradeGitCommit; //git commit of upgrade.
 
   //osId and sha2 hash of binary dists
   //note, eventually we may want to consider letting the clients download a binary distribution directly
   //from the network, verify it against the hash and then upgrade automatically.
   //Right now, I'm a little hesitant to trust the block chain so much as to let it run 
   //executables on the users computer with little or no intervention.
-  std::vector<std::pair<int,uint256> > upgradeDistData;
+  std::vector<std::pair<int,uint160> > upgradeDistData;
 
   uint64 upgradeDeadline; //after this deadline, if the upgrade hasn't occurred yet, the
   //client will shutdown and refuse to run
@@ -1240,7 +1242,7 @@ class CUpgradeRequest
   void SetNull()
   {
     upgradeVersion = 0;
-    upgradeGitCommit.clear();
+    upgradeGitCommit = 0;
     upgradeDistData.clear();
     upgradeDeadline = 0;
     }
