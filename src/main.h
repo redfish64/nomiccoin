@@ -1464,9 +1464,6 @@ public:
         if (bnTarget <= 0)
             return 0;
         return (IsProofOfStake()? (CBigNum(1)<<256) / (bnTarget+1) : 1);
-	//TODO 2 do we really want trust of 1 for PoW blocks? Neucoin kind of showed what a
-	//fiasco this can become when their server hiccup'ed and erased 11 PoW blocks
-	//(which mine once every 10 minutes). I wonder why it's here....
     }
 
     bool IsInMainChain() const

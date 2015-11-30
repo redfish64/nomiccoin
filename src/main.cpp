@@ -653,6 +653,11 @@ bool CTransaction::CheckTransaction() const
 
     	timestamp_t deadline;
     	GetVoteDeadlineForProposal(vout[0].scriptPubKey, deadline);
+
+    	if(deadline > nTime + MAX_PROPOSAL_DEADLINE_TIME)
+            return DoS(100, error("CTransaction::CheckTransaction() : proposal deadline too far off in the future"));
+    	if(deadline < nTime + MIN_PROPOSAL_DEADLINE_TIME)
+            return DoS(100, error("CTransaction::CheckTransaction() : proposal deadline too soon"));
     }
     else
     {
@@ -724,7 +729,10 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 
 	if(tx.IsProposal())
 	{
-		if(tx.IsDeadlineValid(GetAdjustedTime()));
+		//deadlines of proposals must be in a certain range compared to its time, as well as the time in the block
+		//its inserted in
+		if(!tx.IsDeadlineValid(GetAdjustedTime()))
+			return error("CTxMemPool::accept() : Proposal has an invalid deadline according to its time");
 	}
 
 	if(tx.IsVoteTxn())
@@ -732,10 +740,13 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 		//a vote txn's first input is always the proposal
 		//it's second is the address to take the funds from
 
-		//TODO 2 check that output of vote txn goes to same address
-		if(tx.vin.size() != 2)
-			return error("CTxMemPool::accept() : Vote has more than two inputs, %s, %d",
+		if(tx.vin.size() != 1)
+			return error("CTxMemPool::accept() : Vote has more than one input, %s, %d",
 					hash.ToString().substr(0, 10).c_str(), tx.vin.size());
+
+		if(tx.vout.size() != 1)
+			return error("CTxMemPool::accept() : Vote has more than one output, %s, %d",
+					hash.ToString().substr(0, 10).c_str(), tx.vout.size());
 
 		if(tx.vin[0].prevout.n != 0)
 		{
@@ -765,6 +776,10 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 			if(!prev.IsProposal())
 				return error("CTxMemPool::accept() : Vote is not for a proposal %s",
 						hash.ToString().substr(0, 10).c_str());
+
+			if(tx.vout[0].scriptPubKey != prev.vout[tx.vin[0].prevout.n].scriptPubKey)
+				return error("CTxMemPool::accept() : Vote does not send the funds back to the original output");
+
 
 			//make sure the vote is before the deadline of what is being voted for
 			timestamp_t deadline = prev.GetVoteDeadline();
@@ -1731,6 +1746,14 @@ bool RunProposalForPublic(CTransaction *tx, CAppState &appState, int blockHeight
   return true;
 }
 
+//meant to be passed to ReadProposalsVoteCount
+bool fPassedProposals(votehash_t txnHash, money_t vote, void *pbaseVote)
+{
+	money_t& baseVote = *((money_t *)pbaseVote);
+
+	return vote * 2 > baseVote;
+}
+
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Check it again in case a previous version let a bad block in
@@ -1852,19 +1875,45 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     pindex->appState = pindex->pprev->appState;
     
-    // Watch for proposal transactions with a public component
-	//TODO 2 co: when should we run proposals for public (ie cause upgrade code to be invoked??)
-//	//we've already checked if any proposals are redeemable at this point, so now we just
-//	//have to run them
-//    BOOST_FOREACH(CTransaction& tx, vtx)
-//      {
-//	if(tx.IsRedeemedProposal())
-//	  {
-//	    //everyone evaluates the tx, in case it has operations for displaying a message
-//	    //or upgrading the client
-//	    RunProposalForPublic(&tx, pindex->appState, pindex->nHeight);
-//	  }
-//      }
+    // Watch for proposal transactions that have passed and the proposal maturity period has expired
+    // We wait until the maturity period has finished before notifying the user, incase of a reorg.
+    // (We don't want to notify the user to upgrade, then rescind the request... it's too confusing, so
+    //  it's important to wait for the block chain to settle, here)
+    CBlockIndex *pPriorIndex = GetPriorBlockIndex(pindex, PROPOSAL_MATURITY_BLOCKS);
+
+    if(pPriorIndex && pPriorIndex->pprev)
+    {
+    	//we will run the public (upgrade request) for all proposals that ended at the block
+    	//PROPOSAL_MATURITY_BLOCKS ago and started at the prior block. In this way, proposals
+    	//will only be run once
+    	timestamp_t endTime = pPriorIndex->nTime-1;
+    	timestamp_t startTime = pPriorIndex->pprev->nTime;
+
+    	typedef std::pair<votehash_t, money_t> proposalpair_t;
+    	std::vector<proposalpair_t> proposalsToRun;
+
+    	txdb.ReadProposalsVoteCount(startTime,endTime, (void *)&pPriorIndex->votingPeriodVotedCoins,  fPassedProposals,
+    			proposalsToRun);
+
+    	BOOST_FOREACH(proposalpair_t& proposalPair, proposalsToRun)
+    	{
+    		CTransaction t;
+    		CTxIndex txIndex;
+    		t.ReadFromDisk(txdb, proposalPair.first, txIndex);
+
+    		//everyone evaluates the tx, in case it has operations for upgrading the client
+    		RunProposalForPublic(&t, pindex->appState, pindex->nHeight);
+
+    		//TODO 2.1 display in the GUI that the proposals passed (do this after we got the gui setup)
+    		//TODO 2.1 add functionality to run command on passed proposal, etc.
+    		printf("CBlock::ConnectBlock Proposal %s passed with %lf of vote\n", proposalPair.first,
+    				((double)proposalPair.second)/pPriorIndex->votingPeriodVotedCoins);
+
+    		//TODO 2 handle proposals that have passed, we want the funds to appear in the wallet if addressed to
+    		//us
+    		//call this or something: SyncWithWallets(tx, this, true);
+    	}
+    }
 
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
         return error("Connect() : WriteBlockIndex for pindex failed");
@@ -1903,14 +1952,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     // Watch for transactions paying to me
 	BOOST_FOREACH(CTransaction& tx, vtx)
 	{
+		//TODO 2 handle proposals that have not passed, we don't want the funds showing up in the wallet
 		SyncWithWallets(tx, this, true);
 	}
 
 	return true;
 }
-
-//TODO 2 either have to put a maximum of the deadline of a proposal, or something, because we can't have votes
-//expiring and yet still be valid for a proposal
 
 bool CBlockIndex::GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes)
 {

@@ -413,36 +413,30 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn)
 // Add a transaction to the wallet, or update it.
 // pblock is optional, but should be provided if the transaction is known to be in a block.
 // If fUpdate is true, existing transactions will be updated.
-bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate, bool fFindBlock)
-{
-  uint256 hash = tx.GetHash();
-  {
-        LOCK(cs_wallet);
-        bool fExisted = mapWallet.count(hash);
-	if(fDebug)
-	  {
-	    printf("fExisted %d fUpdate %d\n", 
-		   fExisted ? 1:0,
-		   fUpdate ? 1:0);
-	    
-	  }
-  
-        if (fExisted && !fUpdate) return false;
-        if (fExisted || IsMine(tx) || IsFromMe(tx))
-        {
-            CWalletTx wtx(this,tx);
+bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate, bool fFindBlock) {
+	uint256 hash = tx.GetHash();
+	{
+		LOCK(cs_wallet);
+		bool fExisted = mapWallet.count(hash);
+		if (fDebug) {
+			printf("fExisted %d fUpdate %d\n", fExisted ? 1 : 0, fUpdate ? 1 : 0);
 
-            // Get merkle branch if transaction was found in a block
-            if (pblock)
-	      {
-		wtx.SetMerkleBranch(pblock);
-	      }
-            return AddToWallet(wtx);
-        }
-        else
-	  WalletUpdateSpent(tx);
-    }
-    return false;
+		}
+
+		if (fExisted && !fUpdate)
+			return false;
+		if (fExisted || IsMine(tx) || IsFromMe(tx)) {
+			CWalletTx wtx(this, tx);
+
+			// Get merkle branch if transaction was found in a block
+			if (pblock) {
+				wtx.SetMerkleBranch(pblock);
+			}
+			return AddToWallet(wtx);
+		} else
+			WalletUpdateSpent(tx);
+	}
+	return false;
 }
 
 bool CWallet::EraseFromWallet(uint256 hash)
@@ -888,7 +882,7 @@ void CWallet::ResendWalletTransactions()
 
 
 //coins that can be voted with, includes immature coinstake/coinbase
-//TODO 2: make sure that voting transactions also have a maturity
+//TODO 2.2: test make sure that voting transactions also have a maturity
 int64 CWallet::GetVotingBalance() const
 {
     int64 nTotal = 0;

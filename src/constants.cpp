@@ -176,7 +176,6 @@ money_t GENESIS_SHARED_POOL_FUNDS_BALANCE = 1000 * COIN;
    The portion that the funds pool gets for every minted and mined block.
  */
 double                             SHARED_POOL_MINTING_PERC  = .25;
-//TODO 2 do we use mining cut or not?
 double                             SHARED_POOL_MINING_PERC   = .25;
 
 /**

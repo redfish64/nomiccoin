@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1444694480094" TEXT="Voting Coin">
+<node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1448760773055" TEXT="Voting Coin">
 <node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1447555772402" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
@@ -953,7 +953,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1448419517093" POSITION="right" TEXT="coding">
+<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1448856456289" POSITION="right" TEXT="coding">
 <node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1447661461488" TEXT="new ops">
 <node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1447555634772" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
@@ -1265,22 +1265,19 @@
 <node CREATED="1448279935857" ID="ID_1412102479" MODIFIED="1448279950469" TEXT="Do we need this timer? Can we get away without it?">
 <node CREATED="1448279951889" ID="ID_1708913089" MODIFIED="1448279964557" TEXT="Suppose instead of display msg, a proposal just has a title"/>
 <node CREATED="1448279965186" ID="ID_1289366950" MODIFIED="1448279980942" TEXT="We still need to enforce upgrades, though"/>
-<node CREATED="1448280075858" ID="ID_1489621963" MODIFIED="1448281051522" TEXT="So, yes we need it">
+<node CREATED="1448280075858" ID="ID_1489621963" MODIFIED="1448766564640" STYLE="fork" TEXT="So, yes we need it">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
 </node>
 <node CREATED="1448280998713" ID="ID_296712741" MODIFIED="1448281013450" TEXT="Get rid of redeemed proposal, replace with timer">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 </node>
-<node COLOR="#ff0000" CREATED="1448279250314" ID="ID_1157784622" MODIFIED="1448279256065" TEXT="TODO">
-<font NAME="SansSerif" SIZE="12"/>
-</node>
 </node>
 </node>
 <node CREATED="1444990083724" ID="ID_1078318025" MODIFIED="1444990088615" TEXT="cache">
 <node CREATED="1444990157810" ID="ID_822606166" MODIFIED="1445914857408" TEXT="We create a total for each txn and deadline within the db"/>
 </node>
-<node CREATED="1444996931023" FOLDED="true" ID="ID_1706006000" MODIFIED="1448517289431" TEXT="voting">
+<node CREATED="1444996931023" FOLDED="true" ID="ID_1706006000" MODIFIED="1448760354277" TEXT="voting">
 <node CREATED="1444996943038" ID="ID_690197111" MODIFIED="1445912547983" TEXT="Cannot take place for the first few blocks... to give people a chance to register to vote">
 <node CREATED="1445912557723" ID="ID_514581827" MODIFIED="1445912615743" TEXT="A proposal can be created right away, but its deadline has to be a few weeks out"/>
 <node COLOR="#ff0000" CREATED="1445912527931" ID="ID_1714713472" MODIFIED="1445912530635" TEXT="TODO"/>
@@ -1750,7 +1747,9 @@
 <node CREATED="1447807621019" ID="ID_1521146140" MODIFIED="1447807624240" TEXT="Change code">
 <node CREATED="1447807625300" ID="ID_278382682" MODIFIED="1447807630238" TEXT="66.7%"/>
 </node>
-<node COLOR="#ff0000" CREATED="1447807752866" ID="ID_1858838360" MODIFIED="1447807756826" TEXT="TODO"/>
+<node CREATED="1447807752866" ID="ID_1858838360" MODIFIED="1448856492933" TEXT="FUTURE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
 </node>
 <node CREATED="1447764569199" ID="ID_48565674" MODIFIED="1447901841251" TEXT="I think we need to store a link between txn hash and vote blob in the db, and transfer it using p2p">
 <node CREATED="1447764634831" ID="ID_157810685" MODIFIED="1447764650835" TEXT="Otherwise, the gui will be very complex. We want to keep it simple for adoption"/>
@@ -2088,7 +2087,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1448614809710" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1448770049858" POSITION="right" TEXT="testing">
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -2150,6 +2149,7 @@
 <node COLOR="#ff0000" CREATED="1448533852744" ID="ID_1682001645" MODIFIED="1448533877437" TEXT="Test voting for invalid proposal with bad checksum"/>
 <node COLOR="#ff0000" CREATED="1448533877736" ID="ID_38188672" MODIFIED="1448533888833" TEXT="Test voting for proposal with txn hash that doesn&apos;t exist"/>
 <node COLOR="#ff0000" CREATED="1448614813086" ID="ID_1718579596" MODIFIED="1448614825406" TEXT="Test proposal with huge title, make sure it doesn&apos;t use too much memory"/>
+<node COLOR="#ff0000" CREATED="1448770055526" ID="ID_1262394076" MODIFIED="1448770077790" TEXT="Test that upgrade actually works. Can we bump CLIENT_VERSION with no ill effects?"/>
 </node>
 </node>
 <node CREATED="1445334536006" FOLDED="true" ID="ID_97324318" MODIFIED="1448533872216" POSITION="right" TEXT="distribution">
@@ -2217,7 +2217,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445065454955" FOLDED="true" ID="ID_1110428196" MODIFIED="1448348039440" POSITION="right" TEXT="bitcoin analysis">
+<node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1448766496477" POSITION="right" TEXT="bitcoin analysis">
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -2406,7 +2406,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1448356494389" ID="ID_1548590035" MODIFIED="1448356507866" TEXT="make sure that when we create a block after the deadline for a proposal, it doesn&apos;t subtract votes"/>
+<node COLOR="#ff0000" CREATED="1448356494389" ID="ID_1548590035" MODIFIED="1448757976782" TEXT="make sure that when we create a block after the deadline for a proposal, it doesn&apos;t subtract votes"/>
 <node CREATED="1448517301717" ID="ID_135799089" MODIFIED="1448517315145" TEXT="How do we identify a vote transaction?">
 <node CREATED="1448517316533" ID="ID_901042945" MODIFIED="1448517329433" TEXT="Should we keep OP_VOTE?">
 <node CREATED="1448517366158" ID="ID_1749193015" MODIFIED="1448517394105" TEXT="We no longer need it with the original &lt;txnhash&gt; argument"/>

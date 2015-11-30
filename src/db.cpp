@@ -879,3 +879,65 @@ bool CTxDB::EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline)
   return Erase(triple);
 }
 
+
+bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, void *data,
+		bool (*fIncludeProposal)(votehash_t, money_t, void *), std::vector<std::pair<votehash_t, money_t> >& out)
+{
+    // Get database cursor
+    Dbc* pcursor = GetCursor();
+    if (!pcursor)
+        return false;
+
+    unsigned int fFlags = DB_SET_RANGE;
+
+    //TODO 2 test, make sure that choosing hash 0 will get all the hashes for a particular time
+    INFINITE_LOOP
+    {
+        // Read next record
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        boost::tuple<string, timestamp_t, votehash_t> triple(string("votecount"), startTime, 0);
+
+        if (fFlags == DB_SET_RANGE)
+        {
+            ssKey << triple;
+        }
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
+
+        fFlags = DB_NEXT;
+        if (ret == DB_NOTFOUND)
+            break;
+        else if (ret != 0)
+            return false;
+
+        // Unserialize
+
+        try {
+			ssKey >> triple;
+
+			if (boost::get<0>(triple) == "votecount" && boost::get<1>(triple) < endTime)
+			{
+				votehash_t txnHash = boost::get<2>(triple);
+
+				money_t votes;
+				ssValue >> votes;
+
+				if((*fIncludeProposal)(txnHash, votes, data))
+				{
+					out.push_back(make_pair(txnHash, votes));
+				}
+			}
+			else
+			{
+				break;
+			}
+        }    // try
+        catch (std::exception &e) {
+            return error("%s() : deserialize error", __PRETTY_FUNCTION__);
+        }
+    }
+
+    pcursor->close();
+
+    return true;
+}

@@ -997,7 +997,7 @@ std::string ConvertProposalToBlob(CProposal& proposal)
 
   vector<unsigned char> data(ss.begin(), ss.end());
 
-  //TODO 2 compress this???
+  //TODO 2.5 compress this??? maybe in serialize itself??
   return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
 }
 
@@ -1128,7 +1128,8 @@ Value createproposal(const Array& params, bool fHelp) {
 	return result;
 }
 
-//TODO 2 make a command to generate a uint160 for a binary blob
+//TODO 2 make a command to generate a uint160 for a binary blob (for proposal dists). make this a standalone executable
+//for easy integration into builds
 
 Value vote(const Array& params, bool fHelp)
 {

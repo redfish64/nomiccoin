@@ -308,6 +308,9 @@ public:
     bool WriteProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t totalVotes);
     bool EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline);
     bool ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t & totalVotes);
+
+    bool ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, void *data,
+    		bool (*fIncludeProposal)(votehash_t, money_t, void *), std::vector<std::pair<votehash_t, money_t> >& out);
 };
 
 
@@ -327,6 +330,7 @@ public:
 };
 
 bool LoadAddresses();
+
 
 
 #endif // BITCOIN_DB_H
