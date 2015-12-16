@@ -38,14 +38,16 @@ uint8_t                           SCRIPT_ADDRESS_PREFIX       = 35; // "F"
 
 //                                The following constants define the genesis block of the coin network
 //                                If you change them, the hash will probably be wrong and the genesis invalid (because its hash would be higher than the initial target), and the client will try to generate a new valid genesis at startup
-
-hash_t                            GENESIS_MERKLE_HASH         = hash_t("b0c01c59825e8df457a272471b18d4c60984fccfc39aa175030654760dcf0886");
-hash_t                            GENESIS_HASH                = hash_t("00152f9d96101c8db4fc276a6010e73e805ccfa0ed2f3bf989a49507534e502b");
+hash_t                            GENESIS_MERKLE_HASH         = hash_t("d5ab3e370e4a314b31784c05e184d87809646d06066d13a805ca9607eb5f08f0");
+hash_t                            GENESIS_HASH                = hash_t("003fd1bc80732e49c38247bb47afcaf8b7c9f427a9b69ad5bfd7c0402fcd4d56");
 char const *                      GENESIS_IDENT               = "And I moved upon the face of the darkness. And I saw that I was alone. Let there be light.";
-timestamp_t                       GENESIS_TX_TIME             = 1444122312;
-timestamp_t                       GENESIS_BLOCK_TIME          = 1444122312;
-uint32_t                          GENESIS_BLOCK_NONCE         = 2182928;
+timestamp_t                       GENESIS_TX_TIME             = 1345084287;
+timestamp_t                       GENESIS_BLOCK_TIME          = 1345084287;
+uint32_t                          GENESIS_BLOCK_NONCE         = 2179983835;
 uint32_t                          GENESIS_BLOCK_VERSION       = 1;
+
+hash_t NULL_PROPOSAL_TXN_HASH = hash_t("d82bc3c72543514b650a40c5b17bd8fb062e785c682125ecdd5db371d476687b");
+
 
 // std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
 //   (600, hash_t("0000002116c928d1b212578d6d13ada478bb22cc7f82c38a743ee6084d2690de"));
@@ -200,8 +202,6 @@ int PROPOSAL_MATURITY_BLOCKS = 500;
 
 
 int PROPOSAL_MESSAGE_PRESENCE_BLOCKS = 1 * WEEK / TARGET_SPACING;
-
-hash_t NULL_PROPOSAL_TXN_HASH = 0x0;
 
 //the minimum time a deadline can occur after a proposal has been entered into the blockchain
 timestamp_t MIN_PROPOSAL_DEADLINE_TIME = 6 * HOUR;

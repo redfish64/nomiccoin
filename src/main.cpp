@@ -67,25 +67,6 @@ const string strMessageMagic = COIN_NAME " Signed Message:\n";
 double dHashesPerSec;
 int64 nHPSTimerStart;
 
-const char *OS_ID[] =
-  {
-    "NONE",
-    "LINUX_X86",
-    "LINUX_AMD64",
-    "LINUX_ALPHA",
-    "LINUX_ARM",
-    "LINUX_HPPA",
-    "LINUX_IA64",
-    "LINUX_PPC",
-    "LINUX_PPC64",
-    "LINUX_SPARC",
-    "WIN32",
-    "WIN64",
-  };
-
-//if this becomes greater than 16, you must ypdate CheckProposalPublicScript in script.cpp
-const int OS_ID_LENGTH = (sizeof(OS_ID)/sizeof(char *));
-
 // Settings
 int64 nTransactionFee = MIN_TX_FEES;
 
@@ -2127,17 +2108,6 @@ void UpdateUpgradeStatusForNewPindexBest()
 		DateTimeStrFormat(ur.upgradeDeadline).c_str(),
 		std::string(ur.upgradeGitCommit.begin(), ur.upgradeGitCommit.end()).c_str()
   	  );
-
-  std::pair<int, uint160> p;
-
-  BOOST_FOREACH(p, ur.upgradeDistData)
-  {
-	  printf("Binary OS  Binary Hash");
-	if(p.first == CLIENT_OS_ID)
-		printf("* %8s  %s\n", OS_ID[CLIENT_OS_ID], p.second.GetHex().c_str());
-	else
-		printf("%10s  %s\n", OS_ID[CLIENT_OS_ID], p.second.GetHex().c_str());
-  }
 
   if(ur.upgradeDeadline < (uint64)GetAdjustedTime())
     {

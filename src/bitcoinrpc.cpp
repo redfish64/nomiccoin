@@ -726,17 +726,6 @@ Value getupgradeinfo(const Array& params, bool fHelp)
 
     Array distDataArray;
     
-    BOOST_FOREACH(p, ur.upgradeDistData)
-      {
-	Object distData;
-	distData.push_back(Pair("osId", OS_ID[p.first]));
-	distData.push_back(Pair("binaryHash",
-				p.second.GetHex()));
-	distDataArray.push_back(distData);
-      }
-    
-    obj.push_back(Pair("distData", distDataArray));
-
     return obj;
 }
 
@@ -1001,18 +990,6 @@ std::string ConvertProposalToBlob(CProposal& proposal)
   return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
 }
 
-int GetOsId(const char *str)
-{
-  for(int i = 0;i < OS_ID_LENGTH; i++)
-    {
-      if(strcmp(OS_ID[i], str) == 0)
-	return i;
-    }
-
-  return -1;
-  
-}
-
 Value createproposal(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2)
 		throw runtime_error(
@@ -1062,32 +1039,7 @@ Value createproposal(const Array& params, bool fHelp) {
 			string gitStr = params[++i].get_str();
 			uint160 gitHash = uint160(gitStr);
 
-			typedef map<char, uint256> map_t;
-			map_t osIdToBinaryHashes;
-
-			i++;
-			for (; i < params.size() - 1; i += 2) {
-				int os_id = GetOsId(params[i].get_str().c_str());
-				if (os_id == -1)
-					break;
-
-				uint256 binaryHash(params[i + 1].get_str());
-
-				if(osIdToBinaryHashes.count((char)os_id))
-					throw JSONRPCError(-5, "Repeat of os id");
-
-				osIdToBinaryHashes[(char)os_id] = binaryHash;
-			}
-
-			if(osIdToBinaryHashes.size() > MAXIMUM_OS_BINARY_HASHES)
-				throw JSONRPCError(-5, "Too many binary os's");
-
-			BOOST_FOREACH(map_t::value_type p, osIdToBinaryHashes)
-			{
-				pubScript = pubScript << p.second << p.first;
-			}
-
-			pubScript = pubScript << osIdToBinaryHashes.size() << gitHash
+			pubScript = pubScript  << gitHash
 					<< deadlineEpoch << clientVersion << OP_UPGRADE_CLIENT;
 
 			upgradedClientAlready = true;

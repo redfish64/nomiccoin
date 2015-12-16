@@ -1212,12 +1212,6 @@ enum BlockIndexObjectType
 class CAppState;
 
 
-//os ids, for upgrading client, position corresponds to id number
-//(add new ones to the bottom, obviously)
-extern const char *OS_ID[];
-
-extern const int OS_ID_LENGTH;
-
 /**
  * Forces the client to upgrade at a specific block
  */
@@ -1229,13 +1223,6 @@ class CUpgradeRequest
   
   uint160 upgradeGitCommit; //git commit of upgrade.
 
-  //osId and sha2 hash of binary dists
-  //note, eventually we may want to consider letting the clients download a binary distribution directly
-  //from the network, verify it against the hash and then upgrade automatically.
-  //Right now, I'm a little hesitant to trust the block chain so much as to let it run 
-  //executables on the users computer with little or no intervention.
-  std::vector<std::pair<int,uint160> > upgradeDistData;
-
   uint64 upgradeDeadline; //after this deadline, if the upgrade hasn't occurred yet, the
   //client will shutdown and refuse to run
 
@@ -1243,7 +1230,6 @@ class CUpgradeRequest
   {
     upgradeVersion = 0;
     upgradeGitCommit = 0;
-    upgradeDistData.clear();
     upgradeDeadline = 0;
     }
 
@@ -1251,7 +1237,6 @@ class CUpgradeRequest
     (
      READWRITE(upgradeVersion);
      READWRITE(upgradeGitCommit);
-     READWRITE(upgradeDistData);
      READWRITE(upgradeDeadline);
      );
 
@@ -1268,7 +1253,6 @@ class CUpgradeRequest
       {
 	upgradeVersion = ur.upgradeVersion;
 	upgradeGitCommit = ur.upgradeGitCommit;
-	upgradeDistData = ur.upgradeDistData;
       }
   }
 

@@ -953,8 +953,8 @@
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" ID="ID_1517243472" MODIFIED="1448856456289" POSITION="right" TEXT="coding">
-<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1447661461488" TEXT="new ops">
+<node CREATED="1444694502424" FOLDED="true" ID="ID_1517243472" MODIFIED="1449988405483" POSITION="right" TEXT="coding">
+<node CREATED="1444787383783" FOLDED="true" ID="ID_208007625" MODIFIED="1449974662102" TEXT="new ops">
 <node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1447555634772" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
 <node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
@@ -1190,7 +1190,7 @@
 <node COLOR="#ff0000" CREATED="1445914699084" ID="ID_1961142832" MODIFIED="1445914703076" TEXT="TODO"/>
 </node>
 </node>
-<node CREATED="1444904510571" ID="ID_116372185" MODIFIED="1444904515367" TEXT="PoW">
+<node CREATED="1444904510571" FOLDED="true" ID="ID_116372185" MODIFIED="1449974664883" TEXT="PoW">
 <node CREATED="1444904518467" ID="ID_1505124101" MODIFIED="1444904531199" TEXT="PoW is activated if PoS takes over 5 minutes"/>
 <node CREATED="1444904531779" ID="ID_206406262" MODIFIED="1445914726392" TEXT="For each PoW block found, 1 coin is rewarded?">
 <node CREATED="1445914727948" ID="ID_1548353102" MODIFIED="1445914756544" TEXT="I think that PoW should have more strength, about the same as PoS. We can look at prior blocks and get an average strength, and then apply that to PoW"/>
@@ -1203,7 +1203,7 @@
 </node>
 <node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
 </node>
-<node CREATED="1447928754417" ID="ID_1180192671" MODIFIED="1447928757397" TEXT="proposals">
+<node CREATED="1447928754417" FOLDED="true" ID="ID_1180192671" MODIFIED="1449974667628" TEXT="proposals">
 <node CREATED="1447928758481" ID="ID_1481281938" MODIFIED="1447928766341" TEXT="recording proposals in db for displaying information about them">
 <node CREATED="1447928768049" ID="ID_830009308" MODIFIED="1447928780061" TEXT="Do we need to do this?">
 <node CREATED="1447928781593" ID="ID_687600595" MODIFIED="1447928794189" TEXT="What if we vote on the proposals themselves, then we don&apos;t need an extra table"/>
@@ -1234,8 +1234,7 @@
       When voting, votes will be attached to this first proposal as the first input for it.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node COLOR="#ff0000" CREATED="1448276959945" ID="ID_1864282986" MODIFIED="1448276961921" TEXT="TODO"/>
 </node>
 <node CREATED="1448279065570" ID="ID_1125321953" MODIFIED="1448279081373" TEXT="Redeemed proposal timestamp will be a valid timestamp">
@@ -1405,8 +1404,7 @@
       Since we subtracted those coins in the current block, we can remove it from the 2 week future delta
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1448437955642" ID="ID_1949963049" MODIFIED="1448437993982" TEXT="The problem is there is no easy way to get a blockindex from a transaction"/>
 </node>
 <node CREATED="1448437995426" ID="ID_16120178" MODIFIED="1448438167649">
@@ -1431,8 +1429,7 @@
       Whenever a vote gets spent, it's also gets subtracted, then.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1448438171122" ID="ID_269334690" MODIFIED="1448438225278" TEXT="It&apos;s a little weird, because whenever a vote is spent, that vote gets subtracted from the vote total, which means it won&apos;t get its full vote period worth.&#xa;"/>
 </node>
 <node COLOR="#ff0000" CREATED="1448420794396" ID="ID_1563933166" MODIFIED="1448420797444" TEXT="TODO"/>
@@ -1603,7 +1600,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445502472322" ID="ID_1894994353" MODIFIED="1445502476126" TEXT="staking">
+<node CREATED="1445502472322" FOLDED="true" ID="ID_1894994353" MODIFIED="1449974669741" TEXT="staking">
 <node CREATED="1445502477587" ID="ID_916707394" MODIFIED="1445915141691" TEXT="We have to make sure that when the user votes, it doesn&apos;t change their stake hash, to prevent a grinding attack">
 <font NAME="SansSerif" SIZE="12"/>
 <node CREATED="1445914699084" ID="ID_1522722423" MODIFIED="1447661247362" TEXT="Done"/>
@@ -1675,6 +1672,10 @@
 <node COLOR="#ff0000" CREATED="1448332145318" ID="ID_1644556873" MODIFIED="1448332148358" TEXT="TODO"/>
 </node>
 </node>
+<node CREATED="1449057867918" ID="ID_1856991960" MODIFIED="1449057872490" TEXT="Get rid of voteblob?">
+<node CREATED="1449057875525" ID="ID_1052715400" MODIFIED="1449057890002" TEXT="Why have it anymore if the proposal is in the blockchain already?"/>
+<node COLOR="#ff0000" CREATED="1449057891487" ID="ID_1937774621" MODIFIED="1449057915390" TEXT="TODO"/>
+</node>
 </node>
 <node CREATED="1445580878462" ID="ID_136089487" MODIFIED="1445910211426" TEXT="Is having a constant fee ok? Why don&apos;t we give it to the staker? To be &quot;fair&quot;? Or for another reason?">
 <node CREATED="1445910086563" ID="ID_1227024573" MODIFIED="1445910107446" TEXT="Here are a list of reasons: https://www.reddit.com/r/peercoin/comments/1s3y70/analysis_peercoin_01ppc_destroyed_when_a/"/>
@@ -1716,7 +1717,8 @@
 <node CREATED="1447763386351" ID="ID_128569572" MODIFIED="1447763390154" TEXT="gui">
 <node CREATED="1447763392799" ID="ID_1722337055" MODIFIED="1447763407602" TEXT="create proposal">
 <node CREATED="1447763923159" ID="ID_208682446" MODIFIED="1447763933667" TEXT="ability to spend funds to multiple parties"/>
-<node CREATED="1447763934231" ID="ID_271018157" MODIFIED="1447763940114" TEXT="ability to display a message"/>
+<node CREATED="1447763934231" ID="ID_271018157" MODIFIED="1449047846332" TEXT="choose title"/>
+<node CREATED="1449047840417" ID="ID_1735985051" MODIFIED="1449047843396" TEXT="choose deadline"/>
 <node CREATED="1447763946367" ID="ID_1553483345" MODIFIED="1447763952540" TEXT="ability to upgrade client"/>
 <node CREATED="1447764018647" ID="ID_1056000171" MODIFIED="1447764027363" TEXT="creating a proposal will automatically vote for it">
 <node CREATED="1447764028791" ID="ID_755429948" MODIFIED="1447764073699" TEXT="Button will be labeled &quot;Create &amp; Vote for Proposal&quot;"/>
@@ -1729,12 +1731,93 @@
 <node CREATED="1447763431655" ID="ID_246318994" MODIFIED="1447763484763" TEXT="view proposals by date">
 <node CREATED="1447764092536" ID="ID_743750875" MODIFIED="1447764111420" TEXT="Double click, or Right click and select &quot;Vote&quot; will go to vote screen"/>
 <node CREATED="1447764117119" ID="ID_1643825416" MODIFIED="1447764123817" TEXT="Message"/>
-<node CREATED="1448324458293" ID="ID_1743686814" MODIFIED="1448324476746" TEXT="Only proposals with &gt;10% votes are shown">
+<node CREATED="1448324458293" ID="ID_1743686814" MODIFIED="1449049905814" TEXT="Only proposals with &gt;X% votes are shown and user created/voted on proposals">
 <node CREATED="1448324479581" ID="ID_1214034160" MODIFIED="1448324521993" TEXT="We can&apos;t show all proposals, to prevent someone from trying to copycat an existing proposal and confuse users as to which one is real"/>
 </node>
 </node>
 <node CREATED="1448324539973" ID="ID_1313359187" MODIFIED="1448324563050" TEXT="view past proposals">
-<node CREATED="1448324566205" ID="ID_671414816" MODIFIED="1448324638889" TEXT="Similiar to view proposals by date, except it shows only proposals from the past. Keeps only show proposals with &gt;10% vote rule, so that only proposals seen in &quot;view proposals by date&quot; screen are shown here"/>
+<node CREATED="1448324566205" ID="ID_671414816" MODIFIED="1449048721357" TEXT="Similiar to view proposals by date, except it shows only proposals from the past. Keeps only show proposals with &gt;X% vote rule, so that only proposals seen in &quot;view proposals by date&quot; screen are shown here"/>
+<node CREATED="1449048584257" ID="ID_331081736" MODIFIED="1449049919134" TEXT="Also shows user created/voted on proposals"/>
+</node>
+<node CREATED="1449047993169" ID="ID_616556859" MODIFIED="1449047994782" TEXT="impl">
+<node CREATED="1449047996226" ID="ID_1731978595" MODIFIED="1449047997612" TEXT="top bar">
+<node CREATED="1449047998921" ID="ID_97366934" MODIFIED="1449047999460" TEXT="add">
+<node CREATED="1449048004321" ID="ID_702489227" MODIFIED="1449048023748" TEXT="View Current Proposals"/>
+<node CREATED="1449048024505" ID="ID_1950400225" MODIFIED="1449048027756" TEXT="View Past Proposals"/>
+<node CREATED="1449048028426" ID="ID_573908166" MODIFIED="1449048030316" TEXT="Vote">
+<node CREATED="1449048738321" ID="ID_57390108" MODIFIED="1449058084497" TEXT="contains">
+<node CREATED="1449058062447" ID="ID_1352712504" MODIFIED="1449058065394" TEXT="Vote Box">
+<node CREATED="1449048743537" ID="ID_283999382" MODIFIED="1449058023714" TEXT="Vote Txn Hash &lt;entrybox&gt;"/>
+<node CREATED="1449058068869" ID="ID_1536853203" MODIFIED="1449058074930" TEXT="Search Button"/>
+</node>
+<node CREATED="1449058084455" ID="ID_777776384" MODIFIED="1449058096802" TEXT="Before successful search, grayed out">
+<node CREATED="1449048757210" ID="ID_1336822409" MODIFIED="1449048782750" TEXT="Proposal Info">
+<node CREATED="1449048765305" ID="ID_673851210" MODIFIED="1449048766629" TEXT="contains">
+<node CREATED="1449048768121" ID="ID_1560322227" MODIFIED="1449048784261" TEXT="Title"/>
+<node CREATED="1449048784930" ID="ID_559164271" MODIFIED="1449048786334" TEXT="Deadline"/>
+<node CREATED="1449048844194" ID="ID_1569124482" MODIFIED="1449048847925" TEXT="Upgrade box">
+<node CREATED="1449049689915" ID="ID_1496468316" MODIFIED="1449049691725" TEXT="Git commit"/>
+<node CREATED="1449049692339" ID="ID_240130769" MODIFIED="1449049697958" TEXT="Upgrade Version"/>
+<node CREATED="1449049698649" ID="ID_1046306082" MODIFIED="1449049701166" TEXT="Upgrade deadline"/>
+<node CREATED="1449049701914" ID="ID_1796163376" MODIFIED="1449049706445" TEXT="Binary box">
+<node CREATED="1449049708067" ID="ID_1722582149" MODIFIED="1449049709398" TEXT="contains">
+<node CREATED="1449049710923" ID="ID_1218194273" MODIFIED="1449049712237" TEXT="os id"/>
+<node CREATED="1449049712681" ID="ID_938634904" MODIFIED="1449049714782" TEXT="binary text"/>
+</node>
+</node>
+</node>
+<node CREATED="1449049718849" ID="ID_706741586" MODIFIED="1449049737598" TEXT="Spend pool coins box">
+<node CREATED="1449049739010" ID="ID_319189813" MODIFIED="1449049743542" TEXT="contains">
+<node CREATED="1449049748034" ID="ID_1167079788" MODIFIED="1449049756070" TEXT="Total pool funds"/>
+<node CREATED="1449049756499" ID="ID_1174103747" MODIFIED="1449049799813" TEXT="Amount, recipient (repeating...)"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1449048835081" ID="ID_1455856269" MODIFIED="1449048837469" TEXT="Vote Info">
+<node CREATED="1449048839450" ID="ID_774284941" MODIFIED="1449048840942" TEXT="contains">
+<node CREATED="1449048786921" ID="ID_780663549" MODIFIED="1449048791374" TEXT="Current Votes"/>
+<node CREATED="1449048792074" ID="ID_1871912954" MODIFIED="1449048812989" TEXT="% of Total"/>
+<node CREATED="1449048800969" ID="ID_1641140432" MODIFIED="1449048816709" TEXT="% needed to pass"/>
+</node>
+</node>
+<node CREATED="1449049871170" ID="ID_1714519234" MODIFIED="1449049874677" TEXT="Vote button"/>
+</node>
+</node>
+</node>
+<node CREATED="1449048001049" ID="ID_1392511726" MODIFIED="1449048003796" TEXT="Create Proposal">
+<node CREATED="1449048205217" ID="ID_1689912015" MODIFIED="1449048214454" TEXT="Modeled after &quot;Send coins&quot;"/>
+<node CREATED="1449048226154" ID="ID_47680116" MODIFIED="1449048229797" TEXT="contains">
+<node CREATED="1449048231001" ID="ID_315820017" MODIFIED="1449048237492" TEXT="Title &lt;entrybox&gt;"/>
+<node CREATED="1449048238241" ID="ID_154569625" MODIFIED="1449048253966" TEXT="Deadline &lt;date entry box, defaults to 1 week ahead, parses text&gt;"/>
+<node CREATED="1449048255258" ID="ID_423062114" MODIFIED="1449048302796" TEXT="Upgrade box">
+<node CREATED="1449048305801" ID="ID_1145618840" MODIFIED="1449048363273" TEXT="contains">
+<node CREATED="1449048311281" ID="ID_1120649" MODIFIED="1449048870045" TEXT="Git commit &lt;entry box&gt;"/>
+<node CREATED="1449048859594" ID="ID_1280309051" MODIFIED="1449048866005" TEXT="Upgrade version &lt;entry box&gt;"/>
+<node CREATED="1449048871881" ID="ID_1070179485" MODIFIED="1449048919630" TEXT="Upgrade deadline &lt;entry box&gt;"/>
+<node CREATED="1449048363261" ID="ID_593898928" MODIFIED="1449048415534" TEXT="5x">
+<node CREATED="1449048320913" ID="ID_1611276590" MODIFIED="1449048333285" TEXT="Binary">
+<node CREATED="1449048335233" ID="ID_1068666392" MODIFIED="1449048341918" TEXT="os id dropdown"/>
+<node CREATED="1449048342522" ID="ID_1312015322" MODIFIED="1449048346925" TEXT="binary text"/>
+<node CREATED="1449048347505" ID="ID_1111862774" MODIFIED="1449048351957" TEXT="help link"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1449048509545" ID="ID_1956710873" MODIFIED="1449048622918" TEXT="Spend pool coins">
+<node CREATED="1449048517697" ID="ID_1510957749" MODIFIED="1449048518982" TEXT="contains">
+<node CREATED="1449048495577" ID="ID_1891664671" MODIFIED="1449048503173" TEXT="Total pool funds"/>
+<node CREATED="1449048439058" ID="ID_1628242193" MODIFIED="1449048456341" TEXT="&quot;Send coins&quot; pay box, except no label"/>
+<node CREATED="1449048471353" ID="ID_1447044384" MODIFIED="1449048494110" TEXT="&quot;Send coins&quot; add recipient and clear recipient buttoons"/>
+</node>
+</node>
+<node CREATED="1449048536017" ID="ID_1336497807" MODIFIED="1449048553766" TEXT="Create and Vote for Proposal"/>
+</node>
+<node CREATED="1449048627817" ID="ID_456066317" MODIFIED="1449058011881" TEXT="On &quot;Create and Vote for Proposal&quot; button click, displays vote txn hash and explanation that it won&apos;t be shown in the GUI unless at least X% vote for it"/>
+</node>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1449057774622" ID="ID_714953285" MODIFIED="1449057786986" TEXT="what about pending upgrade?"/>
 </node>
 </node>
 <node CREATED="1447807572645" ID="ID_45748042" MODIFIED="1447807590335" TEXT="We should have different levels of votes needed for different proposals">
@@ -2087,7 +2170,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1448770049858" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" FOLDED="true" ID="ID_1068705924" MODIFIED="1449988402848" POSITION="right" TEXT="testing">
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -2217,7 +2300,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1448766496477" POSITION="right" TEXT="bitcoin analysis">
+<node CREATED="1445065454955" FOLDED="true" ID="ID_1110428196" MODIFIED="1449988407633" POSITION="right" TEXT="bitcoin analysis">
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -2387,7 +2470,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1448351345469" ID="ID_93818797" MODIFIED="1448351349265" POSITION="right" TEXT="coding plan">
+<node CREATED="1448351345469" FOLDED="true" ID="ID_93818797" MODIFIED="1449988408889" POSITION="right" TEXT="coding plan">
 <node COLOR="#ff0000" CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448585432026" TEXT="ConnectBlock must handle vote winning">
 <node CREATED="1448351366741" ID="ID_1087908550" MODIFIED="1448351408137" TEXT="When a proposal wins a vote, if we can claim it, we need to add it as part of the wallet, a UTXO I suppose"/>
 </node>
@@ -2426,8 +2509,7 @@
       Voting and multisig and voting with P2SH&#160;will be handled by the fact that a vote's output script must exactly match the output script of the UTXO it is voting against.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node COLOR="#ff0000" CREATED="1448543723977" ID="ID_45634497" MODIFIED="1448543726866" TEXT="TODO"/>
 </node>
@@ -2444,10 +2526,39 @@
       So multiple voters could not then vote on a single proposal
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1448543901513" ID="ID_528968663" MODIFIED="1448543911002" TEXT="We have to go back to op_vote &lt;txn hash&gt;"/>
 <node COLOR="#ff0000" CREATED="1448543793433" ID="ID_1454424754" MODIFIED="1448543800993" TEXT="TODO"/>
+</node>
+</node>
+<node CREATED="1449988410079" ID="ID_1769013831" MODIFIED="1449988411250" POSITION="right" TEXT="plan2">
+<node CREATED="1449988412542" ID="ID_1900370010" MODIFIED="1449988419426" TEXT="No more binary upgrades">
+<node CREATED="1449988420678" ID="ID_142233898" MODIFIED="1449988514942">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      There is a difference between trusting an open source commit, and trusting a binary blob.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      If we allow proposal makers to specify one or more blobs, it becomes very dangerous, since its hard to tell whats in them.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Instead, we allow the public to compile the branch themselves and release it to each other as public services (as is done with most software today)
+    </p>
+  </body>
+</html>
+</richcontent>
+<node COLOR="#ff0000" CREATED="1449988522638" ID="ID_625150262" MODIFIED="1449988525758" TEXT="TODO"/>
+</node>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
