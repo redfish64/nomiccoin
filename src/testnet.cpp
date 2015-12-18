@@ -25,15 +25,15 @@ void ApplyTestnetParameters(void)
     PRVKEY_ADDRESS_PREFIX      =  68; // 'U'
     SCRIPT_ADDRESS_PREFIX      = 127; // 't'
 
-    GENESIS_MERKLE_HASH        = hash_t("0xa7fc40033828e0b0aa5f829ad35233efe8a15e5820d31e53d8e865a1c29cf024");
-    GENESIS_HASH               = hash_t("0x0037d30c968d0ec07dcae769d978b17a3710a4888097927c6555d50db6857f1b");
-    GENESIS_IDENT              = "06-15-15 :: LFG 887 :: We can still take them out for an overpriced dinner";
-    GENESIS_TX_TIME            = 1345083810;
+    GENESIS_MERKLE_HASH        = hash_t("79f80fcf39b37d4403066ee16f33d7e2349a641c905b48fcbcc2533d33e0bda6");
+    GENESIS_HASH               = hash_t("00148aaab24ed309efad7f9ceab687c3dd568e962a7c0fe4aed825da97877c56");
+    GENESIS_IDENT              = "And I moved upon the face of the darkness. And I saw that I was alone. Let there be light.";
+    GENESIS_TX_TIME            = 1345084287;
     GENESIS_BLOCK_TIME         = 1345084287;
-    GENESIS_BLOCK_NONCE        = 2179981683;
+    GENESIS_BLOCK_NONCE        = 2179984344;
     GENESIS_BLOCK_VERSION      = 1;
 
-    STAKE_MODIFIER_CHECKPOINTS = boost::assign::map_list_of(0, 234907403);
+    STAKE_MODIFIER_CHECKPOINTS = boost::assign::map_list_of(0, 0xfd11f4e7);
 
     POW_MAX_BLOCK              = std::numeric_limits< blockheight_t >::max();
 

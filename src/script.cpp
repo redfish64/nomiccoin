@@ -474,10 +474,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 				}
 	    case OP_UPGRADE_CLIENT:
 	      {
-	      //note that we don't do much verification on this, because since half the network
-	      //voted for it, we assume its good.
-	      
-	      if(stack.size() < 4 || !runningPublicScript)
+	      if(stack.size() < 3 || !runningPublicScript)
 	      	return false;
 
 	      CUpgradeRequest ur;
@@ -487,21 +484,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 	      popstack(stack);
 	      ur.upgradeGitCommit = uint160(stacktop(-1));
 	      popstack(stack);
-
-	      int upgradeDistCount = CBigNum(stacktop(-1)).getint();
-	      popstack(stack);
-	      
-	      for(int i = upgradeDistCount-1; i>=0; i--)
-		{
-		  int osId = CBigNum(stacktop(-1)).getint();
-		  if(osId < 0 || osId > OS_ID_LENGTH)
-		    return false; //os id is wrong, something it out of wack
-		  popstack(stack);
-		  uint160 distHash = uint160(stacktop(-1));
-		  popstack(stack);
-		  
-		  ur.upgradeDistData.push_back(make_pair(osId, distHash));
-	      	}
 
 	      appState->add(ur);
 	      break;
@@ -1487,36 +1469,7 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 	  if(iter == scriptPubKey.end())
 		  return true;
 
-	  //there may be an upgrade request after all of that
-	  int osIds = 0;
-
-	  while(osIds < MAXIMUM_OS_BINARY_HASHES)
-	  {
-		  if(iter == scriptPubKey.end())
-			  return false;
-
-		  if(//*iter >= OP_0 ||  //OP_0 is actually zero so this always is true
-				  *iter <= OP_0 + MAXIMUM_OS_BINARY_HASHES)
-		  {
-			  iter++;
-			  break;
-		  }
-
-		  //binary hash
-		  start = iter;
-		  scriptPubKey.GetOp(iter, opcode);
-		  if(iter-start-1 != 20)
-			  return false;
-
-		  //os id
-		  if(//*iter < OP_0 ||  //OP_0 is actually zero so this always is false
-				  *iter > OP_0 + OS_ID_LENGTH)
-			  return false;
-
-		  scriptPubKey.GetOp(iter, opcode);
-	  }
-
-	  //git hash 160 bits
+	  //upgrade git hash 160 bits
 	  start = iter;
 	  scriptPubKey.GetOp(iter, opcode);
 	  if(iter-start-1 != 20)

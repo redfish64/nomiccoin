@@ -78,6 +78,10 @@ SOURCES_QT = \
   qt/bitcoinunits.h \
   qt/clientmodel.cpp \
   qt/clientmodel.h \
+  qt/createproposaldialog.cpp \
+  qt/createproposaldialog.h \
+  qt/createproposalpaytoentry.cpp \
+  qt/createproposalpaytoentry.h \
   qt/csvmodelwriter.cpp \
   qt/csvmodelwriter.h \
   qt/editaddressdialog.cpp \
@@ -85,6 +89,8 @@ SOURCES_QT = \
   qt/forms/aboutdialog.ui \
   qt/forms/addressbookpage.ui \
   qt/forms/askpassphrasedialog.ui \
+  qt/forms/createproposaldialog.ui \
+  qt/forms/createproposalpaytoentry.ui \
   qt/forms/editaddressdialog.ui \
   qt/forms/messagepage.ui \
   qt/forms/overviewpage.ui \

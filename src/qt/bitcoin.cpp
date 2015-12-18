@@ -149,6 +149,8 @@ static void handleRunawayException(std::exception *e)
     exit(1);
 }
 
+//TODO 2: get rid of voteblob... since we put the proposal in the block chain, it serves no purpose anymore
+
 #ifdef WIN32
 #define strncasecmp strnicmp
 #endif

@@ -9,22 +9,6 @@ export QT_SELECT=qt5
 
 TESTING=1
 
-CLIENT_OS_ID = 2
-#from OS_ID in main.cpp:
-#    "NONE"         0
-#    "LINUX_X86"    1
-#    "LINUX_AMD64"  2
-#    "LINUX_ALPHA"  3
-#    "LINUX_ARM"    4
-#    "LINUX_HPPA"   5
-#    "LINUX_IA64"   6
-#    "LINUX_PPC"    7
-#    "LINUX_PPC64"  8
-#    "LINUX_SPARC"  9
-#    "WIN32"       10
-#    "WIN64"       11
-
-
 
 include Makefile.default
 
