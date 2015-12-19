@@ -1141,6 +1141,8 @@ void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins)
 
             for (size_t i = 0; i < pcoin->vout.size(); i++)
 	      {
+            	//nVoteTime is only necessary because of the ppcoin restriction
+            	//not to spend coins from the future (since voting is so much like spending
                 if (pcoin->nTime > nVoteTime)
 		  continue;  
 		
@@ -1155,53 +1157,132 @@ void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins)
     }
 }
 
-bool CWallet::CreateVotingTxnSet(timestamp_t nVoteTime, const CProposal *proposal, std::vector<CWalletTx>& vtxn) {
-	LOCK2(cs_main, cs_wallet);
-	// txdb must be opened before the mapWallet lock
-	CTxDB txdb("r");
-	{
-		vector<COutput> votableCoins;
-		VotableCoins(nVoteTime,votableCoins);
+//TODO 2 write a rpc command that produces  a "checkpoint.h" file, that contains something like:
+//#define CHECKPOINT xxxxxx // Checkpoint of block XXX on <date>
+//This is how we handle checkpoints, (prevent the founders from being able to fork)
 
-		// Create one transaction per votable input
-		// otherwise we won't no which input to trace back to find stake age
+bool CWallet::CreateVoteTxn(vector<COutput> & votableCoins,
+		votehash_t proposalHash,
+		CTransaction& txVoteNew, int64 &nFeeRet) {
+
+	//TODO 3: allow to specify vote fee in gui, nTransactionVoteFee
+	nFeeRet = nTransactionFee ;
+
+	//we keep adjusting the fee until we get the minimum fee for the vote
+	INFINITE_LOOP
+	{
+		txVoteNew.vin.clear();
+		txVoteNew.vout.clear();
+
+		int64 remainingFee = nFeeRet;
+
+		// Create an output leading back to each input
 		BOOST_FOREACH(COutput output, votableCoins)
 		{
-			CTransaction txNew;
+			CTxOut utxoToVoteWith = output.tx->vout[output.i];
 
-			CreateVoteTxn(this, *(output.tx), output.i, proposal->proposalTxn.GetHash(),
-					 txNew);
+			int64 nValue = utxoToVoteWith.nValue;
 
-			vtxn.push_back(CWalletTx(this, txNew));
+			CTxIn txIn(output.tx->GetHash(), output.i);
+
+			txIn.scriptSig << proposalHash << OP_VOTE;
+
+			txVoteNew.vin.push_back(txIn);
+
+			if(nValue > remainingFee)
+				nValue -= remainingFee;
+			else
+				remainingFee -= nValue;
+
+			if(nValue > 0)
+			{
+				//we send the money back exactly where we got it, except that we add  the voting instruction
+				//to the scriptsig
+				//We only allow vote txns to send money back to where they came from, so that we can prevent voting from
+				//interferring with staking. Because vote txns do this, we allow vote txns even when a stake isn't matured.
+				//Also, this allows us to make it so a vote won't reset a stake reward.
+				CTxOut txOut(nValue, utxoToVoteWith.scriptPubKey);
+				txVoteNew.vout.push_back(txOut);
+			}
+
 		}
+
+		//sign all the transactions
+        int nIn = 0;
+        BOOST_FOREACH(const COutput& coin, votableCoins)
+            if (!SignSignature(*this, *coin.tx, txVoteNew, nIn++))
+                return false;
+
+		//if the fee was more coins than we own, then voting is not possible
+		if(txVoteNew.vout.size() == 0)
+			return false;
+
+		int64 minFee = txVoteNew.GetMinFee(1, false, GMF_SEND);
+
+		if(nFeeRet < minFee )
+			nFeeRet = minFee;
+		else break;
 	}
 
 	return true;
 }
 
-bool CWallet::VoteForProposal(const CProposal *prop)
+bool CWallet::CreateProposal(const CScript &propTxn)
 {
-  std::vector<CWalletTx> vtxn;
+	//TODO 1 FIXME
 
-  if(prop && GetAdjustedTime() > prop->proposalTxn.GetVoteDeadline())
-  {
-	 return error("VoteForProposal(): Proposal expired");
-  }
 
-  if(!CreateVotingTxnSet(GetAdjustedTime(), prop, vtxn))
-    return error("VoteForProposal(): CreateVotingTxnSet failed");
+}
 
-  BOOST_FOREACH(CWalletTx txn, vtxn)
-    {
-	  txn.BindWallet(this);
+int CWallet::VoteForProposal(const uint256 txnHash) {
+	//0 == null vote
+	if(txnHash != 0)
+	{
+		CTxDB txdb("r");
+		{
+			CTransaction proposalTxn;
+			if (!txdb.ReadDiskTx(txnHash, proposalTxn))
+			{
+				error("VoteForProposal(): Proposal can't be found");
+				return -1;
+			}
 
-      //we don't use a reserve key because we are sending the coins right back to where they came from
-      //for voting
-      if(!CommitTransaction(txn, NULL))
-	return false; //we may be half way through voting but, oh well.. shouldn't happen that much anyway
-    }
+			if (GetAdjustedTime() > proposalTxn.GetVoteDeadline()) {
+				error("VoteForProposal(): Proposal expired");
+				return -2;
+			}
+		}
+	}
+	else
+	{
+		txnHash = NULL_PROPOSAL_TXN_HASH;
+	}
 
-  return true;
+	std::vector<COutput> vCoins;
+	VotableCoins(GetAdjustedTime(),vCoins);
+
+	CWalletTx voteTxn;
+
+	int64 fee;
+
+
+	if (!CreateVotingTxn(vCoins, txnHash, vtxn, fee))
+	{
+		error("VoteForProposal(): CreateVotingTxn failed");
+		return -3;
+	}
+
+	vtxn.BindWallet(this);
+
+	//we don't use a reserve key because we are sending the coins right back to where
+	//they came from for voting
+	if (!CommitTransaction(txn, NULL))
+	{
+		error("VoteForProposal(): CommitTransaction failed");
+		return -3;
+	}
+
+	return 0;
 }
 
 bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
@@ -1377,7 +1458,7 @@ void GetNonVoteAncestor(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, PAIRTYPE
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
-  //TODO 2 this is getting the last PoW block. It has no meaning when PoW won't hardly be used
+  //TODO 2 this is getting the last block which may be PoW. It has no meaning when PoW won't hardly be used
   //in our coin, we have to deal with this and combine threshold as well
     CBlockIndex const * pLastBlockIndex = GetLastBlockIndex(pindexBest, false);
     int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / STAKE_COMBINE_THRESHOLD;

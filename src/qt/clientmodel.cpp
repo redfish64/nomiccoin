@@ -49,12 +49,22 @@ QDateTime ClientModel::getLastBlockDate() const
     return QDateTime::fromTime_t(pindexBest->GetBlockTime());
 }
 
+qint64 ClientModel::getPoolFunds() const
+{
+	return pindexBest->nSharedPoolFunds;
+}
+
 void ClientModel::update()
 {
     int newNumConnections = getNumConnections();
     int newNumBlocks = getNumBlocks();
     QString newHeadHash = getHeadHash();
     QString newStatusBar = getStatusBarWarnings();
+
+    qint64 newPoolFunds = getPoolFunds();
+
+    if(cachedPoolFunds != newPoolFunds)
+    	emit poolFundsChanged(newPoolFunds);
 
     if (cachedNumConnections != newNumConnections)
         emit numConnectionsChanged(newNumConnections);
@@ -76,6 +86,7 @@ void ClientModel::update()
     cachedNumBlocks = newNumBlocks;
     cachedHeadHash = newHeadHash;
     cachedStatusBar = newStatusBar;
+    cachedPoolFunds = newPoolFunds;
 }
 
 bool ClientModel::inInitialBlockDownload() const

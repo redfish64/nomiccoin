@@ -131,7 +131,7 @@ void OverviewPage::refreshEstimatedStakeTime()
 
     if (estimatedStakeTime == -1)
     {
-        this->ui->labelEstimatedStakeTime->setText(tr("Not minting") + " <sup><a href='https://github.com/NeuCoin/neucoin-dev/blob/master/doc/faq.md#what-does-estimated-time-to-stake-means'>" + tr("(why?)") + "</a></sup>");
+        this->ui->labelEstimatedStakeTime->setText(tr("Not minting") + " <sup><a href='https://github.com/redfish64/nomiccoin/blob/master/doc/faq.md#what-does-estimated-time-to-stake-means'>" + tr("(why?)") + "</a></sup>");
     }
     else if (estimatedStakeTime >= MONTH)
     {

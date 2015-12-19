@@ -43,6 +43,8 @@ public:
     QString formatBuildDate() const;
     QString clientName() const;
 
+    qint64 getPoolFunds() const;
+
 private:
     OptionsModel *optionsModel;
 
@@ -50,6 +52,7 @@ private:
     int cachedNumBlocks;
     QString cachedHeadHash;
     QString cachedStatusBar;
+    qint64 cachedPoolFunds;
 
     int numBlocksAtStartup;
 
@@ -57,6 +60,7 @@ signals:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count);
     void headChanged(QString head);
+    void poolFundsChanged(qint64 poolFunds);
 
     //! Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);

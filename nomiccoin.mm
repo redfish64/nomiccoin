@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node CREATED="1443874855599" ID="ID_742251330" MODIFIED="1448760773055" TEXT="Voting Coin">
-<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1447555772402" POSITION="right" TEXT="closed questions">
+<node CREATED="1444028673000" FOLDED="true" ID="ID_652303042" MODIFIED="1450424479529" POSITION="right" TEXT="closed questions">
 <node CREATED="1444085352876" ID="ID_1218864503" MODIFIED="1444199799258" TEXT="XX % votes necessary">
 <node CREATED="1444028881917" ID="ID_463104325" MODIFIED="1444298105738" TEXT="determined by sampling any sort of transaction over 2 weeks prior?">
 <node CREATED="1444200267510" ID="ID_1458619998" MODIFIED="1444522611176" TEXT="Maybe automatic &quot;0&quot; vote every 2 weeks for online nodes? (free txn)">
@@ -953,8 +953,8 @@
 </node>
 </node>
 </node>
-<node CREATED="1444694502424" FOLDED="true" ID="ID_1517243472" MODIFIED="1449988405483" POSITION="right" TEXT="coding">
-<node CREATED="1444787383783" FOLDED="true" ID="ID_208007625" MODIFIED="1449974662102" TEXT="new ops">
+<node CREATED="1444694502424" FOLDED="true" ID="ID_1517243472" MODIFIED="1450424529257" POSITION="right" TEXT="coding">
+<node CREATED="1444787383783" ID="ID_208007625" MODIFIED="1450424481374" TEXT="new ops">
 <node CREATED="1444804794921" ID="ID_64752469" MODIFIED="1447555634772" TEXT="OP_UPGRADE_CLIENT &lt;block deadline&gt; &lt;git commit&gt; ..">
 <node CREATED="1444804822257" ID="ID_1322557771" MODIFIED="1446682311595" TEXT="Causes the client to upgrade. git commit of the source code">
 <node CREATED="1445835367404" ID="ID_1256118459" MODIFIED="1445835385144" TEXT="User must still figure out where to go themselves to download client"/>
@@ -1203,7 +1203,7 @@
 </node>
 <node CREATED="1444904553963" ID="ID_739409234" MODIFIED="1444904563527" TEXT="As soon as PoS gets going again, PoW is disallowed"/>
 </node>
-<node CREATED="1447928754417" FOLDED="true" ID="ID_1180192671" MODIFIED="1449974667628" TEXT="proposals">
+<node CREATED="1447928754417" ID="ID_1180192671" MODIFIED="1450424513360" TEXT="proposals">
 <node CREATED="1447928758481" ID="ID_1481281938" MODIFIED="1447928766341" TEXT="recording proposals in db for displaying information about them">
 <node CREATED="1447928768049" ID="ID_830009308" MODIFIED="1447928780061" TEXT="Do we need to do this?">
 <node CREATED="1447928781593" ID="ID_687600595" MODIFIED="1447928794189" TEXT="What if we vote on the proposals themselves, then we don&apos;t need an extra table"/>
@@ -1714,7 +1714,7 @@
 <node CREATED="1446858152711" ID="ID_60178078" MODIFIED="1446858185850" TEXT="Is there a better way than PoW if the block chain slows down?">
 <node COLOR="#ff0000" CREATED="1446858187662" ID="ID_525474896" MODIFIED="1446859324221" TEXT="PoW blocks only have 1 trust, so they aren&apos;t really worth anything. this also means they can be ignored when creating PoS blocks. By ignoring the PoW block, you can potentially create a different kernel..."/>
 </node>
-<node CREATED="1447763386351" ID="ID_128569572" MODIFIED="1447763390154" TEXT="gui">
+<node CREATED="1447763386351" FOLDED="true" ID="ID_128569572" MODIFIED="1450252992702" TEXT="gui">
 <node CREATED="1447763392799" ID="ID_1722337055" MODIFIED="1447763407602" TEXT="create proposal">
 <node CREATED="1447763923159" ID="ID_208682446" MODIFIED="1447763933667" TEXT="ability to spend funds to multiple parties"/>
 <node CREATED="1447763934231" ID="ID_271018157" MODIFIED="1449047846332" TEXT="choose title"/>
@@ -1790,20 +1790,10 @@
 <node CREATED="1449048226154" ID="ID_47680116" MODIFIED="1449048229797" TEXT="contains">
 <node CREATED="1449048231001" ID="ID_315820017" MODIFIED="1449048237492" TEXT="Title &lt;entrybox&gt;"/>
 <node CREATED="1449048238241" ID="ID_154569625" MODIFIED="1449048253966" TEXT="Deadline &lt;date entry box, defaults to 1 week ahead, parses text&gt;"/>
-<node CREATED="1449048255258" ID="ID_423062114" MODIFIED="1449048302796" TEXT="Upgrade box">
-<node CREATED="1449048305801" ID="ID_1145618840" MODIFIED="1449048363273" TEXT="contains">
+<node CREATED="1449048536017" ID="ID_1336497807" MODIFIED="1449048553766" TEXT="Create and Vote for Proposal"/>
 <node CREATED="1449048311281" ID="ID_1120649" MODIFIED="1449048870045" TEXT="Git commit &lt;entry box&gt;"/>
 <node CREATED="1449048859594" ID="ID_1280309051" MODIFIED="1449048866005" TEXT="Upgrade version &lt;entry box&gt;"/>
 <node CREATED="1449048871881" ID="ID_1070179485" MODIFIED="1449048919630" TEXT="Upgrade deadline &lt;entry box&gt;"/>
-<node CREATED="1449048363261" ID="ID_593898928" MODIFIED="1449048415534" TEXT="5x">
-<node CREATED="1449048320913" ID="ID_1611276590" MODIFIED="1449048333285" TEXT="Binary">
-<node CREATED="1449048335233" ID="ID_1068666392" MODIFIED="1449048341918" TEXT="os id dropdown"/>
-<node CREATED="1449048342522" ID="ID_1312015322" MODIFIED="1449048346925" TEXT="binary text"/>
-<node CREATED="1449048347505" ID="ID_1111862774" MODIFIED="1449048351957" TEXT="help link"/>
-</node>
-</node>
-</node>
-</node>
 <node CREATED="1449048509545" ID="ID_1956710873" MODIFIED="1449048622918" TEXT="Spend pool coins">
 <node CREATED="1449048517697" ID="ID_1510957749" MODIFIED="1449048518982" TEXT="contains">
 <node CREATED="1449048495577" ID="ID_1891664671" MODIFIED="1449048503173" TEXT="Total pool funds"/>
@@ -1811,7 +1801,6 @@
 <node CREATED="1449048471353" ID="ID_1447044384" MODIFIED="1449048494110" TEXT="&quot;Send coins&quot; add recipient and clear recipient buttoons"/>
 </node>
 </node>
-<node CREATED="1449048536017" ID="ID_1336497807" MODIFIED="1449048553766" TEXT="Create and Vote for Proposal"/>
 </node>
 <node CREATED="1449048627817" ID="ID_456066317" MODIFIED="1449058011881" TEXT="On &quot;Create and Vote for Proposal&quot; button click, displays vote txn hash and explanation that it won&apos;t be shown in the GUI unless at least X% vote for it"/>
 </node>
@@ -2268,7 +2257,7 @@
 <node CREATED="1445833571817" ID="ID_1682632704" MODIFIED="1445833599757" TEXT="Idea is that a good set of founders will lead the coin in a proper direction, and is very important early on"/>
 </node>
 </node>
-<node CREATED="1445136395713" FOLDED="true" ID="ID_1081486889" MODIFIED="1448348034756" POSITION="right" TEXT="TODO">
+<node CREATED="1445136395713" ID="ID_1081486889" MODIFIED="1450253008713" POSITION="right" TEXT="TODO">
 <node CREATED="1445137038369" ID="ID_423107977" MODIFIED="1445137038997" TEXT="1"/>
 <node CREATED="1445137019409" ID="ID_1330490338" MODIFIED="1445137021301" TEXT="2">
 <node COLOR="#ff0000" CREATED="1446689772817" ID="ID_813066186" MODIFIED="1446689795801" TEXT="Update copyright, license crap"/>
@@ -2277,6 +2266,9 @@
 </node>
 <node COLOR="#ff0000" CREATED="1448275615729" ID="ID_1913232788" MODIFIED="1448275625833" TEXT="Voting for the same thing twice is generating an error?">
 <node CREATED="1448275628401" ID="ID_201134692" MODIFIED="1448275656773" TEXT="If you run vote &apos;&lt;xxx&gt;&apos; twice immediately one after another, the second one fails saying the txn already exists. Why does it already exist?"/>
+</node>
+<node COLOR="#ff0000" CREATED="1450253011443" ID="ID_1293248713" MODIFIED="1450253020451" TEXT="Credit third parties">
+<node CREATED="1450253020979" ID="ID_1964874401" MODIFIED="1450253038903" TEXT="&lt;div&gt;Icon made by &lt;a href=&quot;http://www.freepik.com&quot; title=&quot;Freepik&quot;&gt;Freepik&lt;/a&gt; from &lt;a href=&quot;http://www.flaticon.com&quot; title=&quot;Flaticon&quot;&gt;www.flaticon.com&lt;/a&gt; is licensed under &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot; title=&quot;Creative Commons BY 3.0&quot;&gt;CC BY 3.0&lt;/a&gt;&lt;/div&gt;"/>
 </node>
 </node>
 <node CREATED="1445137046681" ID="ID_1295495863" MODIFIED="1445137048261" TEXT="2.5"/>
@@ -2300,7 +2292,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445065454955" FOLDED="true" ID="ID_1110428196" MODIFIED="1449988407633" POSITION="right" TEXT="bitcoin analysis">
+<node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1450430568212" POSITION="right" TEXT="bitcoin analysis">
 <node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -2470,7 +2462,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1448351345469" FOLDED="true" ID="ID_93818797" MODIFIED="1449988408889" POSITION="right" TEXT="coding plan">
+<node CREATED="1448351345469" ID="ID_93818797" MODIFIED="1450424337663" POSITION="right" TEXT="coding plan">
 <node COLOR="#ff0000" CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448585432026" TEXT="ConnectBlock must handle vote winning">
 <node CREATED="1448351366741" ID="ID_1087908550" MODIFIED="1448351408137" TEXT="When a proposal wins a vote, if we can claim it, we need to add it as part of the wallet, a UTXO I suppose"/>
 </node>
@@ -2489,15 +2481,7 @@
 </node>
 </node>
 </node>
-<node COLOR="#ff0000" CREATED="1448356494389" ID="ID_1548590035" MODIFIED="1448757976782" TEXT="make sure that when we create a block after the deadline for a proposal, it doesn&apos;t subtract votes"/>
-<node CREATED="1448517301717" ID="ID_135799089" MODIFIED="1448517315145" TEXT="How do we identify a vote transaction?">
-<node CREATED="1448517316533" ID="ID_901042945" MODIFIED="1448517329433" TEXT="Should we keep OP_VOTE?">
-<node CREATED="1448517366158" ID="ID_1749193015" MODIFIED="1448517394105" TEXT="We no longer need it with the original &lt;txnhash&gt; argument"/>
-<node CREATED="1448518595669" ID="ID_976405316" MODIFIED="1448518611185" TEXT="This seems like the best way. We don&apos;t want identifying a vote txn to be too complex">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
-</node>
-</node>
-</node>
+<node COLOR="#ff0000" CREATED="1448356494389" ID="ID_1548590035" MODIFIED="1450424429684" TEXT="make sure that when we create a block after the deadline for a proposal, it doesn&apos;t subtract votes if the coins vote for another proposal&#xa;"/>
 <node CREATED="1448534686816" ID="ID_1958439265" MODIFIED="1448534696196" TEXT="What about voting and multisig?">
 <node CREATED="1448543639673" ID="ID_367496352" MODIFIED="1448543715109">
 <richcontent TYPE="NODE"><html>
@@ -2558,6 +2542,162 @@
 </html>
 </richcontent>
 <node COLOR="#ff0000" CREATED="1449988522638" ID="ID_625150262" MODIFIED="1449988525758" TEXT="TODO"/>
+</node>
+</node>
+<node CREATED="1450407925368" ID="ID_1105512177" MODIFIED="1450407928499" TEXT="versioning">
+<node CREATED="1450407930295" ID="ID_1346359549" MODIFIED="1450407953027" TEXT="We need to notify the client if its version is no longer recommended for the network">
+<node CREATED="1450407959952" ID="ID_800211961" MODIFIED="1450408003859" TEXT="If the user is on a custom client, this issue still applies, and the warning should still appear"/>
+<node CREATED="1450408008384" ID="ID_1415706723" MODIFIED="1450408033028" TEXT="So we need a client version unrelated to the git junk"/>
+<node CREATED="1450408033552" ID="ID_305516419" MODIFIED="1450408041979" TEXT="The git commit is for the official client"/>
+<node CREATED="1450408042184" ID="ID_864434228" MODIFIED="1450408056323" TEXT="The client version is for custom clients to know when they need to upgrade"/>
+<node CREATED="1450408063440" ID="ID_1264053610" MODIFIED="1450408080339" TEXT="But what if the official client is upgraded but it doesn&apos;t affect the custom client?">
+<node CREATED="1450408086376" ID="ID_757996770" MODIFIED="1450408098595" TEXT="The custom client will need to be updated to ignore the warning"/>
+<node CREATED="1450408100360" ID="ID_768236633" MODIFIED="1450408115995" TEXT="It&apos;s really up to the custom client what to do anyway"/>
+</node>
+</node>
+</node>
+<node CREATED="1450424538729" ID="ID_1772492635" MODIFIED="1450424542076" TEXT="proposals">
+<node CREATED="1450424543161" ID="ID_42627901" MODIFIED="1450424553028" TEXT="We need to add proposals to block chain"/>
+<node CREATED="1450424555401" ID="ID_740020866" MODIFIED="1450424562685" TEXT="We then look them up for voting">
+<node CREATED="1450424564161" ID="ID_279079477" MODIFIED="1450424635325">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Should proposals automatically be placed into the lookup index ala&#160;&#160;&#160;&#160;&#160;
+    </p>
+    <p>
+      bool WriteProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t totalVotes)?
+    </p>
+    <p>
+      
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1450424821553" ID="ID_1919625525" MODIFIED="1450424881189" TEXT="Yes, because even if there are millions of proposals, we could prevet a slowdown by changing the client to have a second index that only has proposal over a 5% threshold of votes or something"/>
+</node>
+</node>
+<node CREATED="1450425266296" ID="ID_826358123" MODIFIED="1450425272676" TEXT="Do we need a CProposal anymore?">
+<node CREATED="1450425294097" ID="ID_151710534" MODIFIED="1450425301997" TEXT="Not really, it was mainly for proposal blobs"/>
+</node>
+<node CREATED="1450428536281" ID="ID_200144362" MODIFIED="1450428542173" TEXT="Does a proposal txn have an input?">
+<node CREATED="1450428543313" ID="ID_31796835" MODIFIED="1450428551029" TEXT="If not, how do we pay fees for creating one?"/>
+</node>
+<node CREATED="1450428957737" ID="ID_1968590987" MODIFIED="1450428972469" TEXT="fee">
+<node CREATED="1450428973649" ID="ID_216369220" MODIFIED="1450428976629" TEXT="Should it be constant?">
+<node CREATED="1450428977657" ID="ID_1975369970" MODIFIED="1450429016757" TEXT="If not, then someone could spam proposals to raise fees"/>
+</node>
+<node CREATED="1450432212489" ID="ID_1121022352" MODIFIED="1450432219645" TEXT="Should it be greater than a regular txn?">
+<node CREATED="1450432221977" ID="ID_789731813" MODIFIED="1450432255069" TEXT="We could do this, but I fail to see the importance of it.">
+<node CREATED="1450432257353" ID="ID_1968975279" MODIFIED="1450432287341" TEXT="A proposal has to be tracked, true, but only for a maximum of 2 weeks, where a UTXO has to be tracked forever"/>
+</node>
+</node>
+</node>
+<node CREATED="1450430710041" ID="ID_1441966471" MODIFIED="1450430719341" TEXT="transactions being marked as proposals">
+<node CREATED="1450430720617" ID="ID_427274171" MODIFIED="1450430775255">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      I don't think we need to do this anymore since a proposal is going to need regular inputs,
+    </p>
+    <p>
+      so why complicate it?
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      We'll just use a special script for proposal outputs, and these outputs will have zero coins attached
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1450430956849" ID="ID_1403610035" MODIFIED="1450430980293" TEXT="Wait, we need the full transaction for a proposal, because the funds get sent to private parties">
+<node CREATED="1450431110225" ID="ID_1050919086" MODIFIED="1450431152719">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Either we add our own inputs to the proposal, but this would be messy because we have to deal with the change
+    </p>
+  </body>
+</html></richcontent>
+<node CREATED="1450431122737" ID="ID_1444238744" MODIFIED="1450431204757" TEXT="The change would need to be sent immediately, but the other private party funds (for when the proposal passes) need to be taken from the funds pool and are locked up"/>
+</node>
+<node CREATED="1450431207249" ID="ID_1341887322" MODIFIED="1450431504362" TEXT="Vote must be sent out at the same time. The proposal would only be accepted in a block if the vote for it was there as well.">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1450431236681" ID="ID_647906392" MODIFIED="1450431504362" TEXT="We could even create a special txn, with an OP_CREATE_AND_VOTE">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1450431268009" ID="ID_1808132358" MODIFIED="1450431276549" TEXT="This would be charged an additional fee for creating the proposal"/>
+</node>
+</node>
+</node>
+<node CREATED="1450438709928" FOLDED="true" ID="ID_509620742" MODIFIED="1450439791889" TEXT="voteblobs">
+<node CREATED="1450439326721" ID="ID_392937667" MODIFIED="1450439329348" TEXT="upsides">
+<node CREATED="1450438725968" ID="ID_21756633" MODIFIED="1450439354773" TEXT="Allows someone without any coin to make a proposal, which is one less hurdle for anyone who wants to help out with nomiccoin"/>
+<node CREATED="1450439373969" ID="ID_1933797291" MODIFIED="1450439392972" TEXT="Blocksize becomes smaller, no more spam proposals everywhere."/>
+</node>
+<node CREATED="1450439301096" ID="ID_1889674329" MODIFIED="1450439303284" TEXT="downsides">
+<node CREATED="1450439260360" ID="ID_1971245873" MODIFIED="1450439451404" TEXT="Storing proposals in the blockchain (without voteblobs) means we can list the proposals being voted for. Otherwise all the user sees is a bunch of transactions.&#xa;"/>
+<node CREATED="1450439452448" ID="ID_1807381724" MODIFIED="1450439468524" TEXT="We lose the history of proposals"/>
+<node CREATED="1450439739232" ID="ID_688054160" MODIFIED="1450439762404" TEXT="Confusing to end user. Voteblobs, proposal txns, redeemed proposals. Too many concepts"/>
+</node>
+<node CREATED="1450439499600" ID="ID_543677472" MODIFIED="1450439553493" TEXT="I think that having someone without coin create a proposal isn&apos;t so valuable. It&apos;s better to make the process simple enough for people that do have coin, then to worry about those without. If you can&apos;t see the proposals in the gui, it is very cumbersome"/>
+<node CREATED="1450439774600" ID="ID_624980111" MODIFIED="1450439781224" TEXT="No vote blobs, keep it simple!">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1450431520217" ID="ID_55400632" MODIFIED="1450431521613" TEXT="votes">
+<node CREATED="1450431522769" ID="ID_501217053" MODIFIED="1450431569853" TEXT="If a user has a ton of UTXO&apos;s, it doesn&apos;t make sense they&apos;d have to pay extra fees... the system currently creates a transaction per UTXO for a vote">
+<node CREATED="1450431574297" ID="ID_107500345" MODIFIED="1450432150602" TEXT="Maybe we could use a single transaction with many UTXO&apos;s. As long as all the funds stay within the UTXO&apos;s that were sent out, we could ignore it for staking purposes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1450432084289" ID="ID_497605519" MODIFIED="1450488124574" TEXT="However, this could be an opportunity to grind">
+<node CREATED="1450487836227" ID="ID_1822306752" MODIFIED="1450488109375" TEXT="Even though joining of inputs is allowed during the stake in the ppcoin code, that only increases the reward. It doesn&apos;t change the odds that a utxo would mint.&#xa;&#xa;However, if we allow vote UTXO amounts to combine and thereby increase, this allows for some grinding opportunities (ie. try each UTXO with the maximum coins available and then split based on that)&#xa;"/>
+</node>
+<node CREATED="1450432097234" ID="ID_279655827" MODIFIED="1450432152034" TEXT="We just have to make sure the funds going out into a UTXO are equal or less than the funds going in, since the funds of the UTXO don&apos;t affect the txn hash of the UTXO">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1450438785865" ID="ID_588452455" MODIFIED="1450438793588" TEXT="security">
+<node CREATED="1450438794568" ID="ID_1644159944" MODIFIED="1450438853820" TEXT="minting against more than one chain">
+<node CREATED="1450438855808" ID="ID_1378262785" MODIFIED="1450438906316">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      I think that most people are honest, and wouldn't do it. Especially considering that if they own the coin, double spends would greatly reduce the value of it
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+<node CREATED="1450438927416" ID="ID_1749190471" MODIFIED="1450438956820" TEXT="Getting a bunch of old keys and minting to create an alternative chain">
+<node CREATED="1450438958817" ID="ID_258121176" MODIFIED="1450439105892" TEXT="The success of this depends on whether the bad actor can mint more than the honest chain did for a period of time (even given that the miner can grind through different possibilities in order to mint more)&#xa;"/>
+<node CREATED="1450439038368" ID="ID_974444224" MODIFIED="1450439070708" TEXT="If enough honest nodes are minting, they won&apos;t be able to catch up. If 100% are minting they definitely won&apos;t be able to."/>
+<node CREATED="1450439127921" ID="ID_1013772555" MODIFIED="1450439145092" TEXT="So if the interest rate is high enough, security is maintained."/>
+<node CREATED="1450439163360" ID="ID_771139739" MODIFIED="1450439186556" TEXT="Slasher algorithm (ethereum?)"/>
+<node CREATED="1450440141288" ID="ID_1267188056" MODIFIED="1450440157964" TEXT="What about the founders? What if they decide to fork the chain, destroying their own chain, I suppose">
+<node CREATED="1450440365568" ID="ID_650369140" MODIFIED="1450440499616" TEXT="Each client upgrade will contain a checkpoint">
+<node CREATED="1450440506672" ID="ID_129128632" MODIFIED="1450440532132" TEXT="We do this by creating an rpccommand, getcheckpoint &lt;blocks behind&gt;"/>
+<node CREATED="1450440533952" ID="ID_156325845" MODIFIED="1450440577396" TEXT="That will create code that can be sent to &quot;checkpoint.h&quot; which will contain the checkpoint information"/>
+</node>
+</node>
 </node>
 </node>
 </node>

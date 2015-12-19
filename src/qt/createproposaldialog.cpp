@@ -232,7 +232,8 @@ void CreateProposalDialog::on_createButton_clicked() {
 	proposal.ResetSelfHash();
 
 	//TODO 2 display proposal fee
-	QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm create proposal"),
+	QMessageBox::StandardButton retval =
+			QMessageBox::question(this, tr("Confirm create proposal"),
 			tr("Are you sure you want to create this proposal?");
 
 	if (retval != QMessageBox::Yes) {

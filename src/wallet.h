@@ -127,67 +127,6 @@ double getMintingOdds(CBigNum targetHash);
  */
 double getExpectedStakeDaysForTarget(CBigNum targetHash);
 
-/**
- * A proposal is a transaction that can be voted on. If the vote succeeds, the proposal passes,
- * and the transaction runs.
- */
-class CProposal
-{
- public:
-  int nVersion;
-  CTransaction proposalTxn; // proposal txn. The time of this transaction
-  //is the deadline of the voting period for the proposal
-  uint256 selfHash; // a checksum basically.. 
-
-  CProposal()
-    {
-      SetNull();
-    }
-
-
-  IMPLEMENT_SERIALIZE
-    (
-     //we put this first, so the base58 compacted version looks different for every subtle change.
-     //TODO 2 we need to compress proposals, I think. They are really long
-     READWRITE(selfHash);
-     READWRITE(this->nVersion);
-     nVersion = this->nVersion;
-     READWRITE(proposalTxn);
-     )
-    
-    void SetNull()
-    {
-      nVersion = 1;
-      proposalTxn = CTransaction();
-      selfHash = 0;
-    }
-
-  timestamp_t GetDeadline() const
-  {
-    return proposalTxn.nTime;
-  }
-
-  bool VerifyHash()
-  {
-    uint256 oldHash = selfHash;
-    ResetSelfHash();
-
-    if(oldHash != selfHash)
-      {
-	selfHash = oldHash;
-	return false;
-      }
-
-    return true;
-  }
-
-  void ResetSelfHash()
-  {
-    selfHash = 0;
-    selfHash = SerializeHash(*this);
-  }
-};
-
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -196,6 +135,10 @@ class CWallet : public CCryptoKeyStore
 private:
     bool SelectCoins(int64 nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const;
     void VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins) const;
+    bool CreateVoteTxn(
+    		std::vector<COutput> & votableCoins,
+    		votehash_t proposalHash,
+    		CTransaction& txVoteNew, int64 &nFeeRet);
 
     CWalletDB *pwalletdbEncryption;
 
@@ -250,7 +193,7 @@ public:
 
     CPubKey vchDefaultKey;
 
-    bool CreateVotingTxnSet(timestamp_t nVoteTime, const CProposal *proposal, std::vector<CWalletTx>& vtxn);
+    bool CreateVotingTxnSet(timestamp_t nVoteTime, const uint256 propHash, std::vector<CWalletTx>& vtxn);
     
     timestamp_t GetEstimatedStakeTime(void);
 
@@ -301,8 +244,8 @@ public:
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey *reservekey);
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
-
-    bool VoteForProposal(const CProposal *p);
+    int VoteForProposal(const uint256 p);
+    bool CreateProposal(const CTransaction *tx);
 
     bool NewKeyPool();
     bool TopUpKeyPool();

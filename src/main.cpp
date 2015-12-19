@@ -4324,39 +4324,11 @@ public:
     }
 };
 
-bool CreateVoteTxn(const CKeyStore *keyStore, const CTransaction& tran, int outputIndex , votehash_t proposalHash,
-		CTransaction& txVoteNew) {
-	CTxOut utxoToVoteWith = tran.vout[outputIndex];
-
-	int64 nValue = utxoToVoteWith.nValue;
-	nValue -= txVoteNew.GetMinFee();
-
-	if (nValue < MIN_TXOUT_AMOUNT)
-		return false;
-
-	txVoteNew.vin.push_back(CTxIn(tran.GetHash(), outputIndex));
-
-	txVoteNew.vin[0].scriptSig << proposalHash << OP_VOTE;
-
-	//we send the money back exactly where we got it, except that we add  the voting instruction
-	//to the scriptsig
-	//We only allow vote txns to send money back to where they came from, so that we can prevent voting from
-	//interferring with staking. Because vote txns do this, we allow vote txns even when a stake isn't matured.
-	//Also, this allows us to make it so a vote won't reset a stake reward.
-	CTxOut txOut(nValue, utxoToVoteWith.scriptPubKey);
-	txVoteNew.vout.push_back(txOut);
-
-	// Sign
-	if (!SignSignature(*keyStore, tran, txVoteNew, (unsigned int)1, int(SIGHASH_ALL)))
-		return false;
-
-	return true;
-}
-
 //finds the most voted for hash for all the inputs of a transaction (in general will be a coin stake).
 //The idea is that when we stake, we want to reinstate the vote the user intended. In normal circumstances this will
 //be a vote for a single proposal, but its possible for the vote to be split between two, or some
 //coins not having any votes attached to them at all.
+//TODO 2 also check deadlines here. We don't want to reinstate for a past proposal
 bool GetMostVotedCoinForStake(const CTransaction& txCoinStake, votehash_t& voteHash)
 {
 	typedef std::map<uint256, money_t> map_t;

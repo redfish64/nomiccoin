@@ -966,30 +966,6 @@ int ConvertTimeishToEpochSecs(string timeish)
   return timegm(&tm);
 }
 
-bool ConvertBlobToProposal(std::string blob, CProposal& proposal)
-{
-  vector<unsigned char> data;
-
-  if(!DecodeBase58(blob.c_str(),data))
-    return false;
-
-  CDataStream ss(data, SER_NETWORK, 0);
-
-  ss >> proposal;
-  return proposal.VerifyHash();
-}
-
-std::string ConvertProposalToBlob(CProposal& proposal)
-{
-  CDataStream ss(SER_NETWORK, 0);
-  ss << proposal;
-
-  vector<unsigned char> data(ss.begin(), ss.end());
-
-  //TODO 2.5 compress this??? maybe in serialize itself??
-  return EncodeBase58(&data[0], &data[0]+sizeof(char)*data.size());
-}
-
 Value createproposal(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2)
 		throw runtime_error(
@@ -997,12 +973,9 @@ Value createproposal(const Array& params, bool fHelp) {
 					"commands are:\n"
 					"upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
 					"<git commit/tag> "
-					"[<os1 type> <sha256sum of binary>] "
-					"[<os2 type> <sha256sum of binary>] ... "
 					"spendpool <toaddress> <amt>\n\n"
 					"There may be only one upgradeclient call.");
 
-	CProposal proposal;
 	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
 	string title = params[1].get_str();
@@ -1029,6 +1002,7 @@ Value createproposal(const Array& params, bool fHelp) {
 			if(upgradedClientAlready)
 				throw JSONRPCError(-5, "Only one upgrade client command is allowed");
 
+			//TODO 2 make this use the xxx.xxx.xxx.xxx versioning, rather than a number
 			int clientVersion = atoi(params[++i].get_str().c_str());
 
 			if(clientVersion <= CLIENT_VERSION)
@@ -1069,19 +1043,11 @@ Value createproposal(const Array& params, bool fHelp) {
 	CTxOut publicOut(0, pubScript);
 	tx.vout.insert(tx.vout.begin(), publicOut);
 
-	proposal.proposalTxn = tx;
-	proposal.ResetSelfHash();
+	if (!pwalletMain->CreateProposal(&tx))
+	    throw JSONRPCError(-4, "Voting failed :??????");
 
-	Object result;
-
-	result.push_back(Pair("voteblob", ConvertProposalToBlob(proposal)));
-	TxToJSON(tx, 0, result);
-
-	return result;
+	return tx.GetHash().GetHex();
 }
-
-//TODO 2 make a command to generate a uint160 for a binary blob (for proposal dists). make this a standalone executable
-//for easy integration into builds
 
 Value vote(const Array& params, bool fHelp)
 {
@@ -1089,7 +1055,7 @@ Value vote(const Array& params, bool fHelp)
   if (pwalletMain->IsCrypted() || (fHelp || params.size() != 1))
         throw runtime_error(
 			    string("") +
-			    "vote <proposalblob|0>\n"
+			    "vote <proposaltxnhash|0>\n"
             "Votes with all coins for the given proposal.\n"
 	    "If 'vote 0' is specified, then the coins will be registered as a no vote for all current proposals.\n"
 	    "\n"
@@ -1097,21 +1063,21 @@ Value vote(const Array& params, bool fHelp)
 	    +
 	    (pwalletMain->IsCrypted() ? "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n" : ""));
 
+  int res;
   if(params[0].get_str() == "0")
     {
-      pwalletMain->VoteForProposal(0);
-      return "ok";
+      res = pwalletMain->VoteForProposal(0);
     }
+  else
+	  res = pwalletMain->VoteForProposal(uint256(params[0].get_str()));
 
-  CProposal prop;
+  if(res == -1)
+    throw JSONRPCError(-4, "Voting failed: Proposal can't be found");
+  if(res == -2)
+    throw JSONRPCError(-4, "Voting failed: Proposal expired");
+  if(res != 0)
+    throw JSONRPCError(-4, "Voting failed: Unknown error");
 
-  if(!ConvertBlobToProposal(params[0].get_str(),prop))
-    throw JSONRPCError(-4, "Blob invalid");
-
-  if (!pwalletMain->VoteForProposal(&prop))
-    throw JSONRPCError(-4, "Voting failed :??????");
-
-  //TODO 2 what should we really return here?
   return "ok";
 }
 
@@ -1119,15 +1085,10 @@ Value getvoteinfo(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 1)
     throw runtime_error(
-			"getvoteinfo <proposalblob>\n"
+			"getvoteinfo <txnhash>\n"
 			"Returns the total votes for the proposal, and other information about it.\n"
 			);
   
-  CProposal prop;
-
-  if(!ConvertBlobToProposal(params[0].get_str(),prop))
-    throw JSONRPCError(-4, "Blob invalid");
-
   money_t votesForProposal;
   CBlockIndex *ourBlockIndex;
   bool isVoteWon;
@@ -1135,7 +1096,16 @@ Value getvoteinfo(const Array& params, bool fHelp)
 
   CTxDB txdb("r");
   
-  if(!prop.proposalTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver))
+  //get the proposal txn
+  CTransaction proposalTxn;
+  if (!txdb.ReadDiskTx(uint256(params[0].get_str()), proposalTxn))
+  {
+	  //TODO 2.5 check for it in orphans??
+	  throw JSONRPCError(-1, "Proposal not found. (it may not be in the block chain, yet");
+  }
+
+
+  if(!proposalTxn.GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver))
 	    throw JSONRPCError(-1, "Error getting proposal txn info.");
 
   Object obj;
@@ -1152,8 +1122,9 @@ Value getvoteinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("percentOfElectorate",  (double)
 		       votesForProposal /
 		       (double) ourBlockIndex->votingPeriodVotedCoins));
-  obj.push_back(Pair("deadline", DateTimeStrFormat(prop.GetDeadline()).c_str()));
-  TxToJSON(prop.proposalTxn, 0, obj);
+  obj.push_back(Pair("deadline", DateTimeStrFormat(proposalTxn.GetVoteDeadline()).c_str()));
+  TxToJSON(proposalTxn, 0, obj);
+  //TODO 2.1 display details of proposal, rather than just use TxToJSON???
   
   return obj;
 }
