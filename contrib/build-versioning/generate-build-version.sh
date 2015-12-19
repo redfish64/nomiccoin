@@ -1,5 +1,9 @@
 #!/bin/sh
 
+function git_dirty {
+  [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && echo "-dirty"
+}
+
 if [ $# -gt 0 ]; then
     FILE="$1"
     shift
@@ -20,7 +24,10 @@ if [ -e "$(which git)" ]; then
 
     # get a string like "2012-04-10 16:27:19 +0200"
     TIME="$(git log -n 1 --format="%ci")"
+    
+    COMMIT=$(git log -n 1 --format='%H')$(git_dirty)
 
+	
 fi
 
 if [ -n "$DESC" ]; then
@@ -33,4 +40,5 @@ fi
 if [ "$INFO" != "$NEWINFO" ]; then
     echo "$NEWINFO" >"$FILE"
     echo "#define BUILD_DATE \"$TIME\"" >>"$FILE"
+    echo "#define GIT_COMMIT \"$COMMIT\"" >>"$FILE"
 fi
