@@ -212,6 +212,12 @@ bool AddOrphanTx(const CDataStream& vMsg)
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(make_pair(hash, pvMsg));
 
+
+    //we also include vote transaction proposals as resolvers for the orphan
+    uint256 propHash;
+    if(tx.GetVoteTxnData(propHash))
+        mapOrphanTransactionsByPrev[propHash].insert(make_pair(propHash, pvMsg));
+
     printf("stored orphan tx %s (mapsz %u)\n", hash.ToString().substr(0,10).c_str(),
         mapOrphanTransactions.size());
     return true;
@@ -230,6 +236,15 @@ void static EraseOrphanTx(uint256 hash)
         if (mapOrphanTransactionsByPrev[txin.prevout.hash].empty())
             mapOrphanTransactionsByPrev.erase(txin.prevout.hash);
     }
+
+    uint256 propHash;
+    if(tx.GetVoteTxnData(propHash))
+    {
+        mapOrphanTransactionsByPrev[propHash].erase(hash);
+        if (mapOrphanTransactionsByPrev[propHash].empty())
+            mapOrphanTransactionsByPrev.erase(propHash);
+    }
+
     delete pvMsg;
     mapOrphanTransactions.erase(hash);
 }
@@ -343,7 +358,14 @@ bool CTransaction::IsStandard() const
 
     unsigned int nDataOut = 0;
     txnouttype whichType;
-    BOOST_FOREACH(const CTxOut& txout, vout) {
+
+    for(int i = vout.size()-1; i >= 0; i--)
+    {
+    	//proposal public script cannot be non-standard
+    	if(i == 0 && IsProposal())
+    		continue;
+
+    	CTxOut txout;
         if (!::IsStandard(txout.scriptPubKey, whichType)) {
             return false;
         }
@@ -698,26 +720,6 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 			return error("CTxMemPool::accept() : Proposal has an invalid deadline according to its time");
 	}
 
-	if(tx.IsVoteTxn())
-	{
-		//a vote txn's first input is always the proposal
-		//it's second is the address to take the funds from
-
-		if(tx.vin.size() != 1)
-			return error("CTxMemPool::accept() : Vote has more than one input, %s, %d",
-					hash.ToString().substr(0, 10).c_str(), tx.vin.size());
-
-		if(tx.vout.size() != 1)
-			return error("CTxMemPool::accept() : Vote has more than one output, %s, %d",
-					hash.ToString().substr(0, 10).c_str(), tx.vout.size());
-
-		if(tx.vin[0].prevout.n != 0)
-		{
-			return error("CTxMemPool::accept() : Vote not connected to first proposal output, %s, %d",
-					hash.ToString().substr(0, 10).c_str(), tx.vin[0].prevout.n);
-		}
-	}
-
 	if (fCheckInputs && !tx.IsProposal()) {
 		MapPrevTx mapInputs;
 		map<uint256, CTxIndex> mapUnused;
@@ -733,33 +735,26 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 		}
 
 		uint256 propHash;
-
-		if(tx.IsVoteTxn(propHash))
+		if(tx.GetVoteTxnData(propHash))
 		{
-			//TODO 2 what about orphan votes???? The proposal may come later
-			CTransaction prev;
+			CTransaction prop;
 
-			if()
+			if(!txdb.ReadDiskTx(propHash, prop))
+			{
+				if (pfMissingInputs)
+					*pfMissingInputs = true;
 
-			if(!prev.IsProposal())
+				return error("CTxMemPool::accept() : Proposal doesn't exist for hash %s",
+						hash.ToString().substr(0, 10).c_str());
+			}
+
+			if(!prop.IsProposal())
 				return error("CTxMemPool::accept() : Vote is not for a proposal %s",
 						hash.ToString().substr(0, 10).c_str());
-
-			if(tx.vout[0].scriptPubKey != prev.vout[tx.vin[0].prevout.n].scriptPubKey)
-				return error("CTxMemPool::accept() : Vote does not send the funds back to the original output");
-
-
-			//make sure the vote is before the deadline of what is being voted for
-			timestamp_t deadline = prev.GetVoteDeadline();
-
-			//this doesn't check whether the block the txn was put into is before the deadline.
-			//We make that check when we connect the block (and will reject the whole block in that case)
-			//TODO 2 when we create a block, make sure to drop any transactions if the block time is too late
-			if(tx.nTime > deadline)
-				return error("CTxMemPool::accept() : Txn timestamp is later than proposal deadline %s",
-						hash.ToString().substr(0, 10).c_str());
-
 		}
+
+		//TODO 2 make sure that votes after the deadline are not counted towards the
+		//total for the proposal (but should still be allowed in the block)
 
 		// Check for non-standard pay-to-script-hash in inputs
 		if (!tx.AreInputsStandard(mapInputs))
@@ -1424,6 +1419,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
       money_t valueOut = GetValueOut();
       currentTotalVotes += valueOut;
 
+      //add the vote to its proposal if before the deadline
 	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, txnHash, valueOut))
 		  return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
     }
@@ -1438,7 +1434,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 
       if(txPrev.GetVoteTxnData(txnHash))
       {
-    	  money_t valueOut = txPrev.vout[prevout.n];
+    	  money_t valueOut = txPrev.vout[prevout.n].nValue;
     	  currentTotalVotes -= valueOut;
 
     	  //the prev vote gets subtracted if it got spent before the deadline (AddToVoteCount will check the deadline)
@@ -1449,11 +1445,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
   return true;
 }
 
-//TODO 2 accept votes past deadline, just don't alter total votes (otherwise the client
-// thinks it voted, but has no way to know the vote was expired before it was put into
-// a block)
 //TODO 2 display whether a vote was expired or not
-//TODO 2 maybe a "my votes" screen?
 
 bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                                  map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
@@ -1463,18 +1455,23 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
 	if(GetVoteTxnData(voteHash))
 	{
 		CTransaction prop;
-		???get in memory than check disk
 
+		if(!txdb.ReadDiskTx(voteHash, prop))
+            return DoS(100, error("ConnectInputs() : could not find , %s",
+            		GetHash().ToString().substr(0,10).c_str()));
 		if(!prop.IsProposal())
+
             return DoS(100, error("ConnectInputs() : vote txn not voted on a proposal, %s",
             		GetHash().ToString().substr(0,10).c_str()));
 	}
+
+	//TODO 2 notify user in gui when a proposal is won and they get funds, (and add funds to their wallet)
 
     // Take over previous transactions' spent pointers
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
-  if (!IsCoinBase() && !IsProposal())
+	if (!IsCoinBase() && !IsProposal())
     {
         int64 nValueIn = 0;
         int64 nFees = 0;
@@ -1485,6 +1482,25 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
 
+            if(txPrev.IsProposal())
+            {
+            	money_t votesForProposal;
+            	CBlockIndex * voteBlockIndex;
+            	bool isVoteWon, isVotingPeriodOver;
+
+            	if(!txPrev.GetProposalTxnInfo(txdb, votesForProposal, voteBlockIndex, isVoteWon, isVotingPeriodOver))
+                    return DoS(100, error("ConnectInputs() : GetProposalTxnInfo failed for %s\n",
+                    		txPrev.ToString().c_str()));
+
+            	if(!isVoteWon)
+                    return DoS(100, error("ConnectInputs() : Attempt to spend funds from a non-won proposal %s, tx %s\n",
+                    		txPrev.ToString().c_str(),
+							GetHash().ToString().substr(0,10).c_str()));
+            	if(!!isVotingPeriodOver)
+                    return DoS(100, error("ConnectInputs() : Attempt to spend funds from a proposal before deadline, %s, tx %s\n",
+                    		txPrev.ToString().c_str(),
+							GetHash().ToString().substr(0,10).c_str()));
+            }
 
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %d %d prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
@@ -1796,8 +1812,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     
     double poolPerc = SHARED_POOL_MINTING_PERC;
     
-    CTransaction *lastTran = NULL;
-
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
         nSigOps += tx.GetLegacySigOpCount();
@@ -1830,7 +1844,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             }
 
             int64 nTxValueIn = tx.GetValueIn(mapInputs);
-            int64 nTxValueOut = tx.GetValueOut();
+            int64 nTxValueOut;
+
+            //proposal outputs can't be spent unless the proposal passes
+            if(tx.IsProposal())
+            	nTxValueOut = 0;
+            else nTxValueOut = tx.GetValueOut();
 
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
@@ -1839,7 +1858,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
             if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
-
             tx.UpdateVoteCounts(txdb, nTime, mapInputs, pindex->votingPeriodVotedCoins, hashToTxnAndVote);
         }
 
@@ -3785,6 +3803,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->AddInventoryKnown(inv);
 
         bool fMissingInputs = false;
+
         if (tx.AcceptToMemoryPool(txdb, true, &fMissingInputs))
         {
             SyncWithWallets(tx, NULL, true);
@@ -3807,6 +3826,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     CInv inv(MSG_TX, tx.GetHash());
                     bool fMissingInputs2 = false;
 
+                    //TODO 2, I don't know how this is supposed to work,
+                    //since AcceptToMemoryPool requires the inputs to be
+                    //in the db (it calls FetchInputs which only looks in the db)
+                    //but doesn't save the tx there. Therefore, the orphans
+                    //will always still be orphans. Anyway, I have to test this
+                    //to see what is going on
                     if (tx.AcceptToMemoryPool(txdb, true, &fMissingInputs2))
                     {
                         printf("   accepted orphan tx %s\n", inv.hash.ToString().substr(0,10).c_str());
@@ -5122,4 +5147,10 @@ bool CTransaction::IsDeadlineValid(timestamp_t timeOfProposal) const
 		return error("CTxMemPool::accept() : Deadline is after the max proposal deadline time");
 
 	return true;
+}
+
+
+money_t CTransaction::GetProposalFee() const
+{
+	return GetMinFee(1, false, GMF_SEND) + PROPOSAL_ADDITIONAL_FEE;
 }

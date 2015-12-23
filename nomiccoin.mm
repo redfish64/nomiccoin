@@ -2223,6 +2223,9 @@
 <node COLOR="#ff0000" CREATED="1448614813086" ID="ID_1718579596" MODIFIED="1448614825406" TEXT="Test proposal with huge title, make sure it doesn&apos;t use too much memory"/>
 <node COLOR="#ff0000" CREATED="1448770055526" ID="ID_1262394076" MODIFIED="1448770077790" TEXT="Test that upgrade actually works. Can we bump CLIENT_VERSION with no ill effects?"/>
 <node COLOR="#ff0000" CREATED="1450841486026" ID="ID_1729230154" MODIFIED="1450841506306" TEXT="Test vote after the deadline"/>
+<node COLOR="#ff0000" CREATED="1450867732638" ID="ID_1570028216" MODIFIED="1450867746262" TEXT="Test vote before proposal (ie orphan vote)">
+<node CREATED="1450867752798" ID="ID_1226991053" MODIFIED="1450867762594" TEXT="Test orphans in general, not sure how they are working"/>
+</node>
 </node>
 </node>
 <node CREATED="1445334536006" FOLDED="true" ID="ID_97324318" MODIFIED="1448533872216" POSITION="right" TEXT="distribution">
@@ -2933,8 +2936,15 @@
 <node CREATED="1450848956720" ID="ID_761943453" MODIFIED="1450848973596" TEXT="proposals have a fee and the inputs must specify the fee">
 <node CREATED="1450848978448" ID="ID_1031416311" MODIFIED="1450848986916" TEXT="In this way we can increase the cost of proposals"/>
 <node CREATED="1450849848896" ID="ID_1419958051" MODIFIED="1450849861108" TEXT="The fee gets added to the pool/minting fee"/>
+<node CREATED="1450851530504" ID="ID_845883477" MODIFIED="1450851540716" TEXT="How do we return change, though?">
+<node CREATED="1450851541848" ID="ID_166289240" MODIFIED="1450851560820" TEXT="Can we create a transaction beforehand that gives back the change?"/>
 </node>
-<node CREATED="1450849884304" ID="ID_1551860459" MODIFIED="1450849906500" TEXT="we will still need to properly orphan votes, though."/>
+</node>
+<node CREATED="1450849884304" ID="ID_1551860459" MODIFIED="1450849906500" TEXT="we will still need to properly orphan votes, though.">
+<node CREATED="1450859381369" ID="ID_1403581755" MODIFIED="1450859403557" TEXT="Do we? I mean if the proposal isn&apos;t in the block chain, can&apos;t we just ignore it?">
+<node CREATED="1450859404881" ID="ID_1912185841" MODIFIED="1450859424268" TEXT="The only problem with this is that the blockchain could fork"/>
+</node>
+</node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

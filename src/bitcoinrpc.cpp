@@ -970,7 +970,7 @@ Value submitproposal(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2)
 		throw runtime_error(
 				"submitproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max 80 chars)> [commands...]\n"
-				"Creates and votes for a new proposal\n\n"
+				"Creates a new proposal\n\n"
 					"commands are:\n"
 					"upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
 					"<git commit/tag>\n"
@@ -1044,18 +1044,12 @@ Value submitproposal(const Array& params, bool fHelp) {
 	CTxOut publicOut(0, pubScript);
 	tx.vout.insert(tx.vout.begin(), publicOut);
 
-	uint256 voteHash;
-
-	std::string res = pwalletMain->SubmitProposal(tx, voteHash, false);
+	std::string res = pwalletMain->SubmitProposal(tx, false);
 
 	if(res != "")
 		throw JSONRPCError(-4, "Creation failed: "+res);
 
-    Object obj;
-
-    obj.push_back(Pair("proposalTx",       tx.GetHash().GetHex()));
-    obj.push_back(Pair("voteTx",           voteHash.GetHex()));
-	return obj;
+	return tx.GetHash().GetHex();
 }
 
 Value vote(const Array& params, bool fHelp)

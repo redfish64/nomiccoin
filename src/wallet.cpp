@@ -1200,21 +1200,44 @@ bool CWallet::CreateVoteTxn(
 	return true;
 }
 
-std::string CWallet::SubmitProposal(CTransaction &txn, uint256 &voteHash, bool fAskFee)
+std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
 {
-	//first we vote for the proposal, since that must succeed for the proposal
-	//to be valid (the proposal must exist in the same block that someone voted
-	// for it.. This is because the proposal has no fees, so if we allowed it
-	// without voting, which does require a fee, then people could spam proposals)
-	string voteResult = VoteForProposal(txn.GetHash(), voteHash, fAskFee);
+    //in order to determine the fee, we need to add a placeholder for the incoming fee
+    //input
+	CTransaction tmpTxn = txn;
+    tmpTxn.vin.push_back(CTxIn(0x0,0));
+	money_t nFeeRequired = tmpTxn.GetProposalFee();
 
-	if(voteResult != "")
-		return voteResult;
+	//in order to submit a proposal, we need to pay the fee, but a proposal can give
+	//no change, so we create a pre transaction that sends the exact amount
+	CReserveKey proposalFeeAddr(this);
+    CPubKey vchPubKey = proposalFeeAddr.GetReservedKey();
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(vchPubKey.GetID());
 
-    // push to local node
+	CReserveKey preChangeReserveKey(this);
+
+    CWalletTx preTx;
+
+    int64 preFee;
+
+    CreateTransaction(scriptPubKey, nFeeRequired, preTx, preChangeReserveKey, preFee);
+
+    if (fAskFee && !ThreadSafeAskFee(nFeeRequired + preFee, _("Creating Proposal...")))
+      return "ABORTED";
+    
+    tmpTxn.vin.push_back(CTxIn(preTx.GetHash(),0));
+    
+    // push the proposal manually. We don't treat it as a regular transaction
+    // and don't add it to the wallet
+    // We do this first so we don't spend any funds if submitting the proposal was unsuccessful
     CTxDB txdb("r");
     if (!txn.AcceptToMemoryPool(txdb, false))
-        return _("General error");
+      return _("Error: Couldn't post proposal");
+
+    //submit the fee
+    if (!CommitTransaction(preTx, &preChangeReserveKey))
+      return _("Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 
     return "";
 }

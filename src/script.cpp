@@ -1262,7 +1262,7 @@ void EvalProposalForPublic(CTxDB& txdb, CTransaction& tx)
 
 
 
-
+//TODO 2 test staking thru voting
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     if (nIn >= txTo.vin.size())
@@ -1281,7 +1281,7 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
     	for (unsigned int i = 0; i < txTmp.vin.size(); i++)
     		txTmp.vin[i].scriptSig.clear();
 
-    txTmp.vin[nIn].scriptSig << scriptCode;
+    txTmp.vin[nIn].scriptSig += scriptCode;
 
     // Blank out some of the outputs
     if ((nHashType & 0x1f) == SIGHASH_NONE)
@@ -1458,6 +1458,7 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 	  scriptPubKey.GetOp(iter, opcode);
 	  if(*iter != OP_VOTE_DEADLINE)
 		  return false;
+	  iter++;
 
 	  CScript::const_iterator start = iter;
 	  scriptPubKey.GetOp(iter, opcode);
@@ -1466,6 +1467,8 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 		  return false;
 	  if(*iter != OP_VOTE_TITLE)
 		  return false;
+	  iter++;
+
 	  if(iter == scriptPubKey.end())
 		  return true;
 
@@ -1478,8 +1481,10 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 	  //upgrade deadline seconds from epoch
 	  scriptPubKey.GetOp(iter, opcode);
 
-	  return true;
-
+	  if(iter == scriptPubKey.end())
+		  return true;
+	  else
+		  return false;
 }
 
 bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline)

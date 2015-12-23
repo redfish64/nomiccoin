@@ -248,7 +248,7 @@ public:
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string VoteForProposal(uint256 p, uint256 &voteHash, bool fAskFee);
-    std::string SubmitProposal(CTransaction &txn, uint256 &voteHash, bool fAskFee);
+    std::string SubmitProposal(CTransaction &txn, bool fAskFee);
 
 
     bool NewKeyPool();

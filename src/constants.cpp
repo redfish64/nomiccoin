@@ -218,3 +218,9 @@ timestamp_t MAX_PROPOSAL_DEADLINE_TIME = 12 * DAY;
  * priority, since votes are so important to a dynamic system such as nomiccoin
  */
 double VOTE_PRIORITY_MULTIPLIER = 100;
+
+/**
+ * Additional fee for sending proposals, because we don't want a million proposals
+ * with bathroom scrawls all over them you damn kids
+ */
+money_t PROPOSAL_ADDITIONAL_FEE = 1*COIN;

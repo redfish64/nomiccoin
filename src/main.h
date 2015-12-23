@@ -552,7 +552,7 @@ public:
     //true if the txn is a proposal
     bool IsProposal() const
     {
-        return (vin.size() == 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
+        return (vin.size() >= 1 && vin[0].prevout.IsProposal() && vout.size() >= 1);
     }
 
     bool IsDeadlineValid(timestamp_t timeOfProposal) const;
@@ -803,6 +803,9 @@ public:
     		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, int & nonVoteVoutIndex);
 
     timestamp_t GetVoteDeadline() const;
+
+    //returns the minimum fee for sending a proposal txn
+    money_t GetProposalFee() const;
 
 protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
