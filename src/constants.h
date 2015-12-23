@@ -120,3 +120,5 @@ extern hash_t NULL_PROPOSAL_TXN_HASH;
 extern timestamp_t MIN_PROPOSAL_DEADLINE_TIME;
 
 extern timestamp_t MAX_PROPOSAL_DEADLINE_TIME;
+
+extern double VOTE_PRIORITY_MULTIPLIER;

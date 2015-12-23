@@ -2159,7 +2159,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445505324701" FOLDED="true" ID="ID_1068705924" MODIFIED="1449988402848" POSITION="right" TEXT="testing">
+<node CREATED="1445505324701" ID="ID_1068705924" MODIFIED="1450841481985" POSITION="right" TEXT="testing">
 <node CREATED="1445725519536" ID="ID_1768721651" MODIFIED="1445725531840" TEXT="To test">
 <node CREATED="1445725533633" ID="ID_1460002014" MODIFIED="1445725689844" TEXT="DisconnectBlock containing a vote">
 <node CREATED="1445725691536" ID="ID_1101334640" MODIFIED="1445725693948" TEXT="After deadline"/>
@@ -2222,6 +2222,7 @@
 <node COLOR="#ff0000" CREATED="1448533877736" ID="ID_38188672" MODIFIED="1448533888833" TEXT="Test voting for proposal with txn hash that doesn&apos;t exist"/>
 <node COLOR="#ff0000" CREATED="1448614813086" ID="ID_1718579596" MODIFIED="1448614825406" TEXT="Test proposal with huge title, make sure it doesn&apos;t use too much memory"/>
 <node COLOR="#ff0000" CREATED="1448770055526" ID="ID_1262394076" MODIFIED="1448770077790" TEXT="Test that upgrade actually works. Can we bump CLIENT_VERSION with no ill effects?"/>
+<node COLOR="#ff0000" CREATED="1450841486026" ID="ID_1729230154" MODIFIED="1450841506306" TEXT="Test vote after the deadline"/>
 </node>
 </node>
 <node CREATED="1445334536006" FOLDED="true" ID="ID_97324318" MODIFIED="1448533872216" POSITION="right" TEXT="distribution">
@@ -2322,7 +2323,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1445829109343" TEXT="block chain">
+<node CREATED="1445162083308" ID="ID_472624435" MODIFIED="1450613743724" TEXT="block chain">
 <node CREATED="1445162114093" ID="ID_352007369" MODIFIED="1445162137721" TEXT="Blocks in the best chain are connected using ConnectBlock()"/>
 <node CREATED="1445162138301" ID="ID_1985072972" MODIFIED="1445162188601" TEXT="In case of a fork beating the current front runner, blocks are disconnected using DisconnectBlock() from the current frontrunner, and then the fork is replayed using ConnectBlock()"/>
 <node CREATED="1445310420184" ID="ID_271631837" MODIFIED="1445310444869" TEXT="Whenever we add a block to the block chain, we call ConnectBlock(), regardless if we made it ourselves or not"/>
@@ -2369,6 +2370,9 @@
 <node CREATED="1445305077685" ID="ID_1464115469" MODIFIED="1445305080537" TEXT="CTxInput">
 <node CREATED="1445305082342" ID="ID_47162182" MODIFIED="1445305633762" TEXT="Location of txn on disk, and vector of location of txns for the spent outputs"/>
 </node>
+<node CREATED="1450613738099" ID="ID_72151057" MODIFIED="1450613739538" TEXT="mapTestPool in ConnectInputs ">
+<node CREATED="1450613746421" ID="ID_377172645" MODIFIED="1450613797328" TEXT="Used to keep track of new transaction in the block, so if one transaction links against another in the same block, the transaction is still considered valid"/>
+</node>
 </node>
 <node CREATED="1445305467502" ID="ID_569286875" MODIFIED="1445309033623" TEXT="How do we get the previous txn to tell if its a voting txn?">
 <node CREATED="1445309035808" ID="ID_1928500006" MODIFIED="1445309045684" TEXT="ReadDiskTx with COutPoint from vin"/>
@@ -2401,6 +2405,50 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+</node>
+<node CREATED="1450571765388" ID="ID_347098749" MODIFIED="1450571767976" TEXT="CTransaction">
+<node CREATED="1450571769508" ID="ID_186636783" MODIFIED="1450571776752" TEXT="contains">
+<node CREATED="1450571778076" ID="ID_238286683" MODIFIED="1450571965640" TEXT="vector&lt;CTXIn&gt; vin"/>
+<node CREATED="1450571784308" ID="ID_448645734" MODIFIED="1450571972792" TEXT="vector&lt;CTxOut&gt; vout"/>
+</node>
+</node>
+<node CREATED="1450571802380" ID="ID_1620165333" MODIFIED="1450571806824" TEXT="CTxIn">
+<node CREATED="1450571808164" ID="ID_1169818629" MODIFIED="1450571815015" TEXT="contains">
+<node CREATED="1450571816460" ID="ID_1579354670" MODIFIED="1450571828376" TEXT="COutpoint prevout"/>
+<node CREATED="1450571829028" ID="ID_1575444256" MODIFIED="1450571835768" TEXT="CScript scriptSig"/>
+<node CREATED="1450571840517" ID="ID_93729556" MODIFIED="1450571844576" TEXT="int nSequence">
+<node CREATED="1450840657621" ID="ID_1588012646" MODIFIED="1450840675766" TEXT="This field isn&apos;t used currently. http://bitcoin.stackexchange.com/questions/2025/what-is-txins-sequence"/>
+</node>
+</node>
+</node>
+<node CREATED="1450571896172" ID="ID_686335322" MODIFIED="1450571900824" TEXT="COutpoint">
+<node CREATED="1450571903092" ID="ID_1982265152" MODIFIED="1450571904039" TEXT="contains">
+<node CREATED="1450571905436" ID="ID_1396818744" MODIFIED="1450571942272" TEXT="int n">
+<node CREATED="1450571945244" ID="ID_1857471416" MODIFIED="1450572463700" TEXT="index of transaction.vout"/>
+</node>
+<node CREATED="1450571930052" ID="ID_520890569" MODIFIED="1450571937767" TEXT="uint256 hash">
+<node CREATED="1450572002244" ID="ID_36063544" MODIFIED="1450572005408" TEXT="hash of transaction"/>
+</node>
+</node>
+</node>
+<node CREATED="1450571845636" ID="ID_276019708" MODIFIED="1450571848184" TEXT="CTxOut">
+<node CREATED="1450571849292" ID="ID_925892127" MODIFIED="1450571850519" TEXT="contains">
+<node CREATED="1450571851700" ID="ID_1631069507" MODIFIED="1450571875952" TEXT="int nValue">
+<node CREATED="1450573019996" ID="ID_1894622285" MODIFIED="1450573023272" TEXT="money spent"/>
+</node>
+<node CREATED="1450571876268" ID="ID_81866612" MODIFIED="1450571885128" TEXT="CScript scriptPubKey"/>
+</node>
+</node>
+<node CREATED="1450581806323" ID="ID_1901904414" MODIFIED="1450581810735" TEXT="CTxIndex">
+<node CREATED="1450581814812" ID="ID_1904892368" MODIFIED="1450581840597" TEXT="stored in the db, keeps track of which output of a transaction is spent"/>
+<node CREATED="1450581851046" ID="ID_313797184" MODIFIED="1450581852818" TEXT="contains">
+<node CREATED="1450581855939" ID="ID_1528080351" MODIFIED="1450581870040" TEXT="CDiskTxPos pos">
+<node CREATED="1450581872562" ID="ID_1736654261" MODIFIED="1450581878735" TEXT="pos of transaction"/>
+</node>
+<node CREATED="1450581882888" ID="ID_1443205125" MODIFIED="1450581908166" TEXT="vector&lt;CDiskTxPos&gt; vSpent">
+<node CREATED="1450581911556" ID="ID_603723631" MODIFIED="1450581989044" TEXT="A vector of the spent outputs. Each vSpent entry corresponds to the vout entry in CTransaction of the same index"/>
+</node>
 </node>
 </node>
 <node CREATED="1445579870085" ID="ID_565226267" MODIFIED="1445579874465" TEXT="Signing transactions">
@@ -2462,7 +2510,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1448351345469" ID="ID_93818797" MODIFIED="1450424337663" POSITION="right" TEXT="coding plan">
+<node CREATED="1448351345469" FOLDED="true" ID="ID_93818797" MODIFIED="1450571698789" POSITION="right" TEXT="coding plan">
 <node COLOR="#ff0000" CREATED="1448351350493" ID="ID_1525776981" MODIFIED="1448585432026" TEXT="ConnectBlock must handle vote winning">
 <node CREATED="1448351366741" ID="ID_1087908550" MODIFIED="1448351408137" TEXT="When a proposal wins a vote, if we can claim it, we need to add it as part of the wallet, a UTXO I suppose"/>
 </node>
@@ -2700,6 +2748,193 @@
 </node>
 </node>
 </node>
+<node CREATED="1450525390622" ID="ID_1692939171" MODIFIED="1450525391673" TEXT="staking">
+<node CREATED="1450525394342" ID="ID_1990513728" MODIFIED="1450525494041" TEXT="Needs to be fixed for new voting. Both when we find the staking transaction and when we reinstate the vote&#xa;"/>
+<node CREATED="1450526215045" ID="ID_125913653" MODIFIED="1450526222906" TEXT="Why is it so hard to make staking not delete the vote?">
+<node CREATED="1450526248325" ID="ID_8328624" MODIFIED="1450526272689" TEXT="Considering that another fee would be charged, it seems highly desirable not to have to reinstate the vote"/>
+</node>
+<node CREATED="1450526344718" ID="ID_104789887" MODIFIED="1450526387665" TEXT="What if instead of looking for voting txns, we just look for txns that send the funds back to where they can from?&#xa;">
+<node CREATED="1450526391541" ID="ID_291011390" MODIFIED="1450526628681" TEXT="In this way, we don&apos;t have to worry about voting txns being in a certain format(ie moving funds to different addresses, etc. It&apos;s just that if the funds aren&apos;t moved back to the same address then you can&apos;t stake through them&#xa;&#xa;And, you can only stake-thru if you send an equal or lesser amount back to the same address&#xa;&#xa;"/>
+</node>
+<node CREATED="1450526639574" ID="ID_668927948" MODIFIED="1450526704340">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      For security, I think we should allow a maximum number of stake-thru's
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Otherwise, someone could make a million votes, and then stake a block, causing the entire network to have to trace through the million stake-thrus
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+</node>
+<node CREATED="1450576144758" ID="ID_193384780" MODIFIED="1450576146826" POSITION="right" TEXT="plan3">
+<node CREATED="1450576148254" ID="ID_1145117488" MODIFIED="1450576265650" TEXT="stake reward">
+<node CREATED="1450576153366" ID="ID_652461855" MODIFIED="1450583643782" TEXT="what if we had a constant stake reward (like NXT)?">
+<node CREATED="1450576168086" ID="ID_1855463446" MODIFIED="1450576193970" TEXT="Because of the min stake age, this would prevent people from creating large UTXO&apos;s to mint from, thereby increasing the security of the network"/>
+<node CREATED="1450583588968" ID="ID_1049280151" MODIFIED="1450583611747" TEXT="It would also make people want to stake all the time, rather than cooking their money until the next time to stake"/>
+<node CREATED="1450585111098" ID="ID_1134215336" MODIFIED="1450585114540" TEXT="constant reward">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1450746859140" ID="ID_840312162" MODIFIED="1450746867041" TEXT="What should the constant reward be?">
+<node CREATED="1450746869693" ID="ID_741075163" MODIFIED="1450747321010">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      It needs to continuously grow, otherwise no one will stake and a takeover is possible. However, the growth of coin is fixed, so this can be figured out beforehand.
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1450576203270" ID="ID_770739598" MODIFIED="1450576207562" TEXT="stake-thru">
+<node CREATED="1450576209294" ID="ID_1118265032" MODIFIED="1450576346804">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      With a constant stake reward, maybe we could get away without having a stake thru. The loss of the chance to stake is the fee for voting
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1450585382880" ID="ID_348135621" MODIFIED="1450585422172" TEXT="However, this might be considered too great. Also, it lowers the number of people staking, especially after an important vote"/>
+</node>
+<node CREATED="1450583206527" ID="ID_892831896" MODIFIED="1450583226098" TEXT="If we keep stake-thru, should we expand it beyond voting?">
+<node CREATED="1450583228202" ID="ID_622718327" MODIFIED="1450583358789">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      I think that we need strict rules for this
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      If we don't have a consistent layout, it's too easy to not know which input of a transaction &quot;belongs&quot; to what output
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+<node CREATED="1450583562202" ID="ID_686542112" MODIFIED="1450583566998" TEXT="So, no, just voting"/>
+</node>
+<node CREATED="1450584074921" ID="ID_185939605" MODIFIED="1450584083265" TEXT="Do we keep stake-thru?">
+<node CREATED="1450584106101" ID="ID_1280765386" MODIFIED="1450585428069" TEXT="Yes">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1450587023548" ID="ID_1952260903" MODIFIED="1450587027146" TEXT="impl">
+<node CREATED="1450587029883" ID="ID_988025303" MODIFIED="1450587047027" TEXT="non vote ancestor">
+<node CREATED="1450587048941" ID="ID_1463689733" MODIFIED="1450587051412" TEXT="needed">
+<node CREATED="1450587052693" ID="ID_805216445" MODIFIED="1450587058512" TEXT="When we stake">
+<node CREATED="1450587075600" ID="ID_1329232335" MODIFIED="1450587103284" TEXT="We can use a COutpoint for this, because we can use a CTransaction as well"/>
+</node>
+<node CREATED="1450587058928" ID="ID_1833040864" MODIFIED="1450587065370" TEXT="When we verify a stake"/>
+</node>
+<node CREATED="1450614112221" ID="ID_1838259854" MODIFIED="1450614153258" TEXT="We have to handle vote transactions that link to each other in the same block"/>
+<node CREATED="1450614153899" ID="ID_1538773315" MODIFIED="1450614216679" TEXT="We also need to handle in memory transactions when staking (ie, they may vote and then stake, putting their own vote in the block.)">
+<node CREATED="1450614570312" ID="ID_1784120963" MODIFIED="1450614590936" TEXT="Another way to look at that is they are staking from a transaction (the vote) that is still in the memory pool"/>
+<node CREATED="1450614606558" ID="ID_1417731253" MODIFIED="1450614630951" TEXT="Just disallow this? It would only prevent them from being able to stake until the next minute"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1450585125281" ID="ID_1132803927" MODIFIED="1450585128634" TEXT="staking">
+<node CREATED="1450585131755" ID="ID_675921584" MODIFIED="1450585249924">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      when we successfully stake, we need to split the outputs for more optimal staking
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      For example, given a constant stake reward, a person with 1000 UTXO's will stake more than one with 1 UTXO even with the same amount of coin, because whenever a stake occurs, the min stake age comes into play
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+<node CREATED="1450679254706" ID="ID_1424912798" MODIFIED="1450679256014" TEXT="voting">
+<node CREATED="1450679256986" ID="ID_659077598" MODIFIED="1450679425950" TEXT="It wil be difficult to allow voting immediately after staking period because now that votes combine several transactions together, they could combine a premature stake and a regular confirmed transaction. So unless we want to untangle that mess, by going through each of the inputs of the vote transaction, we won&apos;t know whether the vote transaction is confirmed or not"/>
+<node CREATED="1450679427266" ID="ID_386476003" MODIFIED="1450679454454" TEXT="Since UTXO&apos;s should be split up anyways for maximum profit, this shouldn&apos;t be a big deal"/>
+</node>
+<node CREATED="1450840965610" ID="ID_1863606414" MODIFIED="1450840977878" TEXT="votes and proposals when creating a new block">
+<node CREATED="1450840996987" ID="ID_1872646582" MODIFIED="1450841021111" TEXT="Votes and proposals need to come in together to be placed in a block">
+<node CREATED="1450841046442" ID="ID_1503593301" MODIFIED="1450841048591" TEXT="because">
+<node CREATED="1450841049962" ID="ID_314606145" MODIFIED="1450841067214" TEXT="Votes can&apos;t be accepted if they are for proposals that don&apos;t exist">
+<node CREATED="1450841080451" ID="ID_812011803" MODIFIED="1450841084679" TEXT="Why?">
+<node CREATED="1450841086362" ID="ID_634900099" MODIFIED="1450841106230" TEXT="We don&apos;t want to get weird votes that will never be discarded"/>
+<node CREATED="1450841108114" ID="ID_665682768" MODIFIED="1450841140094" TEXT="But, why not? I mean, if a vote is for a proposal that doesn&apos;t exist, it doesn&apos;t really affect the system. Does it?"/>
+<node CREATED="1450841179210" ID="ID_719237996" MODIFIED="1450841224517">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Lets say we get a vote past the deadline, what then?
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      From the client perspective, it cast the vote. Only the vote is rejected by the network, yet the client never knows this.
+    </p>
+  </body>
+</html>
+</richcontent>
+<node CREATED="1450841227642" ID="ID_916840832" MODIFIED="1450841247542" TEXT="Therefore, we need to accept votes past the deadline. They just can&apos;t alter the vote totals"/>
+<node CREATED="1450841346042" ID="ID_152047669" MODIFIED="1450841457035" TEXT="But without the deadline, which is in the proposal, we will never know whether to count the vote or not.">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1450841067586" ID="ID_1754480298" MODIFIED="1450841077367" TEXT="Proposals can&apos;t be accepted if there are no votes for them">
+<node CREATED="1450841415475" ID="ID_409134566" MODIFIED="1450841427886" TEXT="Otherwise a person could create a bunch of free proposals and clog the system"/>
+</node>
+</node>
+<node CREATED="1450841435819" ID="ID_337543758" MODIFIED="1450841439311" TEXT="so">
+<node CREATED="1450841514979" ID="ID_1179810964" MODIFIED="1450841525902" TEXT="We need to store orphan votes and orphan proposals"/>
+<node CREATED="1450841537003" ID="ID_963167861" MODIFIED="1450841564047" TEXT="Once the vote comes in, proposal is no longer an orphan, and vice versa"/>
+</node>
+<node CREATED="1450841600442" ID="ID_279237041" MODIFIED="1450841623415" TEXT="What if we used a new message to send a proposal with its first vote?"/>
+</node>
+</node>
+</node>
+<node CREATED="1450848953296" ID="ID_1102497" MODIFIED="1450848955196" POSITION="right" TEXT="plan4">
+<node CREATED="1450848956720" ID="ID_761943453" MODIFIED="1450848973596" TEXT="proposals have a fee and the inputs must specify the fee">
+<node CREATED="1450848978448" ID="ID_1031416311" MODIFIED="1450848986916" TEXT="In this way we can increase the cost of proposals"/>
+<node CREATED="1450849848896" ID="ID_1419958051" MODIFIED="1450849861108" TEXT="The fee gets added to the pool/minting fee"/>
+</node>
+<node CREATED="1450849884304" ID="ID_1551860459" MODIFIED="1450849906500" TEXT="we will still need to properly orphan votes, though."/>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

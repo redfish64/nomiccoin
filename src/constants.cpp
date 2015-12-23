@@ -211,3 +211,10 @@ timestamp_t MIN_PROPOSAL_DEADLINE_TIME = 6 * HOUR;
 //their vote by having it expired in the VOTE_REG_PERIOD_BLOCKS, but still before the deadline of the
 //proposal (thereby being added to the numerator and not the denominator of the equation)
 timestamp_t MAX_PROPOSAL_DEADLINE_TIME = 12 * DAY;
+
+/**
+ * The priority for vote txns get divided by this value. (a greater value
+ * means more likely to get in). In general, votes and proposals take first
+ * priority, since votes are so important to a dynamic system such as nomiccoin
+ */
+double VOTE_PRIORITY_MULTIPLIER = 100;

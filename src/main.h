@@ -798,9 +798,9 @@ public:
 
     bool UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs,
     		money_t& currentTotalVotes, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts);
-    bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, COutPoint thisOutpoint,const std::map<uint256, CTxIndex> *mapQueuedChanges,
-
-    		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, COutPoint& nonVoteOutPoint);
+    bool ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, int thisVoutIndex,
+    		const std::map<uint256, CTxIndex> *mapQueuedChanges,
+    		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, int & nonVoteVoutIndex);
 
     timestamp_t GetVoteDeadline() const;
 
@@ -873,6 +873,13 @@ public:
     CDiskTxPos pos;
     std::vector<CDiskTxPos> vSpent;
 
+    //TODO 2 populate stakethru  ... also, should this be a pair<index,diskpos> rather than COutPoint
+    //this is location of the last non voting transaction after a chain of votes.
+    //In order that voting doesn't disrupt staking, we use the last non vote transaction
+    //for staking.
+    //this is only valid for voting transactions
+    std::vector<COutPoint> vStakeThru;
+
     CTxIndex()
     {
         SetNull();
@@ -882,6 +889,7 @@ public:
     {
         pos = posIn;
         vSpent.resize(nOutputs);
+        vStakeThru.resize(nOutputs);
     }
 
     IMPLEMENT_SERIALIZE
@@ -890,12 +898,14 @@ public:
             READWRITE(nVersion);
         READWRITE(pos);
         READWRITE(vSpent);
+        READWRITE(vStakeThru);
     )
 
     void SetNull()
     {
         pos.SetNull();
         vSpent.clear();
+        vStakeThru.clear();
     }
 
     bool IsNull()
@@ -906,7 +916,9 @@ public:
     friend bool operator==(const CTxIndex& a, const CTxIndex& b)
     {
         return (a.pos    == b.pos &&
-                a.vSpent == b.vSpent);
+                a.vSpent == b.vSpent &&
+                a.vStakeThru == b.vStakeThru
+        		);
     }
 
     friend bool operator!=(const CTxIndex& a, const CTxIndex& b)

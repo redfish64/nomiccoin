@@ -966,15 +966,16 @@ int ConvertTimeishToEpochSecs(string timeish)
   return timegm(&tm);
 }
 
-Value createproposal(const Array& params, bool fHelp) {
+Value submitproposal(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2)
 		throw runtime_error(
-				"createproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max 80 chars)> [commands...]\n"
+				"submitproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max 80 chars)> [commands...]\n"
+				"Creates and votes for a new proposal\n\n"
 					"commands are:\n"
 					"upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
-					"<git commit/tag> "
+					"<git commit/tag>\n"
 					"spendpool <toaddress> <amt>\n\n"
-					"There may be only one upgradeclient call.");
+					"There may be only one upgradeclient call (but more than one spendpool).");
 
 	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
@@ -1043,10 +1044,18 @@ Value createproposal(const Array& params, bool fHelp) {
 	CTxOut publicOut(0, pubScript);
 	tx.vout.insert(tx.vout.begin(), publicOut);
 
-	if (!pwalletMain->CreateProposal(&tx))
-	    throw JSONRPCError(-4, "Voting failed :??????");
+	uint256 voteHash;
 
-	return tx.GetHash().GetHex();
+	std::string res = pwalletMain->SubmitProposal(tx, voteHash, false);
+
+	if(res != "")
+		throw JSONRPCError(-4, "Creation failed: "+res);
+
+    Object obj;
+
+    obj.push_back(Pair("proposalTx",       tx.GetHash().GetHex()));
+    obj.push_back(Pair("voteTx",           voteHash.GetHex()));
+	return obj;
 }
 
 Value vote(const Array& params, bool fHelp)
@@ -1063,22 +1072,22 @@ Value vote(const Array& params, bool fHelp)
 	    +
 	    (pwalletMain->IsCrypted() ? "Your wallet being encryped, this command requires the wallet passphrase to be set with walletpassphrase first.\n" : ""));
 
-  int res;
+  string res;
+
+  uint256 voteHash;
+
   if(params[0].get_str() == "0")
     {
-      res = pwalletMain->VoteForProposal(0);
+      res = pwalletMain->VoteForProposal(0, voteHash, false);
     }
   else
-	  res = pwalletMain->VoteForProposal(uint256(params[0].get_str()));
+	  res = pwalletMain->VoteForProposal(uint256(params[0].get_str()),
+			  voteHash,false);
 
-  if(res == -1)
-    throw JSONRPCError(-4, "Voting failed: Proposal can't be found");
-  if(res == -2)
-    throw JSONRPCError(-4, "Voting failed: Proposal expired");
-  if(res != 0)
-    throw JSONRPCError(-4, "Voting failed: Unknown error");
+  if(res != "")
+    throw JSONRPCError(-4, "Voting failed: "+res);
 
-  return "ok";
+  return voteHash.GetHex();
 }
 
 Value getvoteinfo(const Array& params, bool fHelp)
@@ -3712,7 +3721,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendrawtransaction",     &sendrawtransaction,     false},
     { "getrawmempool",          &getrawmempool,          true },
     { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
-    { "createproposal",   &createproposal,   true },
+    { "submitproposal",   &submitproposal,   true },
     { "vote",   &vote,   false },
     { "getvoteinfo",   &getvoteinfo,   true },
     { "getupgradeinfo",   &getupgradeinfo,   true },

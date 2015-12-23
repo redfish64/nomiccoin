@@ -39,7 +39,7 @@ export async function test( ) {
 	replace(/\..+/, ' UTC');     // delete the dot and everything after
 
     console.log('deadline : %s, now: %s',  deadlineStr, new Date().toISOString());
-    var rpc = await sendRpcQuery( client2, { method : 'createproposal',
+    var rpc = await sendRpcQuery( client2, { method : 'submitproposal',
 							 params :
 							 [deadlineStr,
 							  "test title",

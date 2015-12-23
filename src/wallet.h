@@ -127,6 +127,9 @@ double getMintingOdds(CBigNum targetHash);
  */
 double getExpectedStakeDaysForTarget(CBigNum targetHash);
 
+//TODO 2 rpc call to list proposals given a minimum vote
+//TODO 2 rpc call to retrieve votes for a specific proposal
+
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -134,9 +137,7 @@ class CWallet : public CCryptoKeyStore
 {
 private:
     bool SelectCoins(int64 nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet) const;
-    void VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins) const;
     bool CreateVoteTxn(
-    		std::vector<COutput> & votableCoins,
     		votehash_t proposalHash,
     		CTransaction& txVoteNew, int64 &nFeeRet);
 
@@ -185,6 +186,10 @@ public:
 
     std::map<uint256, CWalletTx> mapWallet;
 
+    //hashes of proposals the user has starred or created mapped to their deadline
+    //timestamp. These will always show up in the view proposal screens in the gui
+    std::map<uint256, timestamp_t> proposalHashMapWallet;
+
     std::vector<uint256> vWalletUpdated;
 
     std::map<uint256, int> mapRequestCount;
@@ -193,8 +198,6 @@ public:
 
     CPubKey vchDefaultKey;
 
-    bool CreateVotingTxnSet(timestamp_t nVoteTime, const uint256 propHash, std::vector<CWalletTx>& vtxn);
-    
     timestamp_t GetEstimatedStakeTime(void);
 
     // check whether we are allowed to upgrade (or already support) to the named feature
@@ -244,8 +247,9 @@ public:
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey *reservekey);
     std::string SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
     std::string SendMoneyToDestination(const CTxDestination &address, int64 nValue, CWalletTx& wtxNew, bool fAskFee=false);
-    int VoteForProposal(const uint256 p);
-    bool CreateProposal(const CTransaction *tx);
+    std::string VoteForProposal(uint256 p, uint256 &voteHash, bool fAskFee);
+    std::string SubmitProposal(CTransaction &txn, uint256 &voteHash, bool fAskFee);
+
 
     bool NewKeyPool();
     bool TopUpKeyPool();
@@ -395,7 +399,6 @@ public:
     void KeepKey();
 };
 
-
 /** A transaction with a bunch of additional info that only the owner cares about.
  * It includes any unrecorded transactions needed to link it back to the block chain.
  */
@@ -403,6 +406,8 @@ class CWalletTx : public CMerkleTx
 {
 private:
     const CWallet* pwallet;
+    //the index within vin is returned, and the prevTranOut is set to the previous txn
+    int findMatchingVoteVinForVout(int voutIndex, const CWalletTx * & prevTranOut) const;
 
 public:
     std::vector<CMerkleTx> vtxPrev;
@@ -733,7 +738,7 @@ public:
     }
 
     int GetBlocksToMaturity() const;
-    CWalletTx *GetNonVoteAncestor() const;
+    CWalletTx *GetNonVoteAncestor(int voutIndex, int & outVoutIndex) const;
 };
 
 

@@ -251,6 +251,8 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexCurrent, uint64& nStakeMo
 
 CBigNum MAX_HASH(1);
 
+//TODO 2.1 only vote with coins if we aren't already voting for the same proposal
+
 // ppcoin kernel protocol
 // coinstake must meet hash target according to the protocol:
 // kernel (input 0) must meet the formula
@@ -275,7 +277,7 @@ CBigNum MAX_HASH(1);
 //   a proof-of-work situation.
 //
 bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, const CBlock& blockFrom,
-		unsigned int nTxPrevOffset, const CTransaction& txPrev, const COutPoint& prevout,
+		unsigned int nTxPrevOffset, const CTransaction& txPrev, int txPrevOutIndex,
 		unsigned int nTimeTx, uint256& hashProofOfStake, bool fPrintProofOfStake, StakeStats *stakeStats)
 {
     if (nTimeTx < txPrev.nTime)  // Transaction timestamp violation
@@ -287,7 +289,7 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
-    int64 nValueIn = txPrev.vout[prevout.n].nValue;
+    int64 nValueIn = txPrev.vout[txPrevOutIndex].nValue;
     
     int64 nTimeWeight = min((int64)nTimeTx - txPrev.nTime, (int64)STAKE_MAX_AGE) - STAKE_MIN_AGE;
 
@@ -307,7 +309,7 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
        << nTimeBlockFrom
        << nTxPrevOffset
        << txPrev.nTime
-       << prevout.n
+       << txPrevOutIndex
        << nTimeTx;
 
     hashProofOfStake = Hash(ss.begin(), ss.end());
@@ -315,7 +317,7 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
     if (fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n", nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime).c_str(), mapBlockIndex.at(blockFrom.GetHash())->nHeight, DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
-        printf("CheckStakeKernelHash() : check protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString().c_str());
+        printf("CheckStakeKernelHash() : check protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, txPrevOutIndex, nTimeTx, hashProofOfStake.ToString().c_str());
     }
 
     if (stakeStats)
@@ -328,7 +330,7 @@ bool CheckStakeKernelHash(const CBlockIndex * pindexPrev, unsigned int nBits, co
     if (fDebug && !fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n", nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime).c_str(), mapBlockIndex.at(blockFrom.GetHash())->nHeight, DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
-        printf("CheckStakeKernelHash() : pass protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString().c_str());
+        printf("CheckStakeKernelHash() : pass protocol=%s modifier=0x%016"PRI64x" nTimeBlockFrom=%u nTxPrevOffset=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", "0.3", nStakeModifier, nTimeBlockFrom, nTxPrevOffset, txPrev.nTime, txPrevOutIndex, nTimeTx, hashProofOfStake.ToString().c_str());
     }
 
     return true;
@@ -346,8 +348,8 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
     // First try finding the previous transaction in database
     CTxDB txdb("r");
     CTransaction txPrev;
-    CTxIndex txindex;
-    if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
+    CTxIndex prevTxIndex;
+    if (!txPrev.ReadFromDisk(txdb, txin.prevout, prevTxIndex))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: read txPrev failed"));  // previous transaction not in main chain, may occur during initial download
 
     // Verify signature
@@ -356,8 +358,8 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
 
     CTransaction nonVoteTxPrev;
     CTxIndex nonVoteTxIndex;
-    COutPoint nonVoteOutPoint;
-    if(!txPrev.ReadNonVoteAncestor(txdb, txindex, txin.prevout, NULL, nonVoteTxPrev, nonVoteTxIndex, nonVoteOutPoint))
+    int nonVoteVoutIndex;
+    if(!txPrev.ReadNonVoteAncestor(txdb, prevTxIndex, txin.prevout.n, NULL, nonVoteTxPrev, nonVoteTxIndex, nonVoteVoutIndex))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: cannot read non vote ancestor"));
     txdb.Close();
 
@@ -371,7 +373,7 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
         return tx.DoS(100, error("CheckProofOfStake() : Blacklisted Proof-of-Stake"));
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, nonVoteBlock, nonVoteTxIndex.pos.nTxPos - nonVoteTxIndex.pos.nBlockPos,
-    		nonVoteTxPrev, nonVoteOutPoint, tx.nTime, hashProofOfStake, fDebug))
+    		nonVoteTxPrev, nonVoteVoutIndex, tx.nTime, hashProofOfStake, fDebug))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s", tx.GetHash().ToString().c_str(), hashProofOfStake.ToString().c_str())); // may occur during initial download or if behind on block chain sync
 
     return true;

@@ -1115,7 +1115,8 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
     return true;
 }
 
-bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet,
+bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<const CWalletTx*,
+		unsigned int> >& setCoinsRet,
 		int64& nValueRet) const
 {
     vector<COutput> vCoins;
@@ -1126,44 +1127,16 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
             SelectCoinsMinConf(nTargetValue, 0, 1, vCoins, setCoinsRet, nValueRet));
 }
 
-void CWallet::VotableCoins(unsigned int nVoteTime, std::vector<COutput>& vCoins) const
-{
-  vCoins.clear();
-
-    {
-        LOCK(cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-
-            if (!pcoin->IsFinal())
-                continue;
-
-            for (size_t i = 0; i < pcoin->vout.size(); i++)
-	      {
-            	//nVoteTime is only necessary because of the ppcoin restriction
-            	//not to spend coins from the future (since voting is so much like spending
-                if (pcoin->nTime > nVoteTime)
-		  continue;  
-		
-                if (!(pcoin->IsSpent(i)) &&
-                    IsMine(pcoin->vout[i]) &&
-		    pcoin->vout[i].nValue > 0)
-		  {
-                    vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
-		  }
-	      }
-	}
-    }
-}
-
 //TODO 2 write a rpc command that produces  a "checkpoint.h" file, that contains something like:
 //#define CHECKPOINT xxxxxx // Checkpoint of block XXX on <date>
 //This is how we handle checkpoints, (prevent the founders from being able to fork)
 
-bool CWallet::CreateVoteTxn(vector<COutput> & votableCoins,
+bool CWallet::CreateVoteTxn(
 		votehash_t proposalHash,
 		CTransaction& txVoteNew, int64 &nFeeRet) {
+
+	std::vector<COutput> votableCoins;
+	AvailableCoins(GetAdjustedTime(),votableCoins);
 
 	//TODO 3: allow to specify vote fee in gui, nTransactionVoteFee
 	nFeeRet = nTransactionFee ;
@@ -1227,14 +1200,26 @@ bool CWallet::CreateVoteTxn(vector<COutput> & votableCoins,
 	return true;
 }
 
-bool CWallet::CreateProposal(const CScript &propTxn)
+std::string CWallet::SubmitProposal(CTransaction &txn, uint256 &voteHash, bool fAskFee)
 {
-	//TODO 1 FIXME
+	//first we vote for the proposal, since that must succeed for the proposal
+	//to be valid (the proposal must exist in the same block that someone voted
+	// for it.. This is because the proposal has no fees, so if we allowed it
+	// without voting, which does require a fee, then people could spam proposals)
+	string voteResult = VoteForProposal(txn.GetHash(), voteHash, fAskFee);
 
+	if(voteResult != "")
+		return voteResult;
 
+    // push to local node
+    CTxDB txdb("r");
+    if (!txn.AcceptToMemoryPool(txdb, false))
+        return _("General error");
+
+    return "";
 }
 
-int CWallet::VoteForProposal(const uint256 txnHash) {
+string CWallet::VoteForProposal(uint256 txnHash, uint256 &voteHash, bool fAskFee) {
 	//0 == null vote
 	if(txnHash != 0)
 	{
@@ -1244,12 +1229,12 @@ int CWallet::VoteForProposal(const uint256 txnHash) {
 			if (!txdb.ReadDiskTx(txnHash, proposalTxn))
 			{
 				error("VoteForProposal(): Proposal can't be found");
-				return -1;
+				return _("Proposal for txn can't be found");
 			}
 
 			if (GetAdjustedTime() > proposalTxn.GetVoteDeadline()) {
 				error("VoteForProposal(): Proposal expired");
-				return -2;
+				return _("Proposal expired");
 			}
 		}
 	}
@@ -1258,31 +1243,32 @@ int CWallet::VoteForProposal(const uint256 txnHash) {
 		txnHash = NULL_PROPOSAL_TXN_HASH;
 	}
 
-	std::vector<COutput> vCoins;
-	VotableCoins(GetAdjustedTime(),vCoins);
-
-	CWalletTx voteTxn;
-
+	CWalletTx vtxn;
 	int64 fee;
 
-
-	if (!CreateVotingTxn(vCoins, txnHash, vtxn, fee))
+	if (!CreateVoteTxn(txnHash, vtxn, fee))
 	{
 		error("VoteForProposal(): CreateVotingTxn failed");
-		return -3;
+		return _("Voting failed, general error");
 	}
+
+    if (fAskFee && !ThreadSafeAskFee(fee, _("Voting...")))
+        return "ABORTED";
 
 	vtxn.BindWallet(this);
 
 	//we don't use a reserve key because we are sending the coins right back to where
 	//they came from for voting
-	if (!CommitTransaction(txn, NULL))
+	if (!CommitTransaction(vtxn, NULL))
 	{
 		error("VoteForProposal(): CommitTransaction failed");
-		return -3;
+		return _("Voting failed, commit error");
 	}
 
-	return 0;
+	//TODO 2 put the coins back into the wallet immediately, so the user doesn't have
+	//zero balance
+
+	return "";
 }
 
 bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
@@ -1440,25 +1426,31 @@ timestamp_t CWallet::GetEstimatedStakeTime(void)
     return nEstimatedStakeTime;
 }
 
-void GetNonVoteAncestor(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, PAIRTYPE(const CWalletTx*, unsigned int)& pcoinOut)
+bool GetNonVoteAncestor(PAIRTYPE(const CWalletTx*, unsigned int) pcoin,
+		PAIRTYPE(const CWalletTx*, unsigned int) &pcoinOut)
 {
-	CWalletTx *nonVoteTx = pcoin.first->GetNonVoteAncestor();
+	int outVoutIndex;
+	CWalletTx *nonVoteTx = pcoin.first->GetNonVoteAncestor(pcoin.second, outVoutIndex);
 
-	if(nonVoteTx == pcoin.first || nonVoteTx == NULL)
+	if(nonVoteTx == NULL)
+		return false;
+
+	if(nonVoteTx == pcoin.first)
 		pcoinOut = pcoin;
 	else
 	{
-		//since votes always have exactly one input, we know it will be zero
-		pcoinOut.second = 0;
 		pcoinOut.first = nonVoteTx;
+		pcoinOut.second = outVoutIndex;
 	}
+
+	return true;
 }
 
 
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
-  //TODO 2 this is getting the last block which may be PoW. It has no meaning when PoW won't hardly be used
+  //TODO 2 this is getting the last specifically PoW block. It has no meaning when PoW won't hardly be used
   //in our coin, we have to deal with this and combine threshold as well
     CBlockIndex const * pLastBlockIndex = GetLastBlockIndex(pindexBest, false);
     int64 nCombineThreshold = GetProofOfWorkReward(pLastBlockIndex->nHeight) / STAKE_COMBINE_THRESHOLD;
@@ -1502,7 +1494,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     	//we "pass through" the vote transactions to get to the non vote transaction before it
     	PAIRTYPE(const CWalletTx*, unsigned int) stakedPCoin;
 
-    	GetNonVoteAncestor(pcoin, stakedPCoin);
+    	if(!GetNonVoteAncestor(pcoin, stakedPCoin))
+    		return error("CWallet::CreateCoinStake, couldn't get the non vote ancestor");
 
         CTxDB txdb("r");
         CTxIndex stakedTxindex;
@@ -1529,11 +1522,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0;
 
-            COutPoint stakedPrevoutStake = COutPoint(stakedPCoin.first->GetHash(), stakedPCoin.second);
-
-            if (CheckStakeKernelHash(pindexBest, nBits, stakedBlock, stakedTxindex.pos.nTxPos - stakedTxindex.pos.nBlockPos,
+            if (CheckStakeKernelHash(pindexBest, nBits, stakedBlock,
+            		stakedTxindex.pos.nTxPos - stakedTxindex.pos.nBlockPos,
             		*stakedPCoin.first,
-            		stakedPrevoutStake, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
+            		stakedPCoin.second, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
             {
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
