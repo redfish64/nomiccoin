@@ -27,6 +27,7 @@ ui_*.h
 # Binaries & Generated files
 
 /src/core
+/core
 
 /src/constants.test.cpp
 /src/build.h
@@ -54,6 +55,9 @@ ui_*.h
 # other junk
 cscope.out
 TAGS
+GPATH
+GRTAGS
+GTAGS
 
 #eclipse stuff
 /.cproject

@@ -365,7 +365,7 @@ bool CTransaction::IsStandard() const
     	if(i == 0 && IsProposal())
     		continue;
 
-    	CTxOut txout;
+    	const CTxOut & txout = this->vout[i];
         if (!::IsStandard(txout.scriptPubKey, whichType)) {
             return false;
         }
@@ -399,6 +399,9 @@ bool CTransaction::AreInputsStandard(const MapPrevTx& mapInputs) const
 
     for (unsigned int i = 0; i < vin.size(); i++)
     {
+    	if(i==0 && IsProposal())
+    		continue;
+
         const CTxOut& prev = GetOutputFor(vin[i], mapInputs);
 
         vector<vector<unsigned char> > vSolutions;
@@ -690,6 +693,8 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 	// Check for conflicts with in-memory transactions
 	CTransaction* ptxOld = NULL;
 	for (unsigned int i = 0; i < tx.vin.size(); i++) {
+		if(i == 0 && tx.IsProposal())
+			continue;
 		COutPoint outpoint = tx.vin[i].prevout;
 		if (mapNextTx.count(outpoint)) {
 			// Disable replacement feature for now
@@ -720,7 +725,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 			return error("CTxMemPool::accept() : Proposal has an invalid deadline according to its time");
 	}
 
-	if (fCheckInputs && !tx.IsProposal()) {
+	if (fCheckInputs) {
 		MapPrevTx mapInputs;
 		map<uint256, CTxIndex> mapUnused;
 		int nFees;
@@ -764,13 +769,24 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 		// you should add code here to check that the transaction does a
 		// reasonable number of ECDSA signature verifications.
 
-		nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+		if(tx.IsProposal())
+		{
+			nFees = tx.GetValueIn(mapInputs);
+
+			if (nFees < tx.GetMinFee(1000, false, GMF_RELAY) + PROPOSAL_ADDITIONAL_FEE)
+				return error("CTxMemPool::accept() : not enough fees for proposal");
+
+		}
+		else {
+			nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+
+			// Don't accept it if it can't get into a block
+			if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
+				return error("CTxMemPool::accept() : not enough fees");
+
+		}
 
 		unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-
-		// Don't accept it if it can't get into a block
-		if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
-			return error("CTxMemPool::accept() : not enough fees");
 
 		// Continuously rate-limit free transactions
 		// This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -1254,11 +1270,15 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     // be dropped).  If tx is definitely invalid, fInvalid will be set to true.
     fInvalid = false;
 
-    if (IsCoinBase() || IsProposal())
+    if (IsCoinBase())
         return true; // Coinbase transactions have no inputs to fetch.
 
     for (unsigned int i = 0; i < vin.size(); i++)
     {
+    	//the first vin of the proposal identifies it
+    	if(i == 0 && IsProposal())
+    		continue;
+
         COutPoint prevout = vin[i].prevout;
         if (inputsRet.count(prevout.hash))
             continue; // Got it already
@@ -1304,6 +1324,10 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     // Make sure all prevout.n's are valid:
     for (unsigned int i = 0; i < vin.size(); i++)
     {
+    	//the first vin of the proposal identifies it
+    	if(i == 0 && IsProposal())
+    		continue;
+
         const COutPoint prevout = vin[i].prevout;
         assert(inputsRet.count(prevout.hash) != 0);
         const CTxIndex& txindex = inputsRet[prevout.hash].first;
@@ -1341,6 +1365,8 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
     int64 nResult = 0;
     for (unsigned int i = 0; i < vin.size(); i++)
     {
+    	if(i == 0 && IsProposal())
+    		continue;
         nResult += GetOutputFor(vin[i], inputs).nValue;
     }
     return nResult;
@@ -5150,7 +5176,3 @@ bool CTransaction::IsDeadlineValid(timestamp_t timeOfProposal) const
 }
 
 
-money_t CTransaction::GetProposalFee() const
-{
-	return GetMinFee(1, false, GMF_SEND) + PROPOSAL_ADDITIONAL_FEE;
-}

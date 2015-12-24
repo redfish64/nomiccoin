@@ -1,6 +1,6 @@
 import { RPC_USER, RPC_PASSWORD } from '../_config';
 
-export function sendRpcQuery( client, json ) {
+export function sendRpcQuery( client, json, quitHere ) {
 
     return new Promise( ( resolve, reject ) => {
 
@@ -8,8 +8,15 @@ export function sendRpcQuery( client, json ) {
 	if(json.params == null)
 	    json.params = [];
 
+	if(quitHere)
+	{
+		console.log("would have sent: %s %s",json.method, "'"+json.params.join("' '")+"'");
+	
+	   throw "Quitting...";
+	}
+	
 	console.log("sending: %s %s",json.method, "'"+json.params.join("' '")+"'");
-
+	
         var request = require( 'http' ).request( {
 
             method : 'POST',

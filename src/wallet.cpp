@@ -302,8 +302,11 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx)
     // restored from backup or the user making copies of wallet.dat.
     {
         LOCK(cs_wallet);
-        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+        for(int i = tx.vin.size()-1; i >= 0; i--)
         {
+        	if(i == 0 && tx.IsProposal())
+        		continue;
+        	const CTxIn& txin = tx.vin[i];
             map<uint256, CWalletTx>::iterator mi = mapWallet.find(txin.prevout.hash);
             if (mi != mapWallet.end())
             {
@@ -1202,11 +1205,11 @@ bool CWallet::CreateVoteTxn(
 
 std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
 {
-    //in order to determine the fee, we need to add a placeholder for the incoming fee
-    //input
-	CTransaction tmpTxn = txn;
-    tmpTxn.vin.push_back(CTxIn(0x0,0));
-	money_t nFeeRequired = tmpTxn.GetProposalFee();
+    //in order to determine the fee, we need to calculate using additional bytes at the end for the additional
+	//input and signature for the fee. (Because the proposal gives no change, we have to do this before we
+	// add the input)
+	money_t nFeeRequired = max(nTransactionFee,txn.GetMinFee(1, false, GMF_SEND, 64));
+	nFeeRequired += PROPOSAL_ADDITIONAL_FEE;
 
 	//in order to submit a proposal, we need to pay the fee, but a proposal can give
 	//no change, so we create a pre transaction that sends the exact amount
@@ -1221,23 +1224,33 @@ std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
 
     int64 preFee;
 
-    CreateTransaction(scriptPubKey, nFeeRequired, preTx, preChangeReserveKey, preFee);
+    if(!CreateTransaction(scriptPubKey, nFeeRequired, preTx, preChangeReserveKey, preFee))
+    {
+        string strError;
+        if (preFee + nFeeRequired > GetBalance())
+            strError = strprintf(_("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  "), FormatMoney(nFeeRequired).c_str());
+        else
+            strError = _("Error: Transaction creation failed  ");
+        printf("SubmitProposal() : %s", strError.c_str());
+        return strError;
+    }
 
     if (fAskFee && !ThreadSafeAskFee(nFeeRequired + preFee, _("Creating Proposal...")))
       return "ABORTED";
     
-    tmpTxn.vin.push_back(CTxIn(preTx.GetHash(),0));
+    txn.vin.push_back(CTxIn(preTx.GetHash(),0));
+    //attach the fee to the proposal
+	if (!SignSignature(*this, preTx,txn, 1))
+		return false;
     
-    // push the proposal manually. We don't treat it as a regular transaction
-    // and don't add it to the wallet
-    // We do this first so we don't spend any funds if submitting the proposal was unsuccessful
-    CTxDB txdb("r");
-    if (!txn.AcceptToMemoryPool(txdb, false))
-      return _("Error: Couldn't post proposal");
-
     //submit the fee
     if (!CommitTransaction(preTx, &preChangeReserveKey))
       return _("Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
+
+    //submit the proposal
+    CWalletTx propWtxn(this, txn);
+    if (!CommitTransaction(propWtxn, NULL))
+    	return _("Error: Couldn't post proposal");
 
     return "";
 }
@@ -1248,8 +1261,19 @@ string CWallet::VoteForProposal(uint256 txnHash, uint256 &voteHash, bool fAskFee
 	{
 		CTxDB txdb("r");
 		{
+			bool foundProposalTxn = false;
+
 			CTransaction proposalTxn;
-			if (!txdb.ReadDiskTx(txnHash, proposalTxn))
+            {
+				LOCK(mempool.cs);
+				if (mempool.exists(txnHash))
+				{
+					proposalTxn = mempool.lookup(txnHash);
+					foundProposalTxn = true;
+				}
+            }
+
+			if (!foundProposalTxn && !txdb.ReadDiskTx(txnHash, proposalTxn))
 			{
 				error("VoteForProposal(): Proposal can't be found");
 				return _("Proposal for txn can't be found");
@@ -1735,13 +1759,16 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey *pReserveKey)
 	      pReserveKey->KeepKey();
 
             // Add tx to wallet, because if it has change it's also ours,
-            // otherwise just for transaction history.
+            // otherwise for transaction history and rebroadcasting
             AddToWallet(wtxNew);
 
             // Mark old coins as spent
             set<CWalletTx*> setCoins;
-            BOOST_FOREACH(const CTxIn& txin, wtxNew.vin)
+            for(int i = wtxNew.vin.size()-1; i >= 0; i--)
             {
+            	if(i == 0 && wtxNew.IsProposal())
+            		continue;
+            	const CTxIn& txin = wtxNew.vin[i];
                 CWalletTx &coin = mapWallet[txin.prevout.hash];
                 coin.BindWallet(this);
                 coin.MarkSpent(txin.prevout.n);

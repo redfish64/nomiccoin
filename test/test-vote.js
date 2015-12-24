@@ -19,7 +19,7 @@ export async function test( ) {
     //mine some blocks to get some funds
     await mineSomePowBlocks( client1, 10);
     await delayExecution( 2 );
-    await mineSomePowBlocks( client2, 2);
+    await mineSomePowBlocks( client2, 5);
     await delayExecution( 2 );
     var rpc = await sendRpcQuery( client1, { method : 'getvotingbalance' } );
     expect( rpc.result ).to.be.equal( 10 );
@@ -31,7 +31,9 @@ export async function test( ) {
 
     //'2012-11-04T14:51:06.157Z'
     //create a deadline 30 seconds from now
-    var deadlineStr = new Date(new Date().getTime() + 30*1000).toISOString().
+    var deadlineStr = new Date(new Date().getTime() 
+    + 3000*1000//30*1000
+    ).toISOString().
 	replace(/T/, ' ').      // replace T with a space
 	replace(/\..+/, ' UTC');     // delete the dot and everything after
     console.log('deadline : %s, now: %s',  deadlineStr, new Date().toISOString());
@@ -43,17 +45,20 @@ export async function test( ) {
 							  "spendpool",
 							  propRecvAddr,
 							  "2.5"
-							 ]
-						       }
+							  ]
+						       	}
 					    );
     var prophash = rpc.result;
-		
+	
+	//wait for the proposal to be transmitted to the other client	
+    await delayExecution( 3 );
+    
     var rpc = await sendRpcQuery( client1, { method : "vote",
     					     params :
     					     [
     						 prophash
     					     ]
-    					   })
+    					   },1)
     expect ( rpc.result ).to.be.equal( "ok" )
 
     await delayExecution( 2 );
