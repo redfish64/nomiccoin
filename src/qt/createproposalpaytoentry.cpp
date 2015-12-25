@@ -86,37 +86,39 @@ void CreateProposalPayToEntry::on_deleteButton_clicked()
     emit removeEntry(this);
 }
 
-bool CreateProposalPayToEntry::getPayToAmount()
-{
-    // Check input validity
-    bool retval = true;
-
-    if(!ui->payAmount->validate())
-    {
-        retval = false;
-    }
-}
-
-
-bool CreateProposalPayToEntry::getPayToAmount()
-{
-        if(ui->payAmount->value() <= 0)
-        {
-            // Cannot send 0 coins or less
-            ui->payAmount->setValid(false);
-            retval = false;
-        }
-    }
-
-    if(!ui->payTo->hasAcceptableInput() ||
-       (model && !model->validateAddress(ui->payTo->text())))
-    {
-        ui->payTo->setValid(false);
-        retval = false;
-    }
-
-    return retval;
-}
+//bool CreateProposalPayToEntry::getPayToAmount()
+//{
+//    // Check input validity
+//    bool retval = true;
+//
+//    if(!ui->payAmount->validate())
+//    {
+//        retval = false;
+//    }
+//}
+//
+//
+//bool CreateProposalPayToEntry::getPayToAmount()
+//{
+////        if(ui->payAmount->value() <= 0)
+////        {
+////            // Cannot send 0 coins or less
+////            ui->payAmount->setValid(false);
+////            retval = false;
+////        }
+////    }
+////
+////    if(!ui->payTo->hasAcceptableInput() ||
+////       (model && !model->validateAddress(ui->payTo->text())))
+////    {
+////        ui->payTo->setValid(false);
+////        retval = false;
+////    }
+////
+////    return retval;
+//	//TODO 1 fixme
+//	return false;
+//}
 
 SendCoinsRecipient CreateProposalPayToEntry::getValue()
 {

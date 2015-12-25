@@ -10,6 +10,7 @@ RCC      ?= rcc
 FIND     ?= find
 DEBUG    ?= 1
 ETAGS    ?= etags
+GTAGS    ?= gtags
 
 # Custom GNU Make function that reverse a word list
 reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) $(firstword $(1))
@@ -30,12 +31,12 @@ ifeq ($(TESTING),1)
   CXXFLAGS += -g -O0 -DTESTING
 endif
 
-default: TAGS $(TARGET_HEADLESS)
+default: GTAGS TAGS $(TARGET_HEADLESS)
 
 ifneq ($(NO_QT),1)
-all: TAGS force $(TARGET_HEADLESS) $(TARGET_QT)
+all: GTAGS TAGS force $(TARGET_HEADLESS) $(TARGET_QT)
 else
-all: TAGS force $(TARGET_HEADLESS)
+all: GTAGS TAGS force $(TARGET_HEADLESS)
 endif
 
 -include $(DEPENDENCIES_HEADLESS)
@@ -111,6 +112,9 @@ re: fclean
 
 TAGS: $(SOURCES_QT) $(SOURCES_HEADLESS)
 	$(ETAGS) -l auto `$(FIND) . \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \)`
+
+GTAGS: $(SOURCES_QT) $(SOURCES_HEADLESS)
+	$(GTAGS)
 
 
 .PHONY: force

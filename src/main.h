@@ -115,7 +115,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
 
 
 
-
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
 /** Position on disk for a particular transaction. */
@@ -565,6 +564,8 @@ public:
 			    bool& isVotingPeriodOver
 			    ) const;
 
+    bool IsProposalPassed(CTxDB& txdb, bool &passed) const;
+
     /**
         @return True if the transaction is a coinstake and the coins aren't moved nor destroyed
      */
@@ -596,7 +597,7 @@ public:
      */
     unsigned int GetP2SHSigOpCount(const MapPrevTx& mapInputs) const;
 
-    /** Amount of bitcoins spent by this transaction.
+    /** Amount of nomiccoins spent by this transaction.
         @return sum of all outputs (note: does not include fees)
      */
     int64 GetValueOut() const
@@ -929,6 +930,7 @@ public:
 
 };
 
+typedef std::pair<votehash_t, money_t> proposalpair_t;
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -1211,6 +1213,7 @@ public:
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);
+
 };
 
 
@@ -1574,6 +1577,8 @@ public:
     }
 
     bool GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes);
+    bool GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpair_t> & proposalsToRun);
+
 };
 
 

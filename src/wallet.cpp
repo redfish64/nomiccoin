@@ -5,6 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include "StakeStats.h"
 #include "main.h"
@@ -1218,7 +1220,7 @@ std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
     CScript scriptPubKey;
     scriptPubKey.SetDestination(vchPubKey.GetID());
 
-	CReserveKey preChangeReserveKey(this);
+    CReserveKey preChangeReserveKey(this);
 
     CWalletTx preTx;
 
@@ -1240,8 +1242,8 @@ std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
     
     txn.vin.push_back(CTxIn(preTx.GetHash(),0));
     //attach the fee to the proposal
-	if (!SignSignature(*this, preTx,txn, 1))
-		return false;
+    if (!SignSignature(*this, preTx,txn, 1))
+      return _("Internal error generating signature");
     
     //submit the fee
     if (!CommitTransaction(preTx, &preChangeReserveKey))
@@ -1311,6 +1313,8 @@ string CWallet::VoteForProposal(uint256 txnHash, uint256 &voteHash, bool fAskFee
 		error("VoteForProposal(): CommitTransaction failed");
 		return _("Voting failed, commit error");
 	}
+
+	voteHash = vtxn.GetHash();
 
 	//TODO 2 put the coins back into the wallet immediately, so the user doesn't have
 	//zero balance
@@ -2233,3 +2237,10 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress)
     }
 }
 
+void CWallet::SetProposalPassed(uint256 propHash, bool passed)
+{
+  if(mapWallet.count(propHash) != 0)
+    {
+      mapWallet[propHash].isProposalPassed = passed;
+    }
+}

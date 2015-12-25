@@ -2945,6 +2945,17 @@
 <node CREATED="1450859404881" ID="ID_1912185841" MODIFIED="1450859424268" TEXT="The only problem with this is that the blockchain could fork"/>
 </node>
 </node>
+<node CREATED="1451031139487" ID="ID_296204175" MODIFIED="1451031145891" TEXT="constant reward">
+<node CREATED="1451031161559" ID="ID_1705639740" MODIFIED="1451031171803" TEXT="How can we prevent stakes from getting too small?">
+<node CREATED="1451031182528" ID="ID_1247334629" MODIFIED="1451031200811" TEXT="What if we had a base constant reward and a time based reward added to it?"/>
+</node>
+</node>
+<node CREATED="1451031257271" ID="ID_1772986037" MODIFIED="1451031262500" TEXT="do we want to keep stake-thru?">
+<node CREATED="1451031263856" ID="ID_1626508455" MODIFIED="1451031275723" TEXT="If we don&apos;t have it, then it will be easier code"/>
+</node>
+<node CREATED="1451037676409" ID="ID_619642672" MODIFIED="1451041440285" TEXT="What if the pool runs out of money before the proposal passed?">
+<node CREATED="1451041455505" ID="ID_796820103" MODIFIED="1451041469252" TEXT="Then it&apos;s invalid and doesn&apos;t pass"/>
+</node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

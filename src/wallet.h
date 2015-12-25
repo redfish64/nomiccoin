@@ -372,6 +372,8 @@ public:
 
     void FixSpentCoins(int& nMismatchSpent, int64& nBalanceInQuestion, bool fCheckOnly = false);
     void DisableTransaction(const CTransaction &tx);
+
+    void SetProposalPassed(uint256 propHash, bool passed);
 };
 
 /** A key allocated from the key pool. */
@@ -410,7 +412,10 @@ private:
     int findMatchingVoteVinForVout(int voutIndex, const CWalletTx * & prevTranOut) const;
 
 public:
-    std::vector<CMerkleTx> vtxPrev;
+    std::vector<CMerkleTx> vtxPrev; //The vtxPrev contains a list of the supporting confirmations up to 3 confirmations
+    //back. So it is only of relevance (and only gets filled) if you accept coins that are less than 3 confirmations old.
+    //In this case you would like to resend the depending transactions to the network in case of chain splits.
+
     std::map<std::string, std::string> mapValue;
     std::vector<std::pair<std::string, std::string> > vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
@@ -418,6 +423,8 @@ public:
     char fFromMe;
     std::string strFromAccount;
     std::vector<char> vfSpent; // which outputs are already spent
+
+    bool isProposalPassed; //true if a proposal and that proposal passed 
 
     // memory only
     mutable bool fDebitCached;
@@ -468,6 +475,7 @@ public:
         nCreditCached = 0;
         nAvailableCreditCached = 0;
         nChangeCached = 0;
+	isProposalPassed = false;
     }
 
     IMPLEMENT_SERIALIZE
@@ -611,10 +619,17 @@ public:
 
     int64 GetAvailableCredit(bool fUseCache=true) const
     {
+
         // Must wait until coinbase is safely deep enough in the chain before valuing it
         if (!IsMature())
             return 0;
 
+        if(IsProposal())
+        {
+        	//skip proposal which haven't passed
+        	if(!isProposalPassed)
+        		return 0;
+        }
         if (fUseCache && fAvailableCreditCached)
             return nAvailableCreditCached;
 

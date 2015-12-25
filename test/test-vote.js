@@ -14,7 +14,7 @@ export async function test( ) {
 				     } );
 
     var rpc = await sendRpcQuery( client1, { method : 'getvotingbalance' } );
-    expect( rpc.result ).to.equal( 0 );
+    expect( rpc.result ).to.be.equal( 0);
 
     //mine some blocks to get some funds
     await mineSomePowBlocks( client1, 10);
@@ -58,8 +58,8 @@ export async function test( ) {
     					     [
     						 prophash
     					     ]
-    					   },1)
-    expect ( rpc.result ).to.be.equal( "ok" )
+    					   })
+    expect ( rpc.result ).to.match( /^[A-Za-z0-9]{64}$/ )
 
     await delayExecution( 2 );
     var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",

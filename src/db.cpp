@@ -879,7 +879,6 @@ bool CTxDB::EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline)
   return Erase(triple);
 }
 
-
 bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, void *data,
 		bool (*fIncludeProposal)(votehash_t, money_t, void *), std::vector<std::pair<votehash_t, money_t> >& out)
 {
@@ -891,6 +890,9 @@ bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, v
     unsigned int fFlags = DB_SET_RANGE;
 
     //TODO 2 test, make sure that choosing hash 0 will get all the hashes for a particular time
+    //TODO 3 we probably don't need the 0 proposal to never expire anymore, because a vote against
+    //an expired proposal still should count towards vote total
+    //TODO 2 test that a vote against an expired proposal still counts toward vote total
     INFINITE_LOOP
     {
         // Read next record
@@ -913,27 +915,33 @@ bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, v
         // Unserialize
 
         try {
-			ssKey >> triple;
-
-			if (boost::get<0>(triple) == "votecount" && boost::get<1>(triple) < endTime)
-			{
-				votehash_t txnHash = boost::get<2>(triple);
-
-				money_t votes;
-				ssValue >> votes;
-
-				if((*fIncludeProposal)(txnHash, votes, data))
-				{
-					out.push_back(make_pair(txnHash, votes));
-				}
-			}
-			else
-			{
-				break;
-			}
+	  string strType;
+	  ssKey >> strType;
+	  
+	  if (strType == "votecount")
+	    {
+	      ssKey >> triple;
+	      if(boost::get<1>(triple) < endTime)
+		{
+		  votehash_t txnHash = boost::get<2>(triple);
+	      
+		  money_t votes;
+		  ssValue >> votes;
+	      
+		  if((*fIncludeProposal)(txnHash, votes, data))
+		    {
+		      out.push_back(make_pair(txnHash, votes));
+		    }
+		}
+	    }
+	  else
+	    {
+	      break;
+	    }
         }    // try
         catch (std::exception &e) {
-            return error("%s() : deserialize error", __PRETTY_FUNCTION__);
+	  pcursor->close();
+	  return error("%s() : deserialize error", __PRETTY_FUNCTION__);
         }
     }
 

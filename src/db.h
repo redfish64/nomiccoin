@@ -309,6 +309,8 @@ public:
     bool EraseProposalVoteCount(votehash_t txnHash, timestamp_t deadline);
     bool ReadProposalVoteCount(votehash_t txnHash, timestamp_t deadline, money_t & totalVotes);
 
+    //reads proposals that have a deadline on or after startTime and before endTime
+    //Returns only those proposals for which fIncludeProposal returns true.
     bool ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, void *data,
     		bool (*fIncludeProposal)(votehash_t, money_t, void *), std::vector<std::pair<votehash_t, money_t> >& out);
 };

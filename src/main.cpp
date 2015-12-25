@@ -138,6 +138,12 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
       pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
 }
 
+void SyncPassedProposalWithWallets(uint256 propHash, bool fConnect)
+{
+  BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+    pwallet->SetProposalPassed(propHash,fConnect);
+}
+
 // notify wallets about a new best chain
 void static SetBestChain(const CBlockLocator& loc)
 {
@@ -925,7 +931,7 @@ int CWalletTx::findMatchingVoteVinForVout(int voutIndex,
 	const CScript & outScript = this->vout[voutIndex].scriptPubKey;
 
 	std::map<int,int> m;
-
+	
 	const CWallet *wallet = this->pwallet;
 	for(int i = this->vin.size(); i >= 0; i--)
 	{
@@ -981,18 +987,36 @@ CWalletTx *CWalletTx::GetNonVoteAncestor(int voutIndex, int & outVoutIndex) cons
 	}
 }
 
+CBlockIndex *GetBlockBeforeDeadline(CBlockIndex *pindex, timestamp_t deadline)
+{
+  while(pindex && pindex->nTime > deadline)
+    pindex = pindex->pprev;
+
+  return pindex;
+}
+
+
 
 int CWalletTx::GetBlocksToMaturity() const
 {
+  if(IsProposal())
+    {
+      timestamp_t voteDeadline = GetVoteDeadline();
+
+      CBlockIndex * prevBlock = GetBlockBeforeDeadline(pindexBest, voteDeadline);
+      int depth = prevBlock ? (pindexBest->nHeight - prevBlock->nHeight) : 0;
+      
+      return max(0, PROPOSAL_MATURITY_BLOCKS - (depth - 1));
+    }
   if (!(IsCoinBase() || IsCoinStake()))
-        return 0;
-
-    int depth = GetDepthInMainChain();
-
-    if (depth == 0) // Not in the blockchain
-        return COINBASE_MATURITY;
-
-    return max(0, COINBASE_MATURITY - (depth - 1));
+    return 0;
+  
+  int depth = GetDepthInMainChain();
+  
+  if (depth == 0) // Not in the blockchain
+    return COINBASE_MATURITY;
+  
+  return max(0, COINBASE_MATURITY - (depth - 1));
 }
 
 
@@ -1732,6 +1756,12 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	      AddToVoteCount(txdb, pindex->nTime, hashToTxnAndVoteCounts, txnHash,
 			     txPrev.GetValueOut());
 	  }
+
+	//note there is no need to "un-run" the passed proposals for the public, because
+	//that info (upgrade requests for now) is stored directly into the block header
+
+	//"un-run" the proposal for the wallet, removing the funds where we thought a proposal passed
+	
 	
         if (!tx.DisconnectInputs(txdb))
 	  return false;
@@ -1754,8 +1784,28 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     BOOST_FOREACH(CTransaction& tx, vtx)
         SyncWithWallets(tx, this, false, false);
 
+    //remove any funds from proposals that passed but now are rescinded
+    std::vector<proposalpair_t> proposalsToRun;
+    if(!pindex->GetProposalsToRunForBlock(txdb, proposalsToRun))
+      return error("CBlock::DisconnectBlock() : Unable to get proposals to run");
+
+    //undo passed proposals
+    //note that we don't filter out proposals that failed due to lack of funds here,
+    //because the wallet won't be screwed up if we tell it a proposal didn't pass
+    // that it never marked as passed. 
+    BOOST_FOREACH(proposalpair_t& proposalPair, proposalsToRun)
+      {
+	SyncPassedProposalWithWallets(proposalPair.first,false);
+      }
+
     return true;
 }
+
+//TODO 2: remove PoW completely. With a constant stake reward, there is no reason to pool funds
+// which means PoS should be enough, given that we have enough users. Heck, I can personally
+// guarantee this by splitting my stake enough
+//TODO 2: have a minimum stake size, so that stakes don't get too small?? But how small???
+
 
 /**
  * Runs a proposal as a regular user. Stores result in given bioList
@@ -1780,11 +1830,40 @@ bool RunProposalForPublic(CTransaction *tx, CAppState &appState, int blockHeight
 }
 
 //meant to be passed to ReadProposalsVoteCount
+//TODO 2 update for different types of proposals.. spend money/upgrade/both
 bool fPassedProposals(votehash_t txnHash, money_t vote, void *pbaseVote)
 {
 	money_t& baseVote = *((money_t *)pbaseVote);
 
 	return vote * 2 > baseVote;
+}
+
+
+//gets proposals that have passed and are PROPOSAL_MATURITY_BLOCKS old. These proposals have cooked long
+//enough and are ready to run
+bool CBlockIndex::GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpair_t> & proposalsToRun)
+{
+  // Watch for proposal transactions that have passed and the proposal maturity period has expired
+  // We wait until the maturity period has finished before notifying the user, incase of a reorg.
+  // (We don't want to notify the user to upgrade, then rescind the request... it's too confusing, so
+  //  it's important to wait for the block chain to settle, here)
+  CBlockIndex *pPriorIndex = GetPriorBlockIndex(this, PROPOSAL_MATURITY_BLOCKS);
+  
+  if(pPriorIndex && pPriorIndex->pprev)
+    {
+      //we will run the public (upgrade request) for all proposals that ended at the block
+      //PROPOSAL_MATURITY_BLOCKS ago and started at the prior block. In this way, proposals
+    	//will only be run once
+      timestamp_t endTime = pPriorIndex->nTime-1;
+      timestamp_t startTime = pPriorIndex->pprev->nTime;
+      
+      
+      if(!txdb.ReadProposalsVoteCount(startTime,endTime, (void *)&pPriorIndex->votingPeriodVotedCoins,  fPassedProposals,
+				      proposalsToRun))
+	return error("CBlock::GetProposalsToRunForBlock can't read proposals");
+    }
+
+  return true;
 }
 
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
@@ -1882,7 +1961,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             if (!tx.IsCoinStake())
                 nFees += nTxValueIn - nTxValueOut;
 
-            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
+            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false,
+				  fStrictPayToScriptHash))
                 return false;
             tx.UpdateVoteCounts(txdb, nTime, mapInputs, pindex->votingPeriodVotedCoins, hashToTxnAndVote);
         }
@@ -1904,56 +1984,52 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     //write out all the votes.. since this is stored outside of CBlockIndex, we need to revert
     //these changes when we do a reorg in DisconnectBlock
     if(!WriteProposalVoteCounts(txdb, hashToTxnAndVote))
-      return error("Connect() : WriteProposalVoteCounts failed");
+      return error("CBlock::ConnectBlock() : WriteProposalVoteCounts failed");
 
     pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolEarned;
     
     //TODO 2, do not allow votes for deadlines less than 2 weeks since the coin started
 
     pindex->appState = pindex->pprev->appState;
-    
-    // Watch for proposal transactions that have passed and the proposal maturity period has expired
-    // We wait until the maturity period has finished before notifying the user, incase of a reorg.
-    // (We don't want to notify the user to upgrade, then rescind the request... it's too confusing, so
-    //  it's important to wait for the block chain to settle, here)
-    CBlockIndex *pPriorIndex = GetPriorBlockIndex(pindex, PROPOSAL_MATURITY_BLOCKS);
 
-    if(pPriorIndex && pPriorIndex->pprev)
-    {
-    	//we will run the public (upgrade request) for all proposals that ended at the block
-    	//PROPOSAL_MATURITY_BLOCKS ago and started at the prior block. In this way, proposals
-    	//will only be run once
-    	timestamp_t endTime = pPriorIndex->nTime-1;
-    	timestamp_t startTime = pPriorIndex->pprev->nTime;
+    std::vector<proposalpair_t> proposalsToRun;
+    if(!pindex->GetProposalsToRunForBlock(txdb, proposalsToRun))
+      return error("CBlock::ConnectBlock() : Unable to get proposals to run");
 
-    	typedef std::pair<votehash_t, money_t> proposalpair_t;
-    	std::vector<proposalpair_t> proposalsToRun;
-
-    	txdb.ReadProposalsVoteCount(startTime,endTime, (void *)&pPriorIndex->votingPeriodVotedCoins,  fPassedProposals,
-    			proposalsToRun);
-
-    	BOOST_FOREACH(proposalpair_t& proposalPair, proposalsToRun)
-    	{
-    		CTransaction t;
-    		CTxIndex txIndex;
-    		t.ReadFromDisk(txdb, proposalPair.first, txIndex);
-
-    		//everyone evaluates the tx, in case it has operations for upgrading the client
-    		RunProposalForPublic(&t, pindex->appState, pindex->nHeight);
-
-    		//TODO 2.1 display in the GUI that the proposals passed (do this after we got the gui setup)
-    		//TODO 2.1 add functionality to run command on passed proposal, etc.
-    		printf("CBlock::ConnectBlock Proposal %s passed with %lf of vote\n", proposalPair.first,
-    				((double)proposalPair.second)/pPriorIndex->votingPeriodVotedCoins);
-
-    		//TODO 2 handle proposals that have passed, we want the funds to appear in the wallet if addressed to
-    		//us
-    		//call this or something: SyncWithWallets(tx, this, true);
-    	}
-    }
+    for(std::vector<proposalpair_t>::iterator it = proposalsToRun.begin(); it != proposalsToRun.end(); it++)
+      {
+	proposalpair_t & proposalPair = (*it);
+	
+	CTransaction t;
+	CTxIndex txIndex;
+	if(!t.ReadFromDisk(txdb, proposalPair.first, txIndex))
+	  error("CBlock::ConnectBlock(): couldn't read proposal from disk\n");
+	
+	int64 valueOut = t.GetValueOut();
+	if(valueOut > pindex->nSharedPoolFunds)
+	  {
+	    printf("CBlock::ConnectBlock Ran out of funds for passed Proposal %s. Proposal rejected (\n", (*it).first,
+		   ((double)(*it).second));
+	    continue;
+	  }
+	
+	pindex->nSharedPoolFunds -= valueOut;
+	
+	printf("CBlock::ConnectBlock Proposal %s passed with %lf votes\n", proposalPair.first,
+	       ((double)proposalPair.second));
+	
+	//everyone evaluates the tx, in case it has operations for upgrading the client
+	RunProposalForPublic(&t, pindex->appState, pindex->nHeight);
+	
+	SyncPassedProposalWithWallets(proposalPair.first, true);
+	//TODO 2.1 display in the GUI that the proposals passed (do this after we got the gui setup)
+	//TODO 2.1 add functionality to run command on passed proposal, etc.
+	
+	//TODO 2 make sure that reconstructing the wallet works right (see option "-rescan")
+      }
 
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
-        return error("Connect() : WriteBlockIndex for pindex failed");
+        return error("ConnectBlock() : WriteBlockIndex for pindex failed");
 
     // Write queued txindex changes
     for (map<uint256, CTxIndex>::iterator mi = mapQueuedChanges.begin(); mi != mapQueuedChanges.end(); ++mi)
@@ -1987,13 +2063,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     }
 
     // Watch for transactions paying to me
-	BOOST_FOREACH(CTransaction& tx, vtx)
-	{
-		//TODO 2 handle proposals that have not passed, we don't want the funds showing up in the wallet
-		SyncWithWallets(tx, this, true);
-	}
-
-	return true;
+    BOOST_FOREACH(CTransaction& tx, vtx)
+      {
+	SyncWithWallets(tx, this, true);
+      }
+    
+    return true;
 }
 
 bool CBlockIndex::GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes)
@@ -4511,49 +4586,34 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
         map<uint256, vector<COrphan*> > mapDependers;
         multimap<double, CTransaction*> mapPriority;
 
-        //in this map, the key is the hash of tx itself, since voters vote on a txn hash
-        map<uint256, CTransaction *> mapProposals;
-
-        for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
-        {
-            CTransaction& tx = (*mi).second;
-
-            if(tx.IsProposal())
-            {
-            	//proposals need at least one vote for them in the block they are created
-            	//(this is because proposal have no fee to create, but votes do. If we allow
-            	// proposals to be created without a vote, then people could spam the blocks
-            	// with proposal, costing them nothing)
-            	mapProposals[tx.GetHash()] = &tx;
-            }
-        }
-
         for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
         {
             CTransaction& tx = (*mi).second;
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
                 continue;
 
-            double dPriority = 0;
-            uint256 proposalHash;
+            COrphan* porphan = NULL;
+
+	    //make sure the proposal exists
+	    votehash_t proposalHash;
             if(tx.GetVoteTxnData(proposalHash))
             {
+	      CTransaction tempProposal;
 
-            	//check for the proposal for the vote to make sure we know about it
-            	if(mapProposals.find(proposalHash) == mapProposals.end())
-            	{
-                	CTransaction tempProposal;
-
-                	if(!txdb.ReadDiskTx(proposalHash, tempProposal))
-                	{
-                		continue;
-                	}
+	      //if not found, add it to orphans, maybe we'll see the proposal later
+	      if(!txdb.ReadDiskTx(proposalHash, tempProposal))
+		{
+		  // Use list for automatic deletion
+		  vOrphan.push_back(COrphan(&tx));
+		  porphan = &vOrphan.back();
+		  
+		  mapDependers[proposalHash].push_back(porphan);
+		  porphan->setDependsOn.insert(proposalHash);
             	}
-
             }
 
-            COrphan* porphan = NULL;
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            double dPriority = 0;
+	    BOOST_FOREACH(const CTxIn& txin, tx.vin)
             {
                 // Read prev transaction
                 CTransaction txPrev;
@@ -4585,7 +4645,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             // Priority is sum(valuein * age) / txsize
             dPriority /= ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
-            if(tx.IsVoteTxn())
+            if(tx.IsVoteTxn() || tx.IsProposal())
             {
             	dPriority *= VOTE_PRIORITY_MULTIPLIER;
             }
@@ -4615,91 +4675,56 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             CTransaction& tx = *(*mapPriority.begin()).second;
             mapPriority.erase(mapPriority.begin());
 
-            //if we voted for a new proposal, we need to add the proposal immediately before the txn
-            //in the transaction block, so we retrieve it here
-            uint256 proposalHash;
-            CTransaction* proposal = NULL;
-
-            if(tx.GetVoteTxnData(proposalHash))
-            {
-                proposal = mapProposals.at(proposalHash);
-                mapProposals.erase(proposalHash); //we erase it because we want the new proposal to
-                //only show up once in the block
-            }
-
-            //if the tx is a vote for a new proposal, the proposal piggybacks on the vote and gets
-            //added immediately before
-
             // Size limits
-            unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)
-        	+ (proposal ? ::GetSerializeSize(*proposal, SER_NETWORK, PROTOCOL_VERSION) : 0);
+            unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
             if (nBlockSize + nTxSize >= MAX_BLOCK_SIZE_GEN)
                 continue;
 
             // Legacy limits on sigOps:
-            unsigned int nTxSigOps = tx.GetLegacySigOpCount()
-                	+ (proposal ? proposal->GetLegacySigOpCount() : 0 );
+            unsigned int nTxSigOps = tx.GetLegacySigOpCount();
 
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
                 continue;
 
             // Timestamp limit
-            if (tx.nTime > GetAdjustedTime() || (pblock->IsProofOfStake() && tx.nTime > pblock->vtx[1].nTime)
-            	|| !proposal
-				|| proposal->nTime > GetAdjustedTime()
-				|| (pblock->IsProofOfStake() && proposal->nTime > pblock->vtx[1].nTime)
-            	)
+            if (tx.nTime > GetAdjustedTime() || (pblock->IsProofOfStake()
+						 && tx.nTime > pblock->vtx[1].nTime))
                 continue;
 
             // ppcoin: simplify transaction fee - allow free = false
             int64 nMinFee = tx.GetMinFee(nBlockSize, false, GMF_BLOCK);
 
-			map<uint256, CTxIndex> mapTestPoolTmp(mapTestPool);
-			int64 nTxFees;
-
-			//TODO 2: co: we still need to spend money from the funds pool, when the outputs are spent,
-			//so find a place to use this code
-//	    if(tx.IsRedeemedProposal()) //if a proposal, we get the input from the funds pool
-//	      {
-//		if(pindexPrev->nSharedPoolFunds - tx.GetValueOut() - nMinFee < 0)
-//		  {
-//		    printf("can't include proposal txn, shared pool doesn't have enough funds tx (hash: %s, tx valueOut: %ld, fundsAvail %ld)\n", tx.GetHash().GetHex().c_str(), tx.GetValueOut(), pindexPrev->nSharedPoolFunds - nMinFee);
-//		    continue;
-//		  }
-//
-//		nTxFees = nMinFee;
-//	      }
-//	    else
-			// Connecting shouldn't fail due to dependency on other memory pool transactions
-			// because we're already processing them in order of dependency
-			MapPrevTx mapInputs;
-			bool fInvalid;
-			if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
-			  continue;
-
-			nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
-			if (nTxFees < nMinFee)
-			  continue;
-
-			nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
-			if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
-			  continue;
-
-			if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true))
-			  continue;
+	    map<uint256, CTxIndex> mapTestPoolTmp(mapTestPool);
+	    int64 nTxFees;
 	    
-			//note that the new transaction could still be linked to another transaction
-			//so we add it to the memory pool
-			mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
-			swap(mapTestPool, mapTestPoolTmp);
+	    // Connecting shouldn't fail due to dependency on other memory pool transactions
+	    // because we're already processing them in order of dependency
+	    MapPrevTx mapInputs;
+	    bool fInvalid;
+	    if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
+	      continue;
+	    
+	    nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
+	    if (nTxFees < nMinFee)
+	      continue;
+
+	    nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
+	    if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
+	      continue;
+	    
+	    if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true))
+	      continue;
+	    
+	    //note that the new transaction could still be linked to another transaction
+	    //so we add it to the memory pool
+	    mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
+	    swap(mapTestPool, mapTestPoolTmp);
 	    
             // Added
-			if(proposal)
-				pblock->vtx.push_back(*proposal);
             pblock->vtx.push_back(tx);
             nBlockSize += nTxSize;
-            nBlockTx += proposal ? 2 : 1;
+            nBlockTx ++;
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
 
@@ -5119,6 +5144,21 @@ timestamp_t CTransaction::GetVoteDeadline() const
 		return 0;
 
 	return deadline;
+}
+
+bool CTransaction::IsProposalPassed(CTxDB& txdb, bool &passed) const
+{
+  money_t votesForProposal;
+  CBlockIndex *ourBlockIndex;
+  bool isVoteWon;
+  bool isVotingPeriodOver;
+
+  if(!GetProposalTxnInfo(txdb, votesForProposal, ourBlockIndex, isVoteWon, isVotingPeriodOver))
+    return false;
+
+  passed = isVoteWon && isVotingPeriodOver;
+
+  return true;
 }
 
 bool CTransaction::GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,

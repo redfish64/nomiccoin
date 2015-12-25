@@ -1103,7 +1103,7 @@ Value getvoteinfo(const Array& params, bool fHelp)
   CTransaction proposalTxn;
   if (!txdb.ReadDiskTx(uint256(params[0].get_str()), proposalTxn))
   {
-	  //TODO 2.5 check for it in orphans??
+	  //TODO 2 check for it in memory????
 	  throw JSONRPCError(-1, "Proposal not found. (it may not be in the block chain, yet");
   }
 
