@@ -58,7 +58,7 @@ export async function test( ) {
     					     [
     						 prophash
     					     ]
-    					   })
+    					   },1)
     expect ( rpc.result ).to.match( /^[A-Za-z0-9]{64}$/ )
 
     await delayExecution( 2 );

@@ -221,8 +221,11 @@ bool AddOrphanTx(const CDataStream& vMsg)
 
     //we also include vote transaction proposals as resolvers for the orphan
     uint256 propHash;
-    if(tx.GetVoteTxnData(propHash))
-        mapOrphanTransactionsByPrev[propHash].insert(make_pair(propHash, pvMsg));
+    for(int i = tx.vin.size()-1; i>= 0; i--)
+      {
+	if(tx.GetVoteTxnData(i,propHash))
+	  mapOrphanTransactionsByPrev[propHash].insert(make_pair(propHash, pvMsg));
+      }
 
     printf("stored orphan tx %s (mapsz %u)\n", hash.ToString().substr(0,10).c_str(),
         mapOrphanTransactions.size());
@@ -244,13 +247,16 @@ void static EraseOrphanTx(uint256 hash)
     }
 
     uint256 propHash;
-    if(tx.GetVoteTxnData(propHash))
-    {
-        mapOrphanTransactionsByPrev[propHash].erase(hash);
-        if (mapOrphanTransactionsByPrev[propHash].empty())
-            mapOrphanTransactionsByPrev.erase(propHash);
-    }
-
+    for(int i = tx.vin.size()-1; i>=0; i--)
+      {
+	if(tx.GetVoteTxnData(i,propHash))
+	  {
+	    mapOrphanTransactionsByPrev[propHash].erase(hash);
+	    if (mapOrphanTransactionsByPrev[propHash].empty())
+	      mapOrphanTransactionsByPrev.erase(propHash);
+	  }
+      }
+	
     delete pvMsg;
     mapOrphanTransactions.erase(hash);
 }
@@ -746,22 +752,17 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 		}
 
 		uint256 propHash;
-		if(tx.GetVoteTxnData(propHash))
-		{
-			CTransaction prop;
-
-			if(!txdb.ReadDiskTx(propHash, prop))
-			{
-				if (pfMissingInputs)
-					*pfMissingInputs = true;
-
-				return error("CTxMemPool::accept() : Proposal doesn't exist for hash %s",
-						hash.ToString().substr(0, 10).c_str());
-			}
-
+		for(int i = tx.vin.size()-1; i>=0; i--)
+		  {
+		    if(tx.GetVoteTxnData(i,propHash))
+		      {
+			//fetchinputs will have fetched the transaction already for us
+			assert(mapInputs.count(propHash));
+			CTransaction& prop = mapInputs[propHash].second;
+			
 			if(!prop.IsProposal())
-				return error("CTxMemPool::accept() : Vote is not for a proposal %s",
-						hash.ToString().substr(0, 10).c_str());
+			  return error("CTxMemPool::accept() : Vote is not for a proposal %s",
+				       hash.ToString().substr(0, 10).c_str());
 		}
 
 		//TODO 2 make sure that votes after the deadline are not counted towards the
@@ -1284,7 +1285,7 @@ bool CTransaction::DisconnectInputs(CTxDB& txdb)
     return true;
 }
 
-
+//fetches all inputs into inputsRet, including proposals being voted on
 bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTestPool,
                                bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid)
 {
@@ -1297,42 +1298,53 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     if (IsCoinBase())
         return true; // Coinbase transactions have no inputs to fetch.
 
-    for (unsigned int i = 0; i < vin.size(); i++)
+    bool checkInputForVote = false;
+    for (unsigned int i = 0; i < vin.size()*2; i+= checkInputForVote ? 1 : 0, checkInputForVote = !checkInputForVote)
     {
     	//the first vin of the proposal identifies it
     	if(i == 0 && IsProposal())
     		continue;
 
-        COutPoint prevout = vin[i].prevout;
-        if (inputsRet.count(prevout.hash))
+        uint256 prevoutHash;
+	if(checkInputForVote)
+	  {
+	    if(!GetVoteTxnData(i,prevoutHash))
+	      continue;
+	  }
+	else
+	  {
+	    prevoutHash = vin[i].prevout.hash;
+	  }
+	
+        if (inputsRet.count(prevoutHash))
             continue; // Got it already
 
         // Read txindex
-        CTxIndex& txindex = inputsRet[prevout.hash].first;
+        CTxIndex& txindex = inputsRet[prevoutHash].first;
         bool fFound = true;
-        if ((fBlock || fMiner) && mapTestPool.count(prevout.hash))
+        if ((fBlock || fMiner) && mapTestPool.count(prevoutHash))
         {
             // Get txindex from current proposed changes
-            txindex = mapTestPool.find(prevout.hash)->second;
+            txindex = mapTestPool.find(prevoutHash)->second;
         }
         else
         {
             // Read txindex from txdb
-            fFound = txdb.ReadTxIndex(prevout.hash, txindex);
+            fFound = txdb.ReadTxIndex(prevoutHash, txindex);
         }
         if (!fFound && (fBlock || fMiner))
-            return fMiner ? false : error("FetchInputs() : %s prev tx %s index entry not found", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
+            return fMiner ? false : error("FetchInputs() : %s prev tx %s index entry not found", GetHash().ToString().substr(0,10).c_str(),  prevoutHash.ToString().substr(0,10).c_str());
 
         // Read txPrev
-        CTransaction& txPrev = inputsRet[prevout.hash].second;
+        CTransaction& txPrev = inputsRet[prevoutHash].second;
         if (!fFound || txindex.pos == CDiskTxPos(1,1,1))
         {
             // Get prev tx from single transactions in memory
             {
                 LOCK(mempool.cs);
-                if (!mempool.exists(prevout.hash))
-                    return error("FetchInputs() : %s mempool Tx prev not found %s", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
-                txPrev = mempool.lookup(prevout.hash);
+                if (!mempool.exists(prevoutHash))
+                    return error("FetchInputs() : %s mempool Tx prev not found %s", GetHash().ToString().substr(0,10).c_str(),  prevoutHash.ToString().substr(0,10).c_str());
+                txPrev = mempool.lookup(prevoutHash);
             }
             if (!fFound)
                 txindex.vSpent.resize(txPrev.vout.size());
@@ -1341,7 +1353,7 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
         {
             // Get prev tx from disk
             if (!txPrev.ReadFromDisk(txindex.pos))
-                return error("FetchInputs() : %s ReadFromDisk prev tx %s failed", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
+                return error("FetchInputs() : %s ReadFromDisk prev tx %s failed", GetHash().ToString().substr(0,10).c_str(),  prevoutHash.ToString().substr(0,10).c_str());
         }
     }
 
@@ -1464,21 +1476,25 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
   if (IsCoinBase() || IsCoinStake())
     return true;
   
-  if(GetVoteTxnData(txnHash))
-    {
-      money_t valueOut = GetValueOut();
-      currentTotalVotes += valueOut;
-
-      //add the vote to its proposal if before the deadline
-	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, txnHash, valueOut))
-		  return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
-    }
-  
-  //any previous voting output that this txn spent lose their vote
   for (unsigned int i = 0; i < vin.size(); i++)
     {
       COutPoint prevout = vin[i].prevout;
-      assert(inputs.count(prevout.hash) > 0);
+      assert(inputs.count(prevout.hash));
+      CTransction& prevTxn = inputs[prevout.hash];
+
+      if(GetVoteTxnData(i,txnHash))
+	{
+	  assert(inputs.count(vin[i].prevout.hash));
+	  CTransction& prevTxn = inputs[vin[i].prevout.hash];
+	  money_t lastValueOut = prevTxn.vout[vin[i].prevout.n].nValue;
+	  currentTotalVotes += lastValueOut;
+	  
+	  //add the vote to its proposal if before the deadline
+	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, txnHash, valueOut))
+	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
+	}
+  
+      //any previous voting output that this txn spent lose their vote
       //CTxIndex& txindex = inputs[prevout.hash].first;
       CTransaction& txPrev = inputs[prevout.hash].second;
 

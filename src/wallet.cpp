@@ -1188,18 +1188,20 @@ bool CWallet::CreateVoteTxn(
 		//sign all the transactions
         int nIn = 0;
         BOOST_FOREACH(const COutput& coin, votableCoins)
+	  {
             if (!SignSignature(*this, *coin.tx, txVoteNew, nIn++))
                 return false;
-
-		//if the fee was more coins than we own, then voting is not possible
-		if(txVoteNew.vout.size() == 0)
-			return false;
-
-		int64 minFee = txVoteNew.GetMinFee(1, false, GMF_SEND);
-
-		if(nFeeRet < minFee )
-			nFeeRet = minFee;
-		else break;
+	  }
+	
+	//if the fee was more coins than we own, then voting is not possible
+	if(txVoteNew.vout.size() == 0)
+	  return false;
+	
+	int64 minFee = txVoteNew.GetMinFee(1, false, GMF_SEND);
+	
+	if(nFeeRet < minFee )
+	  nFeeRet = minFee;
+	else break;
 	}
 
 	return true;

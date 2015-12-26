@@ -2956,6 +2956,14 @@
 <node CREATED="1451037676409" ID="ID_619642672" MODIFIED="1451041440285" TEXT="What if the pool runs out of money before the proposal passed?">
 <node CREATED="1451041455505" ID="ID_796820103" MODIFIED="1451041469252" TEXT="Then it&apos;s invalid and doesn&apos;t pass"/>
 </node>
+<node CREATED="1451123921020" ID="ID_1696997771" MODIFIED="1451123932024" TEXT="Why do we have vote transactions on vin">
+<node CREATED="1451123934100" ID="ID_1608973172" MODIFIED="1451123966712" TEXT="vout is no good, because we don&apos;t have the key. It would be somewhat silly to run the output script knowing it would fail because we don&apos;t have the proper input"/>
+<node CREATED="1451123967477" ID="ID_1925901732" MODIFIED="1451124017769" TEXT="The other option is attaching it to the txn itself, not in vin nor vout, but this is pretty nonstandard and adds some space to all transactions, since whether they voted or not, they&apos;d have to store something there"/>
+</node>
+<node CREATED="1451124027269" ID="ID_1334424244" MODIFIED="1451124044625" TEXT="With a vote that has multiple in&apos;s, we can vote for multiple proposals at once">
+<node CREATED="1451124046445" ID="ID_1060138610" MODIFIED="1451124066560" TEXT="This is somewhat of a strange thing to do, but it is possible, and I don&apos;t see much trouble supporting it."/>
+</node>
+<node CREATED="1451128608814" ID="ID_522116" MODIFIED="1451128634354" TEXT="What happens when we use a UTXO from a vote? Do all of the vin&apos;s disappear? Just some?"/>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

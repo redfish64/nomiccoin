@@ -467,26 +467,11 @@ public:
 
     
 
-    bool IsVoteTxn() const
+    //TODO 2 if vote, then vote again immediately, fails because the wallet thinks all the coins are gone. Put them back into the wallet
+    bool GetVoteTxnData(int index, votehash_t& txnHash) const
     {
-    	if(vin.size() != 1)
-    		return false;
-      votehash_t txnHash;
-      
-      return GetVoteTxnData(txnHash);
-    }
-
-    bool GetVoteTxnData(votehash_t& txnHash) const
-    {
-      if(vout.size() != 1)
-	return false;
-      if(vin.size() != 1)
-	return false;
-
-      if(!GetVoteScriptData(vin[0].scriptSig, txnHash))
+      if(!GetVoteScriptData(vin[index].scriptSig, txnHash))
     	  return false;
-
-      //TODO 2 verify the vote comes and goes to the same address
 
       return true;
     }

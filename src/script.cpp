@@ -1277,9 +1277,16 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
     scriptCode.FindAndDelete(CScript(OP_CODESEPARATOR));
 
     // Blank out other inputs' signatures, but leave the vote ops if any.
-    if(!txTo.IsVoteTxn())
-    	for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-    		txTmp.vin[i].scriptSig.clear();
+    for (unsigned int i = 0; i < txTmp.vin.size(); i++)
+      {
+	if(IsVoteScript(txTmp.vin[i].scriptSig))
+	  {
+	    txTmp.vin[i].scriptSig.erase(txTmp.vin[i].scriptSig.begin()+VOTE_PREAMBLE_SIZE,
+					 txTmp.vin[i].scriptSig.end());
+	  }
+	  else
+	    txTmp.vin[i].scriptSig.clear();
+      }
 
     txTmp.vin[nIn].scriptSig += scriptCode;
 
@@ -1938,8 +1945,12 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
 
     txnouttype whichType;
     //this solver writes the scriptSig
-    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType))
+    CScript scriptRet;
+    if (!Solver(keystore, fromPubKey, hash, nHashType, scriptRet, whichType))
         return false;
+
+    //append the signature            
+    txin.scriptSig += scriptRet;
 
     if (whichType == TX_SCRIPTHASH)
     {
