@@ -20,6 +20,9 @@ typedef std::vector<unsigned char> valtype;
 
 #define MAX_PROPOSAL_TITLE_LENGTH 80
 
+//the vote preamble is always <32 byte hash> OP_VOTE
+#define VOTE_PREAMBLE_SIZE 34
+
 class CTransaction;
 
 /** Signature hash types/flags */
@@ -257,7 +260,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 
 
 
-bool IsVoteScript(const CScript& scriptSig);
+bool IsVoteScript(const CScript& scriptPubKey);
 
 
 

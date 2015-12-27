@@ -121,6 +121,6 @@ extern timestamp_t MIN_PROPOSAL_DEADLINE_TIME;
 
 extern timestamp_t MAX_PROPOSAL_DEADLINE_TIME;
 
-extern double VOTE_PRIORITY_MULTIPLIER;
+extern double PROPOSAL_PRIORITY_MULTIPLIER;
 
 extern money_t PROPOSAL_ADDITIONAL_FEE;

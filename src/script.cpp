@@ -1211,8 +1211,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
     return true;
 }
 
-#define VOTE_PREAMBLE_SIZE 34
-
 /**
  * Returns true if the script is a vote script (only scriptSigs are vote scripts)
  */
@@ -1279,13 +1277,7 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
     // Blank out other inputs' signatures, but leave the vote ops if any.
     for (unsigned int i = 0; i < txTmp.vin.size(); i++)
       {
-	if(IsVoteScript(txTmp.vin[i].scriptSig))
-	  {
-	    txTmp.vin[i].scriptSig.erase(txTmp.vin[i].scriptSig.begin()+VOTE_PREAMBLE_SIZE,
-					 txTmp.vin[i].scriptSig.end());
-	  }
-	  else
-	    txTmp.vin[i].scriptSig.clear();
+	txTmp.vin[i].scriptSig.clear();
       }
 
     txTmp.vin[nIn].scriptSig += scriptCode;
@@ -1424,20 +1416,20 @@ bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CSc
 
 
 /**
- * Returns true if the script is a vote script (only scriptSigs are vote scripts) and returns
+ * Returns true if the script is a vote script and returns
  * the related data
  */
-bool GetVoteScriptData(const CScript& scriptSig, votehash_t& txnHash)
+bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash)
 {
-  if(!IsVoteScript( scriptSig))
+  if(!IsVoteScript( scriptPubKey))
     return false;
 
-  CScript::const_iterator iter = scriptSig.begin();
+  CScript::const_iterator iter = scriptPubKey.begin();
 
   //get the txn hash
   opcodetype opcode;
   vector<unsigned char> vch;
-  scriptSig.GetOp(iter, opcode,vch);
+  scriptPubKey.GetOp(iter, opcode,vch);
   txnHash = uint256(vch);
 
   return true;
@@ -1562,6 +1554,11 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 
         // Compare
         CScript::const_iterator pc1 = script1.begin();
+
+	//skip vote stuff, it has no bearing on the output
+	if(IsVoteScript(script1))
+	  pc1 += VOTE_PREAMBLE_SIZE;
+
         CScript::const_iterator pc2 = script2.begin();
 
         INFINITE_LOOP
@@ -1916,7 +1913,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     // Additional validation for spend-to-script-hash transactions:
     if (fValidatePayToScriptHash && scriptPubKey.IsPayToScriptHash())
     {
-        if (!IsVoteScript(scriptSig) && !scriptSig.IsPushOnly()) // scriptSig must be literals-only
+        if (!scriptSig.IsPushOnly()) // scriptSig must be literals-only
             return false;            // or validation fails
 
         const valtype& pubKeySerialized = stackCopy.back();

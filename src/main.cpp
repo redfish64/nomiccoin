@@ -221,7 +221,7 @@ bool AddOrphanTx(const CDataStream& vMsg)
 
     //we also include vote transaction proposals as resolvers for the orphan
     uint256 propHash;
-    for(int i = tx.vin.size()-1; i>= 0; i--)
+    for(int i = tx.vout.size()-1; i>= 0; i--)
       {
 	if(tx.GetVoteTxnData(i,propHash))
 	  mapOrphanTransactionsByPrev[propHash].insert(make_pair(propHash, pvMsg));
@@ -247,7 +247,7 @@ void static EraseOrphanTx(uint256 hash)
     }
 
     uint256 propHash;
-    for(int i = tx.vin.size()-1; i>=0; i--)
+    for(int i = tx.vout.size()-1; i>=0; i--)
       {
 	if(tx.GetVoteTxnData(i,propHash))
 	  {
@@ -310,36 +310,6 @@ bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txinde
     return true;
 }
 
-/**
- * Returns the last transaction that is not a pure voting transaction in the ancestors of this
- * (cahced).
- *
- * nonVoteOutPoint: set to the outpoint of the latest non vote transaction
- * that eventually branches to this through any number of vote transactions
- */
-bool CTransaction::ReadNonVoteAncestor(CTxDB& txdb, CTxIndex thisTxIndex, int thisVoutIndex,
-		const map<uint256, CTxIndex> *mapQueuedChanges,
-		CTransaction& nonVoteTxPrev, CTxIndex& nonVoteTxIndex, int & nonVoteVoutIndex)
-{
-	if(!this->IsVoteTxn())
-	{
-		nonVoteTxPrev = *this;
-		nonVoteTxIndex = thisTxIndex;
-		nonVoteVoutIndex= thisVoutIndex;
-
-		return true;
-	}
-
-	COutPoint nonVoteOutPoint = thisTxIndex.vStakeThru[thisVoutIndex];
-
-	if(!txdb.ReadDiskTx(nonVoteOutPoint.hash, nonVoteTxPrev, nonVoteTxIndex))
-		return error("CTransaction::ReadNonVoteAncestor() : can't read transaction from disk");
-
-	nonVoteVoutIndex = nonVoteOutPoint.n;
-
-	return true;
-}
-
 bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout)
 {
     CTxIndex txindex;
@@ -353,7 +323,6 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
     return ReadFromDisk(txdb, prevout, txindex);
 }
 
-#define MAX_VOTE_PROPOSAL_SIZE 39
 
 bool CTransaction::IsStandard() const
 {
@@ -362,9 +331,9 @@ bool CTransaction::IsStandard() const
         // Biggest 'standard' txin is a 3-signature 3-of-3 CHECKMULTISIG
         // pay-to-script-hash, which is 3 ~80-byte signatures, 3
         // ~65-byte public keys, plus a few script ops.
-        if (txin.scriptSig.size() > 500+MAX_VOTE_PROPOSAL_SIZE)
+        if (txin.scriptSig.size() > 500+VOTE_PREAMBLE_SIZE)
             return false;
-        if (!IsVoteScript(txin.scriptSig) && !txin.scriptSig.IsPushOnly())
+        if (!txin.scriptSig.IsPushOnly())
             return false;
     }
 
@@ -738,109 +707,109 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 	}
 
 	if (fCheckInputs) {
-		MapPrevTx mapInputs;
-		map<uint256, CTxIndex> mapUnused;
-		int nFees;
-		bool fInvalid = false;
-		if (!tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid)) {
-			if (fInvalid)
-				return error("CTxMemPool::accept() : FetchInputs found invalid tx %s",
-						hash.ToString().substr(0, 10).c_str());
-			if (pfMissingInputs)
-				*pfMissingInputs = true;
-			return error("CTxMemPool::accept() : FetchInputs failed %s", hash.ToString().substr(0, 10).c_str());
-		}
-
-		uint256 propHash;
-		for(int i = tx.vin.size()-1; i>=0; i--)
-		  {
-		    if(tx.GetVoteTxnData(i,propHash))
-		      {
-			//fetchinputs will have fetched the transaction already for us
-			assert(mapInputs.count(propHash));
-			CTransaction& prop = mapInputs[propHash].second;
-			
-			if(!prop.IsProposal())
-			  return error("CTxMemPool::accept() : Vote is not for a proposal %s",
-				       hash.ToString().substr(0, 10).c_str());
-		}
-
-		//TODO 2 make sure that votes after the deadline are not counted towards the
-		//total for the proposal (but should still be allowed in the block)
-
-		// Check for non-standard pay-to-script-hash in inputs
-		if (!tx.AreInputsStandard(mapInputs))
-			return error("CTxMemPool::accept() : nonstandard transaction input");
-
-		// Note: if you modify this code to accept non-standard transactions, then
-		// you should add code here to check that the transaction does a
-		// reasonable number of ECDSA signature verifications.
-
-		if(tx.IsProposal())
+	  MapPrevTx mapInputs;
+	  map<uint256, CTxIndex> mapUnused;
+	  int nFees;
+	  bool fInvalid = false;
+	  if (!tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid)) {
+	    if (fInvalid)
+	      return error("CTxMemPool::accept() : FetchInputs found invalid tx %s",
+			   hash.ToString().substr(0, 10).c_str());
+	    if (pfMissingInputs)
+	      *pfMissingInputs = true;
+	    return error("CTxMemPool::accept() : FetchInputs failed %s", hash.ToString().substr(0, 10).c_str());
+	  }
+	  
+	  uint256 propHash;
+	  for(int i = tx.vout.size()-1; i>=0; i--)
+	    {
+	      if(tx.GetVoteTxnData(i,propHash))
 		{
-			nFees = tx.GetValueIn(mapInputs);
-
-			if (nFees < tx.GetMinFee(1000, false, GMF_RELAY) + PROPOSAL_ADDITIONAL_FEE)
-				return error("CTxMemPool::accept() : not enough fees for proposal");
-
+		  //fetchinputs will have fetched the transaction already for us
+		  assert(mapInputs.count(propHash));
+		  CTransaction& prop = mapInputs[propHash].second;
+		  
+		  if(!prop.IsProposal())
+		    return error("CTxMemPool::accept() : Vote is not for a proposal %s",
+				 hash.ToString().substr(0, 10).c_str());
 		}
-		else {
-			nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
-
-			// Don't accept it if it can't get into a block
-			if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
-				return error("CTxMemPool::accept() : not enough fees");
-
-		}
-
-		unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-
-		// Continuously rate-limit free transactions
-		// This mitigates 'penny-flooding' -- sending thousands of free transactions just to
-		// be annoying or make other's transactions take longer to confirm.
-		if (nFees < MIN_RELAY_TX_FEES) {
-			static CCriticalSection cs;
-			static double dFreeCount;
-			static int64 nLastTime;
-			int64 nNow = GetTime();
-
-			{
-				LOCK(cs);
-				// Use an exponentially decaying ~10-minute window:
-				dFreeCount *= pow(1.0 - 1.0 / 600.0, (double) (nNow - nLastTime));
-				nLastTime = nNow;
-				// -limitfreerelay unit is thousand-bytes-per-minute
-				// At default rate it would take over a month to fill 1GB
-				if (dFreeCount > GetArg("-limitfreerelay", 15) * 10 * 1000 && !IsFromMe(tx))
-					return error("CTxMemPool::accept() : free transaction rejected by rate limiter");
-				if (fDebug)
-					printf("Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
-				dFreeCount += nSize;
-			}
-		}
-
-		// Check against previous transactions
-		// This is done last to help prevent CPU exhaustion denial-of-service attacks.
-		if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1, 1, 1), pindexBest, false, false)) {
-			return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0, 10).c_str());
-		}
+	    }
+	  //TODO 2 make sure that votes after the deadline are not counted towards the
+	  //total for the proposal (but should still be allowed in the block)
+	  
+	  // Check for non-standard pay-to-script-hash in inputs
+	  if (!tx.AreInputsStandard(mapInputs))
+	    return error("CTxMemPool::accept() : nonstandard transaction input");
+	  
+	  // Note: if you modify this code to accept non-standard transactions, then
+	  // you should add code here to check that the transaction does a
+	  // reasonable number of ECDSA signature verifications.
+	  
+	  if(tx.IsProposal())
+	    {
+	      nFees = tx.GetValueIn(mapInputs);
+	      
+	      if (nFees < tx.GetMinFee(1000, false, GMF_RELAY) + PROPOSAL_ADDITIONAL_FEE)
+		return error("CTxMemPool::accept() : not enough fees for proposal");
+	      
+	    }
+	  else {
+	    nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+	    
+	    // Don't accept it if it can't get into a block
+	    if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
+	      return error("CTxMemPool::accept() : not enough fees");
+	    
+	  }
+	  
+	  unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+	  
+	  // Continuously rate-limit free transactions
+	  // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
+	  // be annoying or make other's transactions take longer to confirm.
+	  if (nFees < MIN_RELAY_TX_FEES) {
+	    static CCriticalSection cs;
+	    static double dFreeCount;
+	    static int64 nLastTime;
+	    int64 nNow = GetTime();
+	    
+	    {
+	      LOCK(cs);
+	      // Use an exponentially decaying ~10-minute window:
+	      dFreeCount *= pow(1.0 - 1.0 / 600.0, (double) (nNow - nLastTime));
+	      nLastTime = nNow;
+	      // -limitfreerelay unit is thousand-bytes-per-minute
+	      // At default rate it would take over a month to fill 1GB
+	      if (dFreeCount > GetArg("-limitfreerelay", 15) * 10 * 1000 && !IsFromMe(tx))
+		return error("CTxMemPool::accept() : free transaction rejected by rate limiter");
+	      if (fDebug)
+		printf("Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
+	      dFreeCount += nSize;
+	    }
+	  }
+	  
+	  // Check against previous transactions
+	  // This is done last to help prevent CPU exhaustion denial-of-service attacks.
+	  if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1, 1, 1), pindexBest, false, false)) {
+	    return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0, 10).c_str());
+	  }
 	}
-
+	
 	// Store transaction in memory
 	{
-		LOCK(cs);
-		if (ptxOld) {
-			printf("CTxMemPool::accept() : replacing tx %s with new version\n", ptxOld->GetHash().ToString().c_str());
-			remove(*ptxOld);
-		}
-		addUnchecked(tx);
+	  LOCK(cs);
+	  if (ptxOld) {
+	    printf("CTxMemPool::accept() : replacing tx %s with new version\n", ptxOld->GetHash().ToString().c_str());
+	    remove(*ptxOld);
+	  }
+	  addUnchecked(tx);
 	}
-
+	
 	///// are we sure this is ok when loading transactions or restoring block txes
 	// If updated, erase old tx from wallet
 	if (ptxOld)
-		EraseFromWallets(ptxOld->GetHash());
-
+	  EraseFromWallets(ptxOld->GetHash());
+	
 	printf("CTxMemPool::accept() : accepted %s\n", hash.ToString().substr(0, 10).c_str());
 	return true;
 }
@@ -959,33 +928,6 @@ int CWalletTx::findMatchingVoteVinForVout(int voutIndex,
 	}
 
 	return -1;
-}
-
-CWalletTx *CWalletTx::GetNonVoteAncestor(int voutIndex, int & outVoutIndex) const
-{
-	const CWalletTx * ourTx = this;
-
-	INFINITE_LOOP {
-		if(!ourTx->IsVoteTxn() || ourTx->IsCoinStake())
-		{
-			outVoutIndex = voutIndex;
-			return (CWalletTx *)ourTx;
-		}
-
-		const CWalletTx * prevTx;
-
-		int vinIndex = ourTx->findMatchingVoteVinForVout(voutIndex, prevTx);
-
-		if(vinIndex == -1)
-		{
-			error("CWalletTx::GetNonVoteAncestor can't find matching vinIndex %d "
-					"for voutIndex %d", vinIndex, voutIndex);
-			return NULL;
-		}
-
-		voutIndex = ourTx->vin[vinIndex].prevout.n;
-		ourTx = prevTx;
-	}
 }
 
 CBlockIndex *GetBlockBeforeDeadline(CBlockIndex *pindex, timestamp_t deadline)
@@ -1298,22 +1240,30 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     if (IsCoinBase())
         return true; // Coinbase transactions have no inputs to fetch.
 
-    bool checkInputForVote = false;
-    for (unsigned int i = 0; i < vin.size()*2; i+= checkInputForVote ? 1 : 0, checkInputForVote = !checkInputForVote)
-    {
-    	//the first vin of the proposal identifies it
-    	if(i == 0 && IsProposal())
-    		continue;
+    int i=-1;
+    int o=-1;
 
-        uint256 prevoutHash;
-	if(checkInputForVote)
+    uint256 prevoutHash;
+    INFINITE_LOOP
+      {
+	if(i+1 < (int)vin.size())
 	  {
-	    if(!GetVoteTxnData(i,prevoutHash))
+	    i++;
+	    //the first vin of the proposal identifies it, and has no real input UTXO
+	    if(i == 0 && IsProposal())
+	      continue;
+	    prevoutHash = vin[i].prevout.hash;
+	  }
+	else if(o+1 < (int)vout.size())
+	  {
+	    o++;
+
+	    if(!GetVoteTxnData(o,prevoutHash))
 	      continue;
 	  }
 	else
 	  {
-	    prevoutHash = vin[i].prevout.hash;
+	    break;
 	  }
 	
         if (inputsRet.count(prevoutHash))
@@ -1471,40 +1421,45 @@ bool AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<votehash_t,std
 bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs,
 		money_t& currentTotalVotes, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts)
 {
-  votehash_t txnHash;
-
   if (IsCoinBase() || IsCoinStake())
     return true;
   
-  for (unsigned int i = 0; i < vin.size(); i++)
+  for (unsigned int i = 0; i < vout.size(); i++)
     {
-      COutPoint prevout = vin[i].prevout;
-      assert(inputs.count(prevout.hash));
-      CTransction& prevTxn = inputs[prevout.hash];
-
-      if(GetVoteTxnData(i,txnHash))
+      votehash_t propHash;
+      
+      if(GetVoteTxnData(i,propHash))
 	{
-	  assert(inputs.count(vin[i].prevout.hash));
-	  CTransction& prevTxn = inputs[vin[i].prevout.hash];
-	  money_t lastValueOut = prevTxn.vout[vin[i].prevout.n].nValue;
-	  currentTotalVotes += lastValueOut;
+	  assert(inputs.count(propHash));
+	  CTransaction& prevTxn = inputs[propHash].second;
+	  money_t valueOut = vout[i].nValue;
 	  
 	  //add the vote to its proposal if before the deadline
-	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, txnHash, valueOut))
+	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
 	}
-  
+    }
+  for (unsigned int i = 0; i < vin.size(); i++)
+    {
+      votehash_t propHash;
+      COutPoint prevout = vin[i].prevout;
+      assert(inputs.count(prevout.hash));
+      CTransaction& prevTxn = inputs[prevout.hash].second;
+
       //any previous voting output that this txn spent lose their vote
-      //CTxIndex& txindex = inputs[prevout.hash].first;
-      CTransaction& txPrev = inputs[prevout.hash].second;
-
-      if(txPrev.GetVoteTxnData(txnHash))
+      if(prevTxn.GetVoteTxnData(prevout.n,propHash))
       {
-    	  money_t valueOut = txPrev.vout[prevout.n].nValue;
-    	  currentTotalVotes -= valueOut;
+    	  money_t valueOut = prevTxn.vout[prevout.n].nValue;
+	  CTxIndex& prevTxIndex = inputs[prevout.hash].first;
 
-    	  //the prev vote gets subtracted if it got spent before the deadline (AddToVoteCount will check the deadline)
-    	  AddToVoteCount(txdb,blockTime,hashToTxnAndVoteCounts, txnHash, -valueOut);
+    	  //the prev vote gets subtracted if it got spent before the deadline (AddToVoteCount will check
+	  //the deadline), but we need the blocktime of the previous tx, so we get the block
+	  CBlock block;
+	  if (!block.ReadFromDisk(prevTxIndex.pos.nFile, prevTxIndex.pos.nBlockPos, false))
+	    return error("CTransaction::UpdateVoteCounts, can't read block of prior tx");
+
+	  if(!AddToVoteCount(txdb,block.nTime, hashToTxnAndVoteCounts, propHash, -valueOut))
+	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed subtracting earlier tx");
       }
     }
 
@@ -1517,27 +1472,13 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                                  map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                                  const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash)
 {
-	uint256 voteHash;
-	if(GetVoteTxnData(voteHash))
-	{
-		CTransaction prop;
-
-		if(!txdb.ReadDiskTx(voteHash, prop))
-            return DoS(100, error("ConnectInputs() : could not find , %s",
-            		GetHash().ToString().substr(0,10).c_str()));
-		if(!prop.IsProposal())
-
-            return DoS(100, error("ConnectInputs() : vote txn not voted on a proposal, %s",
-            		GetHash().ToString().substr(0,10).c_str()));
-	}
-
 	//TODO 2 notify user in gui when a proposal is won and they get funds, (and add funds to their wallet)
 
     // Take over previous transactions' spent pointers
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
-	if (!IsCoinBase() && !IsProposal())
+  if (!IsCoinBase() && !IsProposal())
     {
         int64 nValueIn = 0;
         int64 nFees = 0;
@@ -1756,20 +1697,31 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
   for (int i = vtx.size()-1; i >= 0; i--)
       {
 	CTransaction& tx = vtx[i];
-	if(tx.GetVoteTxnData(txnHash))
-	  AddToVoteCount(txdb, pindex->nTime, hashToTxnAndVoteCounts, txnHash, -tx.GetValueOut());
+	for(int o = tx.vout.size()-1; o >= 0; o--)
+	  {
+	    if(tx.GetVoteTxnData(o,txnHash))
+	      AddToVoteCount(txdb, pindex->nTime, hashToTxnAndVoteCounts, txnHash, -tx.vout[o].nValue);
+	  }
 	
 	//if any of the inputs were voting transactions, we have to recount those votes,
 	//because they are now unspent
-        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+	for(int j = tx.vin.size()-1; j >= 0; j--)
 	  {
 	    CTransaction txPrev;
+	    CTxIndex txIndex;
+	    CTxIn & txin = tx.vin[j];
 	    
-	    if(!txdb.ReadDiskTx(txin.prevout, txPrev))
+	    if(!txdb.ReadDiskTx(txin.prevout, txPrev, txIndex))
 	      return error("UpdateVoteFieldsForConnectBlock() : ReadTxIndex failed");
 	    
-	    if(txPrev.GetVoteTxnData(txnHash))
-	      AddToVoteCount(txdb, pindex->nTime, hashToTxnAndVoteCounts, txnHash,
+	    //the prev vote gets added back if it got spent before the deadline (AddToVoteCount will check
+	    //the deadline), but we need the blocktime of the previous tx, so we get the block
+	    CBlock block;
+	    if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+	      return error("CTransaction::UpdateVoteCounts, can't read block of prior tx");
+
+	    if(txPrev.GetVoteTxnData(txin.prevout.n,txnHash))
+	      AddToVoteCount(txdb, block.nTime, hashToTxnAndVoteCounts, txnHash,
 			     txPrev.GetValueOut());
 	  }
 
@@ -1980,7 +1932,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false,
 				  fStrictPayToScriptHash))
                 return false;
-            tx.UpdateVoteCounts(txdb, nTime, mapInputs, pindex->votingPeriodVotedCoins, hashToTxnAndVote);
+            if(!tx.UpdateVoteCounts(txdb, nTime, mapInputs, pindex->votingPeriodVotedCoins, hashToTxnAndVote))
+	      return false;
         }
 
         mapQueuedChanges[tx.GetHash()] = CTxIndex(posThisTx, tx.vout.size());
@@ -2055,13 +2008,13 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     }
 
     CBlockIndex *beginPeriodBlockIndex = GetPriorBlockIndex(pindex, VOTE_REG_PERIOD_BLOCKS);
-	if(beginPeriodBlockIndex)
-	{
-		money_t expiredVotes;
-		beginPeriodBlockIndex->GetExpiredVotes(txdb, expiredVotes);
-
-		pindex->votingPeriodVotedCoins -= expiredVotes;
-	}
+    if(beginPeriodBlockIndex)
+      {
+	money_t expiredVotes;
+	beginPeriodBlockIndex->GetExpiredVotes(txdb, expiredVotes);
+	
+	pindex->votingPeriodVotedCoins -= expiredVotes;
+      }
     // ppcoin: fees are not collected by miners as in bitcoin
     // ppcoin: fees are destroyed to compensate the entire network
     if (fDebug && GetBoolArg("-printcreation"))
@@ -2097,17 +2050,22 @@ bool CBlockIndex::GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes)
 
 	BOOST_FOREACH(CTransaction& t, block.vtx)
 	{
-		if(t.IsVoteTxn())
+	  for(int i = t.vout.size()-1; i >= 0; i--)
+	    {
+	      if(t.IsVoteTxOut(i))
 		{
-			CTxIndex i;
-			if (!txdb.ReadTxIndex(t.GetHash(), i))
-                return error("GetExpiredVotes() : can't read txindex for tx");
+		  CTxIndex txIndex;
+		  if (!txdb.ReadTxIndex(t.GetHash(), txIndex))
+		    return error("GetExpiredVotes() : can't read txindex for tx");
 
-			if(i.vSpent[0].IsNull())
-				expiredVotes += t.vout[0].nValue;
+		  //if we spent it, we would have subtracted it at that time,
+		  //so we ignore it here
+		  if(i.vSpent[i].IsNull())
+		    expiredVotes += t.vout[0].nValue;
 		}
+	    }
 	}
-
+	
 	return true;
 }
 
@@ -2561,10 +2519,6 @@ bool CBlock::CheckBlock() const
     // Note: We're not doing the reward check here, because we need to know the block height.
     //       Check inside ConnectBlock instead.
 
-    // Check that all proposals in block have a corresponding vote which occurs immediately
-    // after it
-    const CTransaction *lastTransactionIsProposal = NULL;
-
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
@@ -2574,25 +2528,10 @@ bool CBlock::CheckBlock() const
         if (GetBlockTime() < (int64)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
 
-        if(lastTransactionIsProposal)
-        {
-        	uint256 voteHash;
-        	if(tx.GetVoteTxnData(voteHash))
-        	{
-        		if(voteHash != lastTransactionIsProposal->GetHash())
-        		{
-        			//this is to prevent being spammed by proposals (because they are free to generate)
-                    return DoS(50,
-                    		error("CheckBlock() : All proposals must be followed immediately with a vote for them"));
-        		}
-        	}
-        }
-
         if(tx.IsProposal())
         {
         	if(!tx.IsDeadlineValid(GetBlockTime()))
-                return DoS(50, error("CheckBlock() : proposal has a deadline out of range"));
-        	lastTransactionIsProposal = &tx;
+		  return DoS(50, error("CheckBlock() : proposal has a deadline out of range"));
         }
     }
 
@@ -4488,56 +4427,19 @@ public:
         ptx = ptxIn;
         dPriority = 0;
     }
-
-    void print() const
-    {
-        printf("COrphan(hash=%s, dPriority=%.1f)\n", ptx->GetHash().ToString().substr(0,10).c_str(), dPriority);
-        BOOST_FOREACH(uint256 hash, setDependsOn)
-            printf("   setDependsOn %s\n", hash.ToString().substr(0,10).c_str());
-    }
+  
+  void print() const
+  {
+    printf("COrphan(hash=%s, dPriority=%.1f)\n", ptx->GetHash().ToString().substr(0,10).c_str(), dPriority);
+    BOOST_FOREACH(uint256 hash, setDependsOn)
+      printf("   setDependsOn %s\n", hash.ToString().substr(0,10).c_str());
+  }
 };
 
-//finds the most voted for hash for all the inputs of a transaction (in general will be a coin stake).
-//The idea is that when we stake, we want to reinstate the vote the user intended. In normal circumstances this will
-//be a vote for a single proposal, but its possible for the vote to be split between two, or some
-//coins not having any votes attached to them at all.
-//TODO 2 also check deadlines here. We don't want to reinstate for a past proposal
-bool GetMostVotedCoinForStake(const CTransaction& txCoinStake, votehash_t& voteHash)
-{
-	typedef std::map<uint256, money_t> map_t;
-	map_t voteHashToVotes;
 
-	for(unsigned int i = txCoinStake.IsCoinStake() ? 1 : 0; i < txCoinStake.vin.size(); i++)
-	{
-		CTransaction prevTx;
-
-		if(!prevTx.ReadFromDisk(txCoinStake.vin[i].prevout))
-			return error("GetMostVotedCoinForStake::can't read prev tx");
-
-		votehash_t currVoteHash;
-		if(prevTx.GetVoteTxnData(currVoteHash))
-		{
-			voteHashToVotes[currVoteHash] = voteHashToVotes[currVoteHash] + prevTx.vout[txCoinStake.vin[i].prevout.n].nValue;
-		}
-	}
-
-	money_t highestVotes = 0;
-
-	BOOST_FOREACH( map_t::value_type& i, voteHashToVotes)
-	{
-		if(i.second > highestVotes)
-		{
-			highestVotes = i.second;
-			voteHash = i.first;
-		}
-	}
-
-	if(!highestVotes)
-		return false;
-
-	return true;
-}
-
+//Make sure stake keeps same vote as original vote had
+ 
+ 
 uint64 nLastBlockTx = 0;
 uint64 nLastBlockSize = 0;
 int64 nLastCoinStakeSearchInterval = 0;
@@ -4610,23 +4512,26 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
 
             COrphan* porphan = NULL;
 
-	    //make sure the proposal exists
-	    votehash_t proposalHash;
-            if(tx.GetVoteTxnData(proposalHash))
-            {
-	      CTransaction tempProposal;
-
-	      //if not found, add it to orphans, maybe we'll see the proposal later
-	      if(!txdb.ReadDiskTx(proposalHash, tempProposal))
-		{
-		  // Use list for automatic deletion
-		  vOrphan.push_back(COrphan(&tx));
-		  porphan = &vOrphan.back();
-		  
-		  mapDependers[proposalHash].push_back(porphan);
-		  porphan->setDependsOn.insert(proposalHash);
-            	}
-            }
+	    for(int i = tx.vout.size()-1; i >= 0; i--)
+	      {
+		votehash_t proposalHash;
+		if(tx.GetVoteTxnData(i,proposalHash))
+		  {
+		    CTransaction tempProposal;
+		    
+		    //make sure the proposal exists
+		    //if not found, add it to orphans, maybe we'll see the proposal later
+		    if(!txdb.ReadDiskTx(proposalHash, tempProposal))
+		      {
+			// Use list for automatic deletion
+			vOrphan.push_back(COrphan(&tx));
+			porphan = &vOrphan.back();
+			
+			mapDependers[proposalHash].push_back(porphan);
+			porphan->setDependsOn.insert(proposalHash);
+		      }
+		  }
+	      }
 
             double dPriority = 0;
 	    BOOST_FOREACH(const CTxIn& txin, tx.vin)
@@ -4661,9 +4566,9 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
             // Priority is sum(valuein * age) / txsize
             dPriority /= ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
-            if(tx.IsVoteTxn() || tx.IsProposal())
+            if(tx.IsProposal())
             {
-            	dPriority *= VOTE_PRIORITY_MULTIPLIER;
+            	dPriority *= PROPOSAL_PRIORITY_MULTIPLIER;
             }
 
             if (porphan)

@@ -213,11 +213,11 @@ timestamp_t MIN_PROPOSAL_DEADLINE_TIME = 6 * HOUR;
 timestamp_t MAX_PROPOSAL_DEADLINE_TIME = 12 * DAY;
 
 /**
- * The priority for proposals and vote txns get multiplied by this value. (a greater value
+ * The priority for proposals get multiplied by this value. (a greater value
  * means more likely to get in). In general, votes and proposals take first
  * priority, since votes are so important to a dynamic system such as nomiccoin
  */
-double VOTE_PRIORITY_MULTIPLIER = 100;
+double PROPOSAL_PRIORITY_MULTIPLIER = 100;
 
 /**
  * Additional fee for sending proposals, because we don't want a million proposals

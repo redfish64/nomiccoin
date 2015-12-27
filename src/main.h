@@ -465,7 +465,11 @@ public:
         return SerializeHash(*this);
     }
 
-    
+    bool IsVoteTxOut(int index)
+    {
+      votehash_t txnHash;
+      return GetVoteTxnData(index, txnHash);
+    }
 
     //TODO 2 if vote, then vote again immediately, fails because the wallet thinks all the coins are gone. Put them back into the wallet
     bool GetVoteTxnData(int index, votehash_t& txnHash) const
@@ -716,8 +720,7 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" :
-					   (IsVoteTxn()? "Vote" :(IsCoinStake()&&IsVoteTxn()? "Coinstake/Vote" :
-					    "CTransaction")));
+					   "CTransaction");
         str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%d, vout.size=%d, nLockTime=%d)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,
@@ -859,13 +862,6 @@ public:
     CDiskTxPos pos;
     std::vector<CDiskTxPos> vSpent;
 
-    //TODO 2 populate stakethru  ... also, should this be a pair<index,diskpos> rather than COutPoint
-    //this is location of the last non voting transaction after a chain of votes.
-    //In order that voting doesn't disrupt staking, we use the last non vote transaction
-    //for staking.
-    //this is only valid for voting transactions
-    std::vector<COutPoint> vStakeThru;
-
     CTxIndex()
     {
         SetNull();
@@ -875,7 +871,6 @@ public:
     {
         pos = posIn;
         vSpent.resize(nOutputs);
-        vStakeThru.resize(nOutputs);
     }
 
     IMPLEMENT_SERIALIZE
@@ -884,14 +879,12 @@ public:
             READWRITE(nVersion);
         READWRITE(pos);
         READWRITE(vSpent);
-        READWRITE(vStakeThru);
     )
 
     void SetNull()
     {
         pos.SetNull();
         vSpent.clear();
-        vStakeThru.clear();
     }
 
     bool IsNull()
@@ -902,8 +895,7 @@ public:
     friend bool operator==(const CTxIndex& a, const CTxIndex& b)
     {
         return (a.pos    == b.pos &&
-                a.vSpent == b.vSpent &&
-                a.vStakeThru == b.vStakeThru
+                a.vSpent == b.vSpent
         		);
     }
 

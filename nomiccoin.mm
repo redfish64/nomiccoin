@@ -2445,6 +2445,8 @@
 </node>
 <node CREATED="1450581806323" ID="ID_1901904414" MODIFIED="1450581810735" TEXT="CTxIndex">
 <node CREATED="1450581814812" ID="ID_1904892368" MODIFIED="1450581840597" TEXT="stored in the db, keeps track of which output of a transaction is spent"/>
+<node CREATED="1451134665110" ID="ID_629421061" MODIFIED="1451134676682" TEXT="only exists for transactions in the main chain"/>
+<node CREATED="1451134677534" ID="ID_1088723920" MODIFIED="1451134695466" TEXT="can be used to look up the block in the main chain, see GetTransaction(x,y,z)"/>
 <node CREATED="1450581851046" ID="ID_313797184" MODIFIED="1450581852818" TEXT="contains">
 <node CREATED="1450581855939" ID="ID_1528080351" MODIFIED="1450581870040" TEXT="CDiskTxPos pos">
 <node CREATED="1450581872562" ID="ID_1736654261" MODIFIED="1450581878735" TEXT="pos of transaction"/>
@@ -2963,7 +2965,30 @@
 <node CREATED="1451124027269" ID="ID_1334424244" MODIFIED="1451124044625" TEXT="With a vote that has multiple in&apos;s, we can vote for multiple proposals at once">
 <node CREATED="1451124046445" ID="ID_1060138610" MODIFIED="1451124066560" TEXT="This is somewhat of a strange thing to do, but it is possible, and I don&apos;t see much trouble supporting it."/>
 </node>
-<node CREATED="1451128608814" ID="ID_522116" MODIFIED="1451128634354" TEXT="What happens when we use a UTXO from a vote? Do all of the vin&apos;s disappear? Just some?"/>
+<node CREATED="1451128608814" ID="ID_522116" MODIFIED="1451128634354" TEXT="What happens when we use a UTXO from a vote? Do all of the vin&apos;s disappear? Just some?">
+<node CREATED="1451129354214" ID="ID_1356740924" MODIFIED="1451129365130" TEXT="I think I will have to go back to putting it on vout"/>
+<node CREATED="1451129385854" ID="ID_1656752948" MODIFIED="1451129493370" TEXT="But then, it&apos;s weird again, because the vout&apos;s have an input"/>
+<node CREATED="1451129493774" ID="ID_1198725742" MODIFIED="1451129507282" TEXT="Maybe the best thing is just put it on the transaction itself">
+<node CREATED="1451129508414" ID="ID_391807995" MODIFIED="1451129529065" TEXT="But then we still have the problem of what to do when some outputs get spent, but not others"/>
+</node>
+<node CREATED="1451129539878" ID="ID_1533483569" MODIFIED="1451129553425" TEXT="What if all the vin&apos;s disappear?">
+<node CREATED="1451129559973" ID="ID_935780839" MODIFIED="1451129573082" TEXT="Except that a transaction can go out to multiple parties"/>
+</node>
+<node CREATED="1451129584805" ID="ID_754219476" MODIFIED="1451129605338" TEXT="vout&apos;s get spent. So vout&apos;s should have the vote, if we want to disappear it when vouts get spent"/>
+<node CREATED="1451129817733" ID="ID_924825818" MODIFIED="1451129844426" TEXT="What if we place the vote with the txn, hardcoded there. Then when an output gets spent, the txn loses that much of it&apos;s vote"/>
+<node CREATED="1451130032950" ID="ID_1963044689" MODIFIED="1451130041097" TEXT="The most flexible thing would be to use the vout">
+<node CREATED="1451130053430" ID="ID_1708425279" MODIFIED="1451130067025" TEXT="But then, if there is a vote already there, we have to strip it"/>
+<node CREATED="1451130346638" ID="ID_1364606724" MODIFIED="1451130352530" TEXT="Anyway, seems the best thing"/>
+</node>
+</node>
+<node CREATED="1451133720053" ID="ID_1123025666" MODIFIED="1451133746121" TEXT="How do we subtract out votes from written over transactions when we can&apos;t find the CBlock for it?">
+<node CREATED="1451133751350" ID="ID_1287142558" MODIFIED="1451133780489" TEXT="CTransactions don&apos;t reference their block number, since they might be in multiple forks, there might be multiple block numbers anyway"/>
+<node CREATED="1451133780981" ID="ID_1248553406" MODIFIED="1451133814977" TEXT="When we write over a previous UTXO, we don&apos;t know the block it was in, therefore, we don&apos;t know whether its vote should have counted against the proposal, because we don&apos;t know the blocktime"/>
+<node CREATED="1451134200726" ID="ID_171407566" MODIFIED="1451134720570" TEXT="You can, see GetTransaction(x,y,z) in main line 1178, with the TxIndex"/>
+</node>
+<node CREATED="1451202881683" ID="ID_1009444253" MODIFIED="1451202886183" TEXT="How about a veto power?">
+<node CREATED="1451202892587" ID="ID_1758385677" MODIFIED="1451202939215" TEXT="We end votes at a given time, but allow 0 votes to count after the deadline for a period of time. This way, if a proposal wins &quot;by surprise&quot; there is a way to still prevent it from passing"/>
+</node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

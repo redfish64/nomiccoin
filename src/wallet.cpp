@@ -1163,8 +1163,6 @@ bool CWallet::CreateVoteTxn(
 
 			CTxIn txIn(output.tx->GetHash(), output.i);
 
-			txIn.scriptSig << proposalHash << OP_VOTE;
-
 			txVoteNew.vin.push_back(txIn);
 
 			if(nValue > remainingFee)
@@ -1174,13 +1172,16 @@ bool CWallet::CreateVoteTxn(
 
 			if(nValue > 0)
 			{
-				//we send the money back exactly where we got it, except that we add  the voting instruction
-				//to the scriptsig
-				//We only allow vote txns to send money back to where they came from, so that we can prevent voting from
-				//interferring with staking. Because vote txns do this, we allow vote txns even when a stake isn't matured.
-				//Also, this allows us to make it so a vote won't reset a stake reward.
-				CTxOut txOut(nValue, utxoToVoteWith.scriptPubKey);
-				txVoteNew.vout.push_back(txOut);
+			  //we send the money back exactly where we got it, except that we add
+			  //the voting instruction to the scriptpub
+			  CScript txOutScript;
+			  txOutScript  << proposalHash << OP_VOTE;
+			  
+			  //remove the old vote preamble if it exists
+			  txOutScript += utxoToVoteWith.scriptPubKey.removeVotePreamble();
+			  
+			  CTxOut txOut(nValue, txOutScript);
+			  txVoteNew.vout.push_back(txOut);
 			}
 
 		}
