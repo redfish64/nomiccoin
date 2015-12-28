@@ -1436,7 +1436,8 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 	  assert(inputs.count(propHash));
 	  CTransaction& propTxn = inputs[propHash].second;
 	  money_t valueOut = vout[i].nValue;
-	  
+
+	  currentTotalVotes += valueOut;
 	  //add the vote to its proposal if before the deadline
 	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut, &propTxn))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
@@ -1463,6 +1464,8 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 
 	  if(!AddToVoteCount(txdb,block.nTime, hashToTxnAndVoteCounts, propHash, -valueOut))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed subtracting earlier tx");
+
+	  currentTotalVotes -= valueOut;
       }
     }
 
@@ -2018,7 +2021,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
       return error("CBlock::ConnectBlock() : WriteProposalVoteCounts failed");
 
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
-        return error("ConnectBlock() : WriteBlockIndex for pindex failed");
+             return error("ConnectBlock() : WriteBlockIndex for pindex failed");
 
     // Write queued txindex changes
     for (map<uint256, CTxIndex>::iterator mi = mapQueuedChanges.begin(); mi != mapQueuedChanges.end(); ++mi)
@@ -5130,13 +5133,14 @@ bool CTransaction::GetProposalTxnInfo(CTxDB& txdb, money_t& votesForProposal,
 	  return error("GetProposalTxnInfo :: Transaction must be a proposal");
   }
 
-  txdb.ReadProposalVoteCount(GetHash(), GetVoteDeadline(), votesForProposal); //if fails, then no votes were cast
+  timestamp_t deadline = GetVoteDeadline();
+  txdb.ReadProposalVoteCount(GetHash(), deadline, votesForProposal); //if fails, then no votes were cast
 
   latestBeforeDeadlineBlockIndex = pindexBest;
 
   isVotingPeriodOver = false;
   
-  while(nTime < latestBeforeDeadlineBlockIndex->nTime
+  while(deadline < latestBeforeDeadlineBlockIndex->nTime
 	&& latestBeforeDeadlineBlockIndex->pprev)
     {
       isVotingPeriodOver = true;

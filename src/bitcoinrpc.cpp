@@ -1122,7 +1122,7 @@ Value getvoteinfo(const Array& params, bool fHelp)
     }
   obj.push_back(Pair("votingPeriodVotedCoins",   ValueFromAmount(ourBlockIndex->votingPeriodVotedCoins)));
   if(pindexBest->votingPeriodVotedCoins != 0)
-    obj.push_back(Pair("percentOfElectorate",  (double)
+    obj.push_back(Pair("ratioOfElectorate",  (double)
 		       votesForProposal /
 		       (double) ourBlockIndex->votingPeriodVotedCoins));
   obj.push_back(Pair("deadline", DateTimeStrFormat(proposalTxn.GetVoteDeadline()).c_str()));
