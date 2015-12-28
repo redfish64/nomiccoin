@@ -748,20 +748,15 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs, bool* 
 	  if(tx.IsProposal())
 	    {
 	      nFees = tx.GetValueIn(mapInputs);
-	      
-	      if (nFees < tx.GetMinFee(1000, false, GMF_RELAY) + PROPOSAL_ADDITIONAL_FEE)
-		return error("CTxMemPool::accept() : not enough fees for proposal");
-	      
 	    }
 	  else {
 	    nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
-	    
-	    // Don't accept it if it can't get into a block
-	    if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
-	      return error("CTxMemPool::accept() : not enough fees");
-	    
 	  }
-	  
+	  	
+	  // Don't accept it if it can't get into a block
+	  if (nFees < tx.GetMinFee(1000, false, GMF_RELAY))
+	    return error("CTxMemPool::accept() : not enough fees for proposal");
+	      
 	  unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 	  
 	  // Continuously rate-limit free transactions
@@ -930,7 +925,7 @@ int CWalletTx::findMatchingVoteVinForVout(int voutIndex,
 	return -1;
 }
 
-CBlockIndex *GetBlockBeforeDeadline(CBlockIndex *pindex, timestamp_t deadline)
+const CBlockIndex *GetBlockBeforeDeadline(const CBlockIndex *pindex, timestamp_t deadline)
 {
   while(pindex && pindex->nTime > deadline)
     pindex = pindex->pprev;
@@ -946,7 +941,7 @@ int CWalletTx::GetBlocksToMaturity() const
     {
       timestamp_t voteDeadline = GetVoteDeadline();
 
-      CBlockIndex * prevBlock = GetBlockBeforeDeadline(pindexBest, voteDeadline);
+      const CBlockIndex * prevBlock = GetBlockBeforeDeadline(pindexBest, voteDeadline);
       int depth = prevBlock ? (pindexBest->nHeight - prevBlock->nHeight) : 0;
       
       return max(0, PROPOSAL_MATURITY_BLOCKS - (depth - 1));
@@ -1365,11 +1360,11 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
         return 0;
 
     unsigned int nSigOps = 0;
-    for (unsigned int i = 0; i < vin.size(); i++)
+    for (unsigned int i = this->IsProposal() ? 1 : 0; i < vin.size(); i++)
     {
-        const CTxOut& prevout = GetOutputFor(vin[i], inputs);
-        if (prevout.scriptPubKey.IsPayToScriptHash())
-            nSigOps += prevout.scriptPubKey.GetSigOpCount(vin[i].scriptSig);
+      const CTxOut& prevout = GetOutputFor(vin[i], inputs);
+      if (prevout.scriptPubKey.IsPayToScriptHash())
+	nSigOps += prevout.scriptPubKey.GetSigOpCount(vin[i].scriptSig);
     }
     return nSigOps;
 }
@@ -1379,30 +1374,38 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
  * for given txnHash, looked up in db
  */
 bool AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts,
-		    votehash_t txnHash, money_t vote)
+		    votehash_t txnHash, money_t vote, CTransaction *optPropTxn = NULL)
 {
   pair<CTransaction,money_t> out;
 
   std::map<votehash_t,std::pair<CTransaction,money_t> >::iterator vcIter = hashToTxnAndVoteCounts.find(txnHash);
   if(vcIter == hashToTxnAndVoteCounts.end()) //if not found
     {
-      //try the disk
-      if(!txdb.ReadDiskTx(txnHash, out.first))
-      {
-    	  return error("AddToVoteCount:: couldn't read proposal txn");
-      }
-
-      if(!txdb.ReadProposalVoteCount(txnHash, out.first.GetVoteDeadline(), out.second))
+      if(optPropTxn)
+	{
+	  out.first = *optPropTxn;
+	}
+      else {
+	//try the disk
+	if(!txdb.ReadDiskTx(txnHash, out.first))
+	  {
+	    return error("AddToVoteCount:: couldn't read proposal txn");
+	  }
+	
+	if(!txdb.ReadProposalVoteCount(txnHash, out.first.GetVoteDeadline(), out.second))
 	  {
 	    //first voter
 	    out.second = 0;
 	  }
-
+	
+      }
     }
   else
     out = vcIter->second;
+
+  timestamp_t deadline = out.first.GetVoteDeadline();
   
-  if(out.first.nTime < blockTime) //don't count votes that are too late
+  if(deadline < blockTime) //don't count votes that are too late
     return true;
 
   out.second += vote;
@@ -1421,7 +1424,7 @@ bool AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<votehash_t,std
 bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrevTx & inputs,
 		money_t& currentTotalVotes, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts)
 {
-  if (IsCoinBase() || IsCoinStake())
+  if (IsCoinBase() || IsCoinStake() || IsProposal())
     return true;
   
   for (unsigned int i = 0; i < vout.size(); i++)
@@ -1431,11 +1434,11 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
       if(GetVoteTxnData(i,propHash))
 	{
 	  assert(inputs.count(propHash));
-	  CTransaction& prevTxn = inputs[propHash].second;
+	  CTransaction& propTxn = inputs[propHash].second;
 	  money_t valueOut = vout[i].nValue;
 	  
 	  //add the vote to its proposal if before the deadline
-	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut))
+	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut, &propTxn))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
 	}
     }
@@ -1478,17 +1481,17 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
-  if (!IsCoinBase() && !IsProposal())
+  if (!IsCoinBase())
     {
         int64 nValueIn = 0;
-        int64 nFees = 0;
-        for (unsigned int i = 0; i < vin.size(); i++)
+        for (unsigned int i = IsProposal() ? 1:0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
             assert(inputs.count(prevout.hash) > 0);
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
 
+	    //if we're spending a proposal
             if(txPrev.IsProposal())
             {
             	money_t votesForProposal;
@@ -1503,17 +1506,25 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                     return DoS(100, error("ConnectInputs() : Attempt to spend funds from a non-won proposal %s, tx %s\n",
                     		txPrev.ToString().c_str(),
 							GetHash().ToString().substr(0,10).c_str()));
+
             	if(!!isVotingPeriodOver)
                     return DoS(100, error("ConnectInputs() : Attempt to spend funds from a proposal before deadline, %s, tx %s\n",
                     		txPrev.ToString().c_str(),
 							GetHash().ToString().substr(0,10).c_str()));
+
+		uint voteDeadline = txPrev.GetVoteDeadline();
+		
+                for (const CBlockIndex* pindex = GetBlockBeforeDeadline(pindexBlock, voteDeadline); pindex &&
+		       pindexBlock->nHeight - pindex->nHeight < PROPOSAL_MATURITY_BLOCKS; pindex = pindex->pprev)
+		  {
+		    if (pindex->nBlockPos == txindex.pos.nBlockPos
+			&& pindex->nFile == txindex.pos.nFile)
+		      return error("ConnectInputs() : tried to spend funds from a proposal before the maturity period finished");
+		  }
             }
 
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %d %d prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
-
-            if (txPrev.IsProposal())
-                return DoS(100, error("ConnectInputs() : tried to spend a proposal"));
 
             // If prev is coinbase/coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
@@ -1536,7 +1547,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
         // The first loop above does all the inexpensive checks.
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
         // Helps prevent CPU exhaustion attacks.
-        for (unsigned int i = 0; i < vin.size(); i++)
+        for (unsigned int i = IsProposal() ? 1 : 0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
             assert(inputs.count(prevout.hash) > 0);
@@ -1588,20 +1599,29 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
         }
         else
         {
-            if (nValueIn < GetValueOut())
+	  int64 nTxFee;
+	  if(IsProposal())
+	    {
+	      nTxFee = nValueIn;
+	    }
+	  else
+	    {
+	      if (nValueIn < GetValueOut())
                 return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
 
-            // Tally transaction fees
-            int64 nTxFee = nValueIn - GetValueOut();
-            if (nTxFee < 0)
-                return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
-            // ppcoin: enforce transaction fees for every block
-            if (nTxFee < GetMinFee())
-                return fBlock? DoS(100, error("ConnectInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee()).c_str(), FormatMoney(nTxFee).c_str())) : false;
-            nFees += nTxFee;
-            if (!IsValidAmount(nFees))
-                return DoS(100, error("ConnectInputs() : nFees out of range"));
-        }
+	      nTxFee = nValueIn - GetValueOut();
+
+	      if (nTxFee < 0)
+		return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
+	    }
+
+	  
+	  if (nTxFee < GetMinFee())
+	    return fBlock? DoS(100, error("ConnectInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee()).c_str(), FormatMoney(nTxFee).c_str())) : false;
+	  if (!IsValidAmount(nTxFee))
+	    return DoS(100, error("ConnectInputs() : nTxFee out of range"));
+	      
+	}
     }
 
     return true;
@@ -1717,7 +1737,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	    //the prev vote gets added back if it got spent before the deadline (AddToVoteCount will check
 	    //the deadline), but we need the blocktime of the previous tx, so we get the block
 	    CBlock block;
-	    if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+	    if (!block.ReadFromDisk(txIndex.pos.nFile, txIndex.pos.nBlockPos, false))
 	      return error("CTransaction::UpdateVoteCounts, can't read block of prior tx");
 
 	    if(txPrev.GetVoteTxnData(txin.prevout.n,txnHash))
@@ -1841,7 +1861,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
         return false;
 
     // Check coinbase reward
-    if (IsProofOfWork() && vtx[0].GetValueOut() > (IsProofOfWork() ? (GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nHeight : -1) - vtx[0].GetMinFee() + MIN_TX_FEES) : 0))
+    if (IsProofOfWork() && vtx[0].GetValueOut() > (GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nHeight : -1) - vtx[0].GetMinFee() + MIN_TX_FEES))
         return DoS(50, error("CheckBlock() : coinbase reward exceeded %s > %s", FormatMoney(vtx[0].GetValueOut()).c_str(), FormatMoney(IsProofOfWork() ? GetProofOfWorkReward(pindex->pprev ? pindex->pprev->nHeight : -1) : 0).c_str()));
 
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
@@ -1950,11 +1970,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     //calculate pool funds
     pindex->nSharedPoolFunds = remainingSharedPoolFunds + nFees + sharedPoolEarned; 
 
-    //write out all the votes.. since this is stored outside of CBlockIndex, we need to revert
-    //these changes when we do a reorg in DisconnectBlock
-    if(!WriteProposalVoteCounts(txdb, hashToTxnAndVote))
-      return error("CBlock::ConnectBlock() : WriteProposalVoteCounts failed");
-
     pindex->nMoneySupply = pindex->pprev->nMoneySupply + nValueOut - nValueIn + sharedPoolEarned;
     
     //TODO 2, do not allow votes for deadlines less than 2 weeks since the coin started
@@ -1996,6 +2011,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	
 	//TODO 2 make sure that reconstructing the wallet works right (see option "-rescan")
       }
+
+    //write out all the votes.. since this is stored outside of CBlockIndex, we need to revert
+    //these changes when we do a reorg in DisconnectBlock
+    if(!WriteProposalVoteCounts(txdb, hashToTxnAndVote))
+      return error("CBlock::ConnectBlock() : WriteProposalVoteCounts failed");
 
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
         return error("ConnectBlock() : WriteBlockIndex for pindex failed");
@@ -2060,7 +2080,7 @@ bool CBlockIndex::GetExpiredVotes(CTxDB& txdb, money_t& expiredVotes)
 
 		  //if we spent it, we would have subtracted it at that time,
 		  //so we ignore it here
-		  if(i.vSpent[i].IsNull())
+		  if(txIndex.vSpent[i].IsNull())
 		    expiredVotes += t.vout[0].nValue;
 		}
 	    }
@@ -4524,8 +4544,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
 		    if(!txdb.ReadDiskTx(proposalHash, tempProposal))
 		      {
 			// Use list for automatic deletion
-			vOrphan.push_back(COrphan(&tx));
-			porphan = &vOrphan.back();
+			if(!porphan) {
+			  vOrphan.push_back(COrphan(&tx));
+			  porphan = &vOrphan.back();
+			}
 			
 			mapDependers[proposalHash].push_back(porphan);
 			porphan->setDependsOn.insert(proposalHash);
@@ -4534,8 +4556,13 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
 	      }
 
             double dPriority = 0;
-	    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-            {
+	    for(int i = tx.vin.size()-1; i >= 0; i--)
+	      {
+		if(i == 0 && tx.IsProposal())
+		  continue;
+		
+		const CTxIn& txin = tx.vin[i];
+
                 // Read prev transaction
                 CTransaction txPrev;
                 CTxIndex txindex;
@@ -4625,11 +4652,19 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfS
 	    bool fInvalid;
 	    if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
 	      continue;
-	    
-	    nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
+
+	    if(tx.IsProposal())
+	      {
+		nTxFees = tx.GetValueIn(mapInputs); //proposals take their output from the funds pool,
+		//so all the other input is used for fees
+	      }
+	    else
+	      {
+		nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
+	      }
 	    if (nTxFees < nMinFee)
 	      continue;
-
+	    
 	    nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
 	    if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
 	      continue;

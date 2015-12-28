@@ -753,7 +753,6 @@ public:
     }
 
     int GetBlocksToMaturity() const;
-    CWalletTx *GetNonVoteAncestor(int voutIndex, int & outVoutIndex) const;
 };
 
 

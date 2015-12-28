@@ -356,24 +356,17 @@ bool CheckProofOfStake(const CBlockIndex * pindexPrev, const CTransaction& tx, u
     if (!VerifySignature(txPrev, tx, 0, true, 0))
         return tx.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str()));
 
-    CTransaction nonVoteTxPrev;
-    CTxIndex nonVoteTxIndex;
-    int nonVoteVoutIndex;
-    if(!txPrev.ReadNonVoteAncestor(txdb, prevTxIndex, txin.prevout.n, NULL, nonVoteTxPrev, nonVoteTxIndex, nonVoteVoutIndex))
-        return tx.DoS(1, error("CheckProofOfStake() : INFO: cannot read non vote ancestor"));
-    txdb.Close();
-
     // Read block header
-    CBlock nonVoteBlock;
-    if (!nonVoteBlock.ReadFromDisk(nonVoteTxIndex.pos.nFile, nonVoteTxIndex.pos.nBlockPos, false))
-        return fDebug? error("CheckProofOfStake() : read block failed") : false; // unable to read block of previous transaction
+    CBlock block;
+    if (!block.ReadFromDisk(prevTxIndex.pos.nFile, prevTxIndex.pos.nBlockPos, false))
+      return fDebug? error("CheckProofOfStake() : read block failed") : false; // unable to read block of previous transaction
 
     // Check that the proof-of-stake hasn't been blacklisted
-    if (IsProofOfStakeBlacklisted(nonVoteBlock.GetProofOfStake()))
+    if (IsProofOfStakeBlacklisted(block.GetProofOfStake()))
         return tx.DoS(100, error("CheckProofOfStake() : Blacklisted Proof-of-Stake"));
 
-    if (!CheckStakeKernelHash(pindexPrev, nBits, nonVoteBlock, nonVoteTxIndex.pos.nTxPos - nonVoteTxIndex.pos.nBlockPos,
-    		nonVoteTxPrev, nonVoteVoutIndex, tx.nTime, hashProofOfStake, fDebug))
+    if (!CheckStakeKernelHash(pindexPrev, nBits, block, prevTxIndex.pos.nTxPos - prevTxIndex.pos.nBlockPos,
+			      txPrev, txin.prevout.n, tx.nTime, hashProofOfStake, fDebug))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s", tx.GetHash().ToString().c_str(), hashProofOfStake.ToString().c_str())); // may occur during initial download or if behind on block chain sync
 
     return true;

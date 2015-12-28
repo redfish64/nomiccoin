@@ -58,7 +58,7 @@ export async function test( ) {
     					     [
     						 prophash
     					     ]
-    					   },1)
+    					   })
     expect ( rpc.result ).to.match( /^[A-Za-z0-9]{64}$/ )
 
     await delayExecution( 2 );
@@ -67,7 +67,7 @@ export async function test( ) {
     					     [
     						 prophash
     					     ]
-    					   })
+    					   },1)
     expect ( rpc.result.votesForProposal ).to.be.equal( 0 )
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 0 )
     expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )

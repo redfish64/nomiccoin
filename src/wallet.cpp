@@ -946,7 +946,6 @@ int64 CWallet::GetStake() const
     for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
     {
         const CWalletTx* pcoin = &(*it).second;
-	//TODO 2 we need to consider voting here
         if (pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
             nTotal += CWallet::GetCredit(*pcoin);
     }
@@ -1214,7 +1213,6 @@ std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
 	//input and signature for the fee. (Because the proposal gives no change, we have to do this before we
 	// add the input)
 	money_t nFeeRequired = max(nTransactionFee,txn.GetMinFee(1, false, GMF_SEND, 64));
-	nFeeRequired += PROPOSAL_ADDITIONAL_FEE;
 
 	//in order to submit a proposal, we need to pay the fee, but a proposal can give
 	//no change, so we create a pre transaction that sends the exact amount
@@ -1480,27 +1478,6 @@ timestamp_t CWallet::GetEstimatedStakeTime(void)
     return nEstimatedStakeTime;
 }
 
-bool GetNonVoteAncestor(PAIRTYPE(const CWalletTx*, unsigned int) pcoin,
-		PAIRTYPE(const CWalletTx*, unsigned int) &pcoinOut)
-{
-	int outVoutIndex;
-	CWalletTx *nonVoteTx = pcoin.first->GetNonVoteAncestor(pcoin.second, outVoutIndex);
-
-	if(nonVoteTx == NULL)
-		return false;
-
-	if(nonVoteTx == pcoin.first)
-		pcoinOut = pcoin;
-	else
-	{
-		pcoinOut.first = nonVoteTx;
-		pcoinOut.second = outVoutIndex;
-	}
-
-	return true;
-}
-
-
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
@@ -1545,27 +1522,21 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
-    	//we "pass through" the vote transactions to get to the non vote transaction before it
-    	PAIRTYPE(const CWalletTx*, unsigned int) stakedPCoin;
-
-    	if(!GetNonVoteAncestor(pcoin, stakedPCoin))
-    		return error("CWallet::CreateCoinStake, couldn't get the non vote ancestor");
-
         CTxDB txdb("r");
-        CTxIndex stakedTxindex;
-        if (!txdb.ReadTxIndex(stakedPCoin.first->GetHash(), stakedTxindex))
+        CTxIndex txindex;
+        if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
             continue;
 
         // Read block header
-        CBlock stakedBlock;
-        if (!stakedBlock.ReadFromDisk(stakedTxindex.pos.nFile, stakedTxindex.pos.nBlockPos, false))
+        CBlock block;
+        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
             continue;
         static int64 nMaxStakeSearchInterval = 60;
 
         // only count coins meeting min age requirement
         int actualSearchInterval =
         		min(
-        			min((int64)(txNew.nTime - (stakedBlock.GetBlockTime() + STAKE_MIN_AGE)), nMaxStakeSearchInterval),
+        			min((int64)(txNew.nTime - (block.GetBlockTime() + STAKE_MIN_AGE)), nMaxStakeSearchInterval),
         			nSearchInterval);
 
 	
@@ -1576,10 +1547,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0;
 
-            if (CheckStakeKernelHash(pindexBest, nBits, stakedBlock,
-            		stakedTxindex.pos.nTxPos - stakedTxindex.pos.nBlockPos,
-            		*stakedPCoin.first,
-            		stakedPCoin.second, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
+            if (CheckStakeKernelHash(pindexBest, nBits, block,
+            		txindex.pos.nTxPos - txindex.pos.nBlockPos,
+            		*pcoin.first,
+            		pcoin.second, txNew.nTime - n, hashProofOfStake, false, &stakeStats))
             {
                 // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
@@ -1647,7 +1618,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
-                if (stakedBlock.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
+                if (block.GetBlockTime() + STAKE_SPLIT_AGE > txNew.nTime && !nsmc)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 if (fDebug && GetBoolArg("-printcoinstake"))
                     printf("CreateCoinStake : added kernel type=%d\n", whichType);
@@ -1658,7 +1629,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 	if (fKernelFound || fShutdown)
 	  break; // if kernel is found stop searching
     }
-    
+    //TODO 2 what if there is a proposal with votes in it? Should we filter it out?
     nEstimatedStakeTime = stakeStats.GetEstimatedStakeTime();
 
     if (nCredit == 0 || (nCredit > nBalance - nReserveBalance))

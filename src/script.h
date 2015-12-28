@@ -612,6 +612,17 @@ public:
     {
         return CScriptID(Hash160(*this));
     }
+
+    CScript removeVotePreamble()
+    {
+      if(!IsVoteScript(*this))
+	return *this;
+      
+      CScript other = *this;
+      other.erase(other.begin(),other.begin()+VOTE_PREAMBLE_SIZE);
+
+      return other;
+    }
 };
 
 class CAppState;

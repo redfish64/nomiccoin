@@ -474,7 +474,7 @@ public:
     //TODO 2 if vote, then vote again immediately, fails because the wallet thinks all the coins are gone. Put them back into the wallet
     bool GetVoteTxnData(int index, votehash_t& txnHash) const
     {
-      if(!GetVoteScriptData(vin[index].scriptSig, txnHash))
+      if(!GetVoteScriptData(vout[index].scriptPubKey, txnHash))
     	  return false;
 
       return true;
@@ -659,6 +659,9 @@ public:
                 return MAX_MONEY_STACK;
             nMinFee *= MAX_BLOCK_SIZE_GEN / (MAX_BLOCK_SIZE_GEN - nNewBlockSize);
         }
+
+	if(IsProposal())
+	  nMinFee += PROPOSAL_ADDITIONAL_FEE;
 
         if (!IsValidAmount(nMinFee))
             nMinFee = MAX_MONEY_STACK;
