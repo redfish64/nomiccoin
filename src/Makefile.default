@@ -1,5 +1,3 @@
-CONSTANTS ?= constants.cpp
-
 BOOST_SUFFIX ?= #NO SUFFIX
 QT_MID_SUFFIX ?= 5
 
@@ -19,7 +17,6 @@ ifeq ($(USE_UPNP),1)
 endif
 
 SOURCES_COMMON = \
-  $(CONSTANTS) \
   CheckClientSanity.cpp \
   GetNextTargetRequired.cpp \
   GetProofOfStakeReward.cpp \
@@ -51,12 +48,22 @@ SOURCES_HEADLESS = \
   $(SOURCES_COMMON) \
   init.cpp \
   wallet.cpp \
-  noui.cpp
+  noui.cpp \
+  constants.cpp
+
+SOURCES_HEADLESS_TEST = \
+  $(SOURCES_COMMON) \
+  init.cpp \
+  wallet.cpp \
+  noui.cpp \
+  constants.test.cpp
+
 
 SOURCES_QT = \
   $(SOURCES_COMMON) \
   init.qt.cpp \
   wallet.qt.cpp \
+  constants.cpp \
   qt/aboutdialog.cpp \
   qt/aboutdialog.h \
   qt/addressbookpage.cpp \
@@ -149,6 +156,11 @@ OBJECTS_HEADLESS = \
   $(addsuffix .o, $(filter %.cpp, $(SOURCES_HEADLESS)))
 DEPENDENCIES_HEADLESS = \
   $(addsuffix .d, $(filter %.cpp, $(SOURCES_HEADLESS)))
+
+OBJECTS_HEADLESS_TEST = \
+  $(addsuffix .o, $(filter %.cpp, $(SOURCES_HEADLESS_TEST)))
+DEPENDENCIES_HEADLESS_TEST = \
+  $(addsuffix .d, $(filter %.cpp, $(SOURCES_HEADLESS_TEST)))
 
 OBJECTS_QT = \
   $(addsuffix .o, $(filter %.cpp, $(SOURCES_QT)))

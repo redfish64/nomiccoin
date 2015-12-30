@@ -64,13 +64,22 @@ export async function compileWith( ... parameterList ) {
 
     var path = Path.dirname( CLIENT_PATH );
     var constantsPath = Path.join( path, 'constants.cpp' );
+    var modifiedConstantsPathTmp = Path.join( path, 'constants.test.cpp.tmp' );
     var modifiedConstantsPath = Path.join( path, 'constants.test.cpp' );
 
     var constants = Fs.readFileSync( constantsPath ).toString( );
 
     var modifiedConstants = updateConstants( constants, parameters );
-    Fs.writeFileSync( modifiedConstantsPath, modifiedConstants );
+    Fs.writeFileSync( modifiedConstantsPathTmp, modifiedConstants );
 
-    await compile( 'CONSTANTS=constants.test.cpp TESTING=1' );
+    var diff = ChildProcess.spawnSync( `diff`, [`-q`,modifiedConstantsPathTmp,modifiedConstantsPath] )
+    console.log('compared files')
+    if(diff.stdout.toString().match(/./))
+    {
+	console.log('constants changed... recompiling constants')
+	ChildProcess.execFileSync(`mv`, [modifiedConstantsPathTmp,modifiedConstantsPath])
+    }
+
+    await compile( 'TESTING=1 nomiccoind-test' );
 
 }

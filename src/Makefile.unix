@@ -1,4 +1,5 @@
 TARGET_HEADLESS = nomiccoind
+TARGET_HEADLESS_TEST = nomiccoind-test
 TARGET_QT = nomiccoin-qt
 
 MAKEFILE = Makefile.unix

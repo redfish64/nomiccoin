@@ -1,11 +1,11 @@
 export var fastChain = {
-    GENESIS_MERKLE_HASH        : `hash_t("0x79f80fcf39b37d4403066ee16f33d7e2349a641c905b48fcbcc2533d33e0bda6")`,
-    GENESIS_HASH               : `hash_t("0x0f0a190a74aa26e90b52766ff01f25e732398225fed30bc729080ad7706b7ebc")`,
+    GENESIS_MERKLE_HASH        : `hash_t("0x2de1e774c4fc075a18c7292f6f605125810a1b7e3c8fbf854bc28a2200f44005")`,
+    GENESIS_HASH               : `hash_t("0x52dbecaee91b3468c5874bbaa912d44a4284ed8ab99a8ca454bca70e271876f1")`,
     GENESIS_TIME               : `1345084287`,
     GENESIS_NONCE              : `2179983835`,
 
     BLOCK_CHECKPOINTS          : `boost::assign::map_list_of(0, GENESIS_HASH)`,
-    STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0xfd11f4e7)`,
+    STAKE_MODIFIER_CHECKPOINTS : `boost::assign::map_list_of(0, 0x0e00670b)`,
 
     POW_MAX_BLOCK              : `std::numeric_limits<blockheight_t>::max()`,
 

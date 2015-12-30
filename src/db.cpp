@@ -902,6 +902,7 @@ bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, v
         if (fFlags == DB_SET_RANGE)
         {
             ssKey << triple;
+	    ssKey >> triple;//HACK
         }
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);

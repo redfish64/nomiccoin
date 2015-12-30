@@ -54,6 +54,9 @@ endif
 $(TARGET_HEADLESS): $(OBJECTS_HEADLESS) .make.ldflags
 	$(CXX) -o $@ $(OBJECTS_HEADLESS) $(LDFLAGS_HEADLESS) $(call librarify, $(LIBRARIES_HEADLESS))
 
+$(TARGET_HEADLESS_TEST): $(OBJECTS_HEADLESS_TEST) .make.ldflags
+	$(CXX) -o $@ $(OBJECTS_HEADLESS_TEST) $(LDFLAGS_HEADLESS) $(call librarify, $(LIBRARIES_HEADLESS))
+
 build.h: force
 	../contrib/build-versioning/generate-build-version.sh $@
 

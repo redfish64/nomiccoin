@@ -107,6 +107,8 @@ export async function spawnClient( options = { } ) {
 
     }
 
+    console.log("running: %s %s",CLIENT_PATH, commandLine.join(" "));
+
     var client = spawn( CLIENT_PATH, commandLine );
 
     if ( !options.keepalive )

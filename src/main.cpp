@@ -1860,6 +1860,7 @@ bool CBlockIndex::GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpa
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Check it again in case a previous version let a bad block in
+    // (unless it is the genesis block)
     if (!CheckBlock())
         return false;
 
@@ -1901,7 +1902,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     unsigned int nSigOps = 0;
 
     money_t remainingSharedPoolFunds = pindex->pprev->nSharedPoolFunds;
-
     pindex->votingPeriodVotedCoins = pindex->pprev->votingPeriodVotedCoins;
 
     std::map<votehash_t,std::pair<CTransaction,money_t> > hashToTxnAndVote;
@@ -2544,19 +2544,19 @@ bool CBlock::CheckBlock() const
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
-    {
-        if (!tx.CheckTransaction())
-            return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
-        // ppcoin: check transaction timestamp
-        if (GetBlockTime() < (int64)tx.nTime)
-            return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
-
-        if(tx.IsProposal())
-        {
-        	if(!tx.IsDeadlineValid(GetBlockTime()))
-		  return DoS(50, error("CheckBlock() : proposal has a deadline out of range"));
-        }
-    }
+      {
+	if (!tx.CheckTransaction())
+	  return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
+	// ppcoin: check transaction timestamp
+	if (GetBlockTime() < (int64)tx.nTime)
+	  return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
+	
+	if(tx.IsProposal())
+	  {
+	    if(!tx.IsDeadlineValid(GetBlockTime()))
+		return DoS(50, error("CheckBlock() : proposal has a deadline out of range"));
+	  }
+      }
 
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
@@ -3026,7 +3026,8 @@ bool LoadBlockIndex(bool fAllowNew)
     	const std::vector<unsigned char> titlecharvect(title.begin(), title.end());
 
         CScript pubScript;
-    	pubScript << OP_PUBLIC_SCRIPT << std::numeric_limits<timestamp_t>::max() << OP_VOTE_DEADLINE
+	
+    	pubScript << OP_PUBLIC_SCRIPT << ((timestamp_t) 0) << OP_VOTE_DEADLINE
     			<< titlecharvect << OP_VOTE_TITLE;
     	nullProposal.vout.push_back(CTxOut(0, pubScript));
     	nullProposal.nTime = GENESIS_BLOCK_TIME;
@@ -3105,6 +3106,23 @@ bool LoadBlockIndex(bool fAllowNew)
         if (!Checkpoints::WriteSyncCheckpoint(GENESIS_HASH)) {
             return error("LoadBlockIndex() : failed to init sync checkpoint");
         }
+
+	//connect the block so the null proposal is in the tx index
+	{
+	  unsigned int nTxPos = pindexBest->nBlockPos
+	    + ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION)
+	    - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(block.vtx.size())
+	    + ::GetSerializeSize(block.vtx[0], SER_DISK, CLIENT_VERSION);
+	  CDiskTxPos posThisTx(pindexBest->nFile, pindexBest->nBlockPos, nTxPos);
+	  CTxDB txdb;
+	  txdb.UpdateTxIndex(nullProposal.GetHash(), CTxIndex(posThisTx, nullProposal.vout.size()));
+
+	  //make sure the above code is referencing the correct transaction
+	  CTransaction tx;
+	  tx.ReadFromDisk(posThisTx);
+	  assert(tx.GetHash() == nullProposal.GetHash());
+	}
+	  
     }
 
     // ppcoin: if checkpoint master key changed must reset sync-checkpoint
@@ -3122,6 +3140,7 @@ bool LoadBlockIndex(bool fAllowNew)
             if (!Checkpoints::ResetSyncCheckpoint())
                 return error("LoadBlockIndex() : failed to reset sync-checkpoint");
         }
+
         txdb.Close();
     }
 

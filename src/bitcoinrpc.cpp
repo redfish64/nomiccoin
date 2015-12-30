@@ -1287,6 +1287,9 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
         if (wtx.IsCoinBase() || wtx.IsCoinStake() || !wtx.IsFinal())
             continue;
 
+	if(wtx.IsProposal() && !wtx.IsProposalSpendable())
+	  continue;
+
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
         {
             CTxDestination address;
@@ -1331,16 +1334,6 @@ int64 GetAccountBalance(const string& strAccount, int nMinDepth)
     return GetAccountBalance(walletdb, strAccount, nMinDepth);
 }
 
-
-Value getvotingbalance(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
-            "getvotingbalance\n"
-            "Returns the balance available for voting. This include immature staking and coinbase funds\n");
-
-    return  ValueFromAmount(pwalletMain->GetVotingBalance());
-}
 
 Value getbalance(const Array& params, bool fHelp)
 {
@@ -1703,6 +1696,9 @@ Value ListReceived(const Array& params, bool fByAccounts)
         if (wtx.IsCoinBase() || wtx.IsCoinStake() || !wtx.IsFinal())
             continue;
 
+	if(wtx.IsProposal() && !wtx.IsProposalSpendable())
+	  continue;
+
         int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < nMinDepth)
             continue;
@@ -2002,6 +1998,10 @@ Value listaccounts(const Array& params, bool fHelp)
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
     {
         const CWalletTx& wtx = (*it).second;
+
+	if(wtx.IsProposal() && !wtx.IsProposalSpendable())
+	  continue;
+
         int64 nGeneratedImmature, nGeneratedMature, nFee;
         string strSentAccount;
         list<pair<CTxDestination, int64> > listReceived;
@@ -3491,6 +3491,9 @@ VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 
 	const CWalletTx* pcoin = &(*it).second;
 
+	if(pcoin->IsProposal() && !pcoin->IsProposalSpendable())
+	  continue;
+
 	for (size_t i = 0; i < pcoin->vout.size(); i++)
 	  {
 	    if (!(pcoin->IsSpent(i)) &&
@@ -3681,7 +3684,6 @@ static const CRPCCommand vRPCCommands[] =
     { "encryptwallet",          &encryptwallet,          false },
     { "validateaddress",        &validateaddress,        true },
     { "getbalance",             &getbalance,             false },
-    { "getvotingbalance",       &getvotingbalance,       false },
     { "move",                   &movecmd,                false },
     { "sendfrom",               &sendfrom,               false },
     { "sendmany",               &sendmany,               false },

@@ -237,7 +237,6 @@ public:
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
 
-    int64 GetVotingBalance() const;
     int64 GetBalance() const;
     int64 GetUnconfirmedBalance() const;
     int64 GetStake() const;
@@ -374,6 +373,7 @@ public:
     void DisableTransaction(const CTransaction &tx);
 
     void SetProposalPassed(uint256 propHash, bool passed);
+
 };
 
 /** A key allocated from the key pool. */
@@ -399,6 +399,7 @@ public:
     void ReturnKey();
     CPubKey GetReservedKey();
     void KeepKey();
+
 };
 
 /** A transaction with a bunch of additional info that only the owner cares about.
@@ -652,25 +653,6 @@ public:
         return nCredit;
     }
 
-    int64 GetVotingCredit(bool fUseCache=true) const
-    {
-        int64 nCredit = 0;
-        for (unsigned int i = 0; i < vout.size(); i++)
-        {
-            if (!IsSpent(i))
-            {
-                const CTxOut &txout = vout[i];
-                nCredit += pwallet->GetCredit(txout);
-
-                if (!IsValidAmount(nCredit)) {
-                    throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
-                }
-            }
-        }
-
-        return nCredit;
-    }
-
     int64 GetChange() const
     {
         if (fChangeCached)
@@ -753,6 +735,11 @@ public:
     }
 
     int GetBlocksToMaturity() const;
+
+    bool IsProposalSpendable() const
+    {
+      return isProposalPassed;
+    } 
 };
 
 

@@ -72,6 +72,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         {
             strHTML += tr("<b>Source:</b> Generated<br>");
         }
+	else if(pcoin->IsProposal())
+            strHTML += tr("<b>Source:</b> Proposal<br>");
         else if (!wtx.mapValue["from"].empty())
         {
             // Online transaction
@@ -231,9 +233,9 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             strHTML += QString("<br>") + tr("Generated coins must wait 520 blocks before they can be spent.  When you generated this block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be spendable.  This may occasionally happen if another node generates a block within a few seconds of yours.") + "<br>";
         if (wtx.IsCoinStake())
             strHTML += QString("<br>") + tr("Staked coins must wait 520 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.") + "<br>";
-        if (wtx.IsVoteTxn())
-            strHTML += QString("<br>") + tr("Vote Txns can be created at any time, even if from a staked or mined txn. Staked or mined coins must wait 520 blocks before they can return to balance and be spent, and this carries through to vote txns based on them.") + "<br>";
-
+	if (wtx.IsProposal())
+            strHTML += QString("<br>") + tr("A proposal transaction that is addressed to you can only be spent when the proposal has pased and 500 blocks have been created since the deadline.") + "<br>";
+	  
         //
         // Debug view
         //

@@ -324,7 +324,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx)
         }
     }
 }
-
+//TODO 2 make sure that proposal funds don't appear in the wallet when the proposal is not passed and matured (tx.IsProposalSpendable())
 void CWallet::MarkDirty()
 {
     {
@@ -414,7 +414,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn)
     MainFrameRepaint();
     return true;
 }
-
+//TODO 2 add the delay period after the deadline to allow people to still vote no. Otherwise a person with a lot of coin could not participate in politics until they wanted to do something nasty. This would lull others into a false sense of security. No one would register to vote because there are no proposals to vote on.
 // Add a transaction to the wallet, or update it.
 // pblock is optional, but should be provided if the transaction is known to be in a block.
 // If fUpdate is true, existing transactions will be updated.
@@ -561,8 +561,6 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     listSent.clear();
     strSentAccount = strFromAccount;
 
-    //if a voting transaction, could still be sourced from an immature coinbase/stake txn
-    //This checks that case as well as the standard coinbase/coinstake
     if(!IsMature())
       {
       nGeneratedImmature = pwallet->GetCredit(*this) - pwallet->GetDebit(*this);
@@ -574,6 +572,12 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
       nGeneratedMature = GetCredit() - GetDebit();
       return;
     }
+
+    if(IsProposal() && !IsProposalSpendable())
+      {
+	return;
+      }
+
 
     // Compute fee:
     int64 nDebit = GetDebit();
@@ -885,25 +889,6 @@ void CWallet::ResendWalletTransactions()
 // Actions
 //
 
-
-//coins that can be voted with, includes immature coinstake/coinbase
-//TODO 2.2: test make sure that voting transactions also have a maturity
-int64 CWallet::GetVotingBalance() const
-{
-    int64 nTotal = 0;
-    {
-        LOCK(cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-            if (!pcoin->IsFinal() || !pcoin->IsConfirmed())
-                continue;
-            nTotal += pcoin->GetVotingCredit();
-        }
-    }
-
-    return nTotal;
-}
 
 int64 CWallet::GetBalance() const
 {

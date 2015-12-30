@@ -30,6 +30,7 @@ ui_*.h
 /core
 
 /src/constants.test.cpp
+/src/constants.test.cpp.tmp
 /src/build.h
 /src/*.qt.cpp
 
@@ -37,6 +38,7 @@ ui_*.h
 /src/.make.ldflags
 
 /src/nomiccoind
+/src/nomiccoind-test
 /src/nomiccoin-qt
 
 /src/nomiccoind.exe
@@ -51,6 +53,8 @@ ui_*.h
 /test/nomiccoin?
 /test/nomiccoin.conf
 /test/debug.log
+
+
 
 # other junk
 cscope.out

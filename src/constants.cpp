@@ -46,7 +46,7 @@ timestamp_t                       GENESIS_BLOCK_TIME          = 1345084287;
 uint32_t                          GENESIS_BLOCK_NONCE         = 2179983835;
 uint32_t                          GENESIS_BLOCK_VERSION       = 1;
 
-hash_t NULL_PROPOSAL_TXN_HASH = hash_t("d82bc3c72543514b650a40c5b17bd8fb062e785c682125ecdd5db371d476687b");
+hash_t NULL_PROPOSAL_TXN_HASH = hash_t("486471692b7748edcce4935766dfe2bf7edf65fd8cb9912cd157bcd5364a1c2d");
 
 
 // std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
