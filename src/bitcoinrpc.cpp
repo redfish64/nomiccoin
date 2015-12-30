@@ -3590,6 +3590,21 @@ VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 
 
 #ifdef TESTING
+
+//wait for the given block index to be mined
+static Value getblockindex(const Array& params, bool fHelp)
+{
+  return nBestHeight;
+}
+
+//wait for the tx hash to appear in the memory pool
+static Value txhashinmem(const Array& params, bool fHelp)
+{
+  uint256 hash = uint256(params[0].get_str());
+  
+  return mempool.exists(hash);
+}
+
 static Value generateblock(const Array& params, bool fHelp, bool fProofOfStake)
 {
     int nCount = 1;
@@ -3722,6 +3737,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getvoteinfo",   &getvoteinfo,   true },
     { "getupgradeinfo",   &getupgradeinfo,   true },
 #ifdef TESTING
+    { "getblockindex",           &getblockindex,           true },
+    { "txhashinmem",           &txhashinmem,           true },
     { "generatework",           &generatework,           true },
     { "generatestake",          &generatestake,          false },
 #endif
@@ -4424,6 +4441,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2]);
     if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<boost::int64_t>(params[1]);
+    if (strMethod == "waitforblockindex"           && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "generatework"           && n > 0) ConvertTo<boost::int64_t>(params[0]);
     if (strMethod == "generatework"           && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "generatestake"          && n > 0) ConvertTo<boost::int64_t>(params[0]);

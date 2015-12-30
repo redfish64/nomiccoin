@@ -1163,6 +1163,12 @@ void ThreadOpenConnections2(void* parg)
         }
     }
 
+    if(mapArgs.count("-dontsearchnetwork"))
+      {
+	printf("ThreadOpenConnections2 Not searching network for other nodes to connect to");
+	return;
+      }
+    
     // Initiate network connections
     int64 nStart = GetTime();
 
@@ -1223,9 +1229,7 @@ void ThreadOpenConnections2(void* parg)
 
         int64 nANow = GetAdjustedTime();
 
-	//TIMHACK our test network uses a bunch of nonstandard ports and the cpu usage from 50 connection tries is bothersome
-        //int nTries = 0;
-        int nTries = 51;
+        int nTries = 0;
 
         INFINITE_LOOP
         {

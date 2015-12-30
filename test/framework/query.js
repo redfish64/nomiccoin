@@ -1,6 +1,8 @@
 import { RPC_USER, RPC_PASSWORD } from '../_config';
+import { merge } from './lodash';
 
-export function sendRpcQuery( client, json, quitHere ) {
+export function sendRpcQuery( client, json, params ) {
+    params = merge( { quit : false, silent : false }, params)
 
     return new Promise( ( resolve, reject ) => {
 
@@ -8,14 +10,16 @@ export function sendRpcQuery( client, json, quitHere ) {
 	if(json.params == null)
 	    json.params = [];
 
-	if(quitHere)
+	if(params.quit)
 	{
-		console.log("would have sent: %s %s",json.method, "'"+json.params.join("' '")+"'");
-	
-	   throw "Quitting...";
+	    console.log("would have sent: %s %s",json.method, "'"+json.params.join("' '")+"'");
+	    throw "Quitting...";
 	}
-	
-	console.log("sending: %s %s",json.method, "'"+json.params.join("' '")+"'");
+
+	if(!params.silent)
+	{
+	    console.log("sending: %s %s",json.method, "'"+json.params.join("' '")+"'");
+	}
 	
         var request = require( 'http' ).request( {
 
@@ -45,7 +49,10 @@ export function sendRpcQuery( client, json, quitHere ) {
             } );
 
             response.on( 'end', ( ) => {
-		console.log("received: %s",stringBuffer);
+		if(!params.silent)
+		{
+		    console.log("received: %s",stringBuffer);
+		}
 
                 try {
                     resolve( JSON.parse( stringBuffer ) );

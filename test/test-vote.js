@@ -1,5 +1,5 @@
 import { compileWith }           from './framework/compilation';
-import { mineSomePowBlocks }     from './framework/mining';
+import { mineSomePowBlocks, waitForBlocks, waitForTxHash }     from './framework/mining';
 import { sendRpcQuery }          from './framework/query';
 import { spawnClient }           from './framework/spawn';
 import { delayExecution }        from './framework/time';
@@ -18,9 +18,10 @@ export async function test( ) {
 
     //mine some blocks to get some funds
     await mineSomePowBlocks( client1, 10);
-    await delayExecution( 2 );
+    await waitForBlocks(client2,10);
     await mineSomePowBlocks( client2, 5);
-    await delayExecution( 2 );
+    await waitForBlocks(client1,15);
+
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
     expect( rpc.result ).to.be.equal( 10 );
 
@@ -51,8 +52,8 @@ export async function test( ) {
 					    );
     var prophash = rpc.result;
 	
-	//wait for the proposal to be transmitted to the other client	
-    await delayExecution( 3 );
+    //wait for the proposal to be transmitted to the other client	
+    await waitForTxHash(client1, prophash)
     
     var rpc = await sendRpcQuery( client1, { method : "vote",
     					     params :
@@ -61,8 +62,8 @@ export async function test( ) {
     					     ]
     					   })
     expect ( rpc.result ).to.match( /^[A-Za-z0-9]{64}$/ )
+    var votehash = rpc.result
 
-    await delayExecution( 2 );
     var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",
     					     params :
     					     [
@@ -73,9 +74,9 @@ export async function test( ) {
 //    expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 0 )
 //    expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
 
-    await delayExecution( 2 );
+    await waitForTxHash(client2, votehash)
     await mineSomePowBlocks( client2, 1 );
-    await delayExecution( 2 );
+    await waitForBlocks(client1,16);
 
     var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",
     					     params :
@@ -92,6 +93,13 @@ export async function test( ) {
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
     expect( rpc.result ).to.be.equal( 10 );
 
+    //if the proposal hasn't passed yet, the amount received by the address receiving the
+    //money should be zero
+    var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
+    					     params : [ propRecvAddr ]
+    					   })
+    expect ( rpc.result ).to.be.equal(0);
+    
     console.log('wait 30 seconds until after the deadline')
     await delayExecution( 30 );
 
@@ -114,8 +122,19 @@ export async function test( ) {
 
     expect ( rpc.error.code ).to.be.equal( -4); //vote failed, expired
 
-     //whenever you vote, regardless
-    //of the deadline, the voting period is updated to show the new coins, so we check that as well
+    //do a null vote
+    var rpc = await sendRpcQuery( client1, { method : "vote",
+    					     params :
+    					     [
+    						 "0"
+    					     ]
+    					   })
+
+    await delayExecution( 2 );
+    await mineSomePowBlocks( client2, 1 );
+    await delayExecution( 2 );
+
+    //make sure the null vote updated the coins
     var rpc = await sendRpcQuery( client1, { method : "getinfo",
     					   })
 

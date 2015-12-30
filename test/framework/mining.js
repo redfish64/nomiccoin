@@ -1,5 +1,6 @@
 import { sendRpcQuery } from './query';
 import { spawnMiner }   from './spawn';
+import { delayExecution }        from './time';
 
 /**
  * This function guarantee that at least N blocks will be mined, but cannot guarantee that exactly N blocks will be mined.
@@ -22,6 +23,46 @@ export async function mineSomePowBlocks( client, count ) {
 
 }
 
+export async function waitForBlocks( client, index ) {
+
+    let req;
+    
+    while(1)
+    {
+	req = await sendRpcQuery( client, { method : 'getblockindex' },
+				  { silent : true });
+
+	if ( req.error )
+            throw new Error( 'An error happened' );
+	
+	if(req.result >= index)
+	    break;
+
+	await delayExecution(.25);
+    }
+	
+    if(req.result != index)
+	throw new Error( 'Expected %d blocks, got %d blocks\n', index, req.result);
+}
+
+export async function waitForTxHash( client, hash ) {
+
+    while(1)
+    {
+	let req = await sendRpcQuery( client, { method : 'txhashinmem', params : [ hash ] },
+				      { silent : true }
+				    );
+
+	if ( req.error )
+            throw new Error( 'An error happened' );
+
+	if(req.result == true)
+	    break;
+
+	await delayExecution(.25);
+    }
+}
+
 /**
  */
 
@@ -29,7 +70,7 @@ export async function mineForMaturation( client ) {
 
     console.log( `We will now try to confirm the coinbase transactions by mining a single block` );
 
-    let req = await sendRpcQuery( client, { method : 'generatework', params : [ 1 ] } );
+    let req = await sendRpcQuery( client, { method : 'generatework', params : [ 1 ] });
 
     if ( req.error )
         throw new Error( 'An error happened' );

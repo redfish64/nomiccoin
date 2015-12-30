@@ -6,6 +6,7 @@
         "mkdirp" : "*",
         "rimraf" : "*",
         "bitcore" : "althousedev/bitcore",
-	"is-running" : "*"
+	"is-running" : "*",
+	"wait-for-port" : "*"
     }
 }

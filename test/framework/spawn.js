@@ -5,6 +5,9 @@ import { RPC_USER, RPC_PASSWORD }        from '../_config';
 
 import { compact, flatten, last, merge } from './lodash';
 import { delayExecution }                from './time';
+import { sendRpcQuery }          from './query';
+
+var waitForPort = require('wait-for-port');
 
 var gClientId = 0;
 
@@ -19,7 +22,7 @@ function checkPort( port ) {
         let sock = connect( { port }, ( ) => {
 
             resolve( true );
-            sock.end( );
+            sock.end();
 
         } ).on( 'error', ( ) => {
 
@@ -73,12 +76,12 @@ export async function spawnClient( options = { } ) {
         rpcpassword : RPC_PASSWORD,
         rpcallowip : '*',
 
-	delay : 40,
-
         gen : false,
         stakegen : false,
 
-        dnsseed : false
+        dnsseed : false,
+
+	dontsearchnetwork: true,
 
     }, options );
 
@@ -124,7 +127,18 @@ export async function spawnClient( options = { } ) {
 
     writeFileSync(`${datadir}/pid`,client.pid)
 
-    await delayExecution( options.delay );
+    while(1) {
+	await delayExecution ( .25);
+	try {
+	    await sendRpcQuery ( client, { method : 'getinfo' } )
+
+	    break
+	}
+	catch (e)
+	{
+	    console.log(e);
+	}
+    }
 
     return client;
 
