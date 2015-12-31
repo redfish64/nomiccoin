@@ -409,21 +409,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
             if (opcode > OP_16 && ++nOpCount > 201)
                 return false;
 
-            if (opcode == OP_CAT ||
-                opcode == OP_SUBSTR ||
-                opcode == OP_LEFT ||
-                opcode == OP_RIGHT ||
-                opcode == OP_INVERT ||
-                opcode == OP_AND ||
-                opcode == OP_OR ||
-                opcode == OP_XOR ||
-                opcode == OP_2MUL ||
-                opcode == OP_2DIV ||
-                opcode == OP_MUL ||
-                opcode == OP_DIV ||
-                opcode == OP_MOD ||
-                opcode == OP_LSHIFT ||
-                opcode == OP_RSHIFT)
+            if (opcode == OP_CAT || opcode == OP_SUBSTR || opcode == OP_LEFT || opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_AND || opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL || opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV || opcode == OP_MOD || opcode == OP_LSHIFT || opcode == OP_RSHIFT)
                 return false;
 
             if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4)
@@ -472,6 +458,12 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
 					popstack(stack);
 					break;
 				}
+	    case OP_VOTE_DEADLINE: {
+	      if (stack.size() < 1 || !runningPublicScript)
+		return false;
+	      popstack(stack);
+	      break;
+	    }
 	    case OP_UPGRADE_CLIENT:
 	      {
 	      if(stack.size() < 3 || !runningPublicScript)
@@ -1260,7 +1252,6 @@ void EvalProposalForPublic(CTxDB& txdb, CTransaction& tx)
 
 
 
-//TODO 2 test staking thru voting
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     if (nIn >= txTo.vin.size())

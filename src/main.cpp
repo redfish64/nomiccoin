@@ -140,6 +140,8 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
 
 void SyncPassedProposalWithWallets(uint256 propHash, bool passed)
 {
+  printf("SyncPassedProposalWithWallets:: prop %s %s\n", propHash.GetHex().c_str(),
+	 passed ? "passed" : "unpassed");
   BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
     pwallet->SetProposalPassed(propHash,passed);
 }
@@ -503,8 +505,6 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 
 bool CTransaction::IsRestrictedCoinStake() const
 {
-  //TODO 2 what about vote transactions here? do they count as a restricted coin stake if they are
-  //created from a restricted coin stake?
     if (!IsCoinStake())
         return false;
 
@@ -1527,7 +1527,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                     		txPrev.ToString().c_str(),
 							GetHash().ToString().substr(0,10).c_str()));
 
-            	if(!!isVotingPeriodOver)
+            	if(!isVotingPeriodOver)
                     return DoS(100, error("ConnectInputs() : Attempt to spend funds from a proposal before deadline, %s, tx %s\n",
                     		txPrev.ToString().c_str(),
 							GetHash().ToString().substr(0,10).c_str()));
@@ -1862,13 +1862,17 @@ bool CBlockIndex::GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpa
       //we will run the public (upgrade request) for all proposals that ended at the block
       //PROPOSAL_MATURITY_BLOCKS ago and started at the prior block. In this way, proposals
     	//will only be run once
-      timestamp_t endTime = pPriorIndex->nTime-1;
+      timestamp_t endTime = pPriorIndex->nTime;
       timestamp_t startTime = pPriorIndex->pprev->nTime;
       
+
       
       if(!txdb.ReadProposalsVoteCount(startTime,endTime, (void *)&pPriorIndex->votingPeriodVotedCoins,  fPassedProposals,
 				      proposalsToRun))
 	return error("CBlock::GetProposalsToRunForBlock can't read proposals");
+
+      // printf("CBlock::ConnectBlock %d proposals found for times %ld to %ld\n", proposalsToRun.size(),
+      // 	     startTime, endTime);
     }
 
   return true;
@@ -3941,12 +3945,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     CInv inv(MSG_TX, tx.GetHash());
                     bool fMissingInputs2 = false;
 
-                    //TODO 2, I don't know how this is supposed to work,
-                    //since AcceptToMemoryPool requires the inputs to be
-                    //in the db (it calls FetchInputs which only looks in the db)
-                    //but doesn't save the tx there. Therefore, the orphans
-                    //will always still be orphans. Anyway, I have to test this
-                    //to see what is going on
                     if (tx.AcceptToMemoryPool(txdb, true, &fMissingInputs2))
                     {
                         printf("   accepted orphan tx %s\n", inv.hash.ToString().substr(0,10).c_str());

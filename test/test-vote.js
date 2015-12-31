@@ -139,15 +139,34 @@ export async function test( ) {
     					   })
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 20 )
 
-    //make sure it didn't "unwin" the proposal 
+    //before maturity period, so funds aren't received yet
+    var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
+    					     params : [ propRecvAddr ]
+    					   })
+    expect ( rpc.result ).to.be.equal(0);
 
+    await mineSomePowBlocks( client2, 3 );
+    await waitForBlocks(client1, 32)
+    //funds are spendable after the maturity period
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
     					     params : [ propRecvAddr ]
     					   })
     expect ( rpc.result ).to.be.equal(2.5);
     
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
-    expect( rpc.result ).to.be.equal( 22.5 ); 
+    expect( rpc.result ).to.be.equal( 22.5 );
 
+    //send all our funds to client2 to make sure we can transfer those from the funds pool
+    var rpc = await sendRpcQuery( client2, { method : 'getnewaddress' } );
+    var client2Addr = rpc.result;
+
+    var rpc = await sendRpcQuery( client1, { method : 'sendtoaddress',
+					     params : [ client2Addr, 22.5 ] },
+				  //{ quit : true }
+				);
+
+    var rpc = await sendRpcQuery( client2, { method : "getreceivedbyaddress",
+    					     params : [ client2Addr ]
+    					   })
 }
 //TODO 2 make forcevote to force voting after an expiration to make sure it doesn't count (in the test section of bitcoinrpc)
