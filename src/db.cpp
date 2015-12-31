@@ -902,7 +902,6 @@ bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, v
         if (fFlags == DB_SET_RANGE)
         {
             ssKey << triple;
-	    ssKey >> triple;//HACK
         }
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
@@ -921,10 +920,12 @@ bool CTxDB::ReadProposalsVoteCount(timestamp_t startTime, timestamp_t endTime, v
 	  
 	  if (strType == "votecount")
 	    {
-	      ssKey >> triple;
-	      if(boost::get<1>(triple) < endTime)
+	      timestamp_t deadline;
+	      ssKey >> deadline;
+	      if(deadline < endTime)
 		{
-		  votehash_t txnHash = boost::get<2>(triple);
+		  votehash_t txnHash;
+		  ssKey >> txnHash;
 	      
 		  money_t votes;
 		  ssValue >> votes;

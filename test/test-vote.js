@@ -34,7 +34,7 @@ export async function test( ) {
     //create a deadline 30 seconds from now
     var deadlineStr = new Date(new Date().getTime() 
 			       //+ 3000*1000
-			       + 30*1000
+			       + 5*1000
     ).toISOString().
 	replace(/T/, ' ').      // replace T with a space
 	replace(/\..+/, ' UTC');     // delete the dot and everything after
@@ -100,14 +100,14 @@ export async function test( ) {
     					   })
     expect ( rpc.result ).to.be.equal(0);
     
-    console.log('wait 30 seconds until after the deadline')
-    await delayExecution( 30 );
+    console.log('wait 5 seconds until after the deadline')
+    await delayExecution( 5 );
 
     //mine some blocks to acquire some more funds
     await mineSomePowBlocks( client1, 10 );
-    await delayExecution( 2 );
+    await waitForBlocks(client2, 26)
     await mineSomePowBlocks( client2, 2 );
-    await delayExecution( 2 );
+    await waitForBlocks(client1, 28)
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
     expect( rpc.result ).to.be.equal( 20 ); 
@@ -130,15 +130,16 @@ export async function test( ) {
     					     ]
     					   })
 
-    await delayExecution( 2 );
+    await waitForTxHash( client2, rpc.result );
     await mineSomePowBlocks( client2, 1 );
-    await delayExecution( 2 );
+    await waitForBlocks(client1, 29)
 
     //make sure the null vote updated the coins
     var rpc = await sendRpcQuery( client1, { method : "getinfo",
     					   })
-
     expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 20 )
+
+    //make sure it didn't "unwin" the proposal 
 
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
     					     params : [ propRecvAddr ]

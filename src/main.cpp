@@ -138,10 +138,10 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
       pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
 }
 
-void SyncPassedProposalWithWallets(uint256 propHash, bool fConnect)
+void SyncPassedProposalWithWallets(uint256 propHash, bool passed)
 {
   BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-    pwallet->SetProposalPassed(propHash,fConnect);
+    pwallet->SetProposalPassed(propHash,passed);
 }
 
 // notify wallets about a new best chain
@@ -1370,11 +1370,24 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
 }
 
 /**
- * Updates hashToTxnAndVoteCounts by adding vote to it. If hashToTxnAndVoteCounts doesn't contain entry
- * for given txnHash, looked up in db
+ * Updates hashToTxnAndVoteCounts map by adding vote to it. If hashToTxnAndVoteCounts doesn't contain entry
+ * for given txnHash, looked up in db.
+ *
+ * Useful for figuring out vote additions and subtractions, and writing the total changes out to disk
+ * afterwards.
  */
-bool AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<votehash_t,std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts,
-		    votehash_t txnHash, money_t vote, CTransaction *optPropTxn = NULL)
+bool AddToVoteCount(CTxDB& txdb,
+		    unsigned int blockTime,
+		    std::map<votehash_t,
+		    std::pair<CTransaction,money_t> >& hashToTxnAndVoteCounts,
+		    votehash_t txnHash,
+		    money_t vote, // if negative, means that the vote is being rewritten
+		    //if so, then the total vote will only be subtracted if rewriteVoteBlockTime is
+		    //before the deadline
+		    unsigned int rewriteVoteBlockTime = 0, //when a vote changes, we need to subtract
+		    //the previous vote if it does so before the proposal deadline
+		    //If this is not zero, then we consider it a rewrite
+		    CTransaction *optPropTxn = NULL)
 {
   pair<CTransaction,money_t> out;
 
@@ -1405,7 +1418,9 @@ bool AddToVoteCount(CTxDB& txdb, unsigned int blockTime, std::map<votehash_t,std
 
   timestamp_t deadline = out.first.GetVoteDeadline();
   
-  if(deadline < blockTime) //don't count votes that are too late
+  if(deadline < blockTime || (rewriteVoteBlockTime != 0 && deadline < rewriteVoteBlockTime))
+    //don't count votes that are too late
+    //or in the case of a rewrite of a vote, don't undo the vote if the rewrite happens after the deadline
     return true;
 
   out.second += vote;
@@ -1439,7 +1454,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 
 	  currentTotalVotes += valueOut;
 	  //add the vote to its proposal if before the deadline
-	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut, &propTxn))
+	  if(!AddToVoteCount(txdb,blockTime, hashToTxnAndVoteCounts, propHash, valueOut, 0, &propTxn))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed");
 	}
     }
@@ -1450,7 +1465,7 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
       assert(inputs.count(prevout.hash));
       CTransaction& prevTxn = inputs[prevout.hash].second;
 
-      //any previous voting output that this txn spent lose their vote
+      //any previous voting output that this txn spent lose their total vote
       if(prevTxn.GetVoteTxnData(prevout.n,propHash))
       {
     	  money_t valueOut = prevTxn.vout[prevout.n].nValue;
@@ -1458,11 +1473,13 @@ bool CTransaction::UpdateVoteCounts(CTxDB& txdb, unsigned int blockTime, MapPrev
 
     	  //the prev vote gets subtracted if it got spent before the deadline (AddToVoteCount will check
 	  //the deadline), but we need the blocktime of the previous tx, so we get the block
-	  CBlock block;
-	  if (!block.ReadFromDisk(prevTxIndex.pos.nFile, prevTxIndex.pos.nBlockPos, false))
+	  CBlock prevBlock;
+	  if (!prevBlock.ReadFromDisk(prevTxIndex.pos.nFile, prevTxIndex.pos.nBlockPos, false))
 	    return error("CTransaction::UpdateVoteCounts, can't read block of prior tx");
 
-	  if(!AddToVoteCount(txdb,block.nTime, hashToTxnAndVoteCounts, propHash, -valueOut))
+	  //if we are still before the deadline, the vote count is subtracted from the old proposal,
+	  //but if we after the deadline, it sticks to the old one
+	  if(!AddToVoteCount(txdb,prevBlock.nTime, hashToTxnAndVoteCounts, propHash, -valueOut, blockTime))
 	    return error("CTransaction::UpdateVoteCounts AddToVoteCount failed subtracting earlier tx");
 
 	  currentTotalVotes -= valueOut;
@@ -1739,13 +1756,13 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	    
 	    //the prev vote gets added back if it got spent before the deadline (AddToVoteCount will check
 	    //the deadline), but we need the blocktime of the previous tx, so we get the block
-	    CBlock block;
-	    if (!block.ReadFromDisk(txIndex.pos.nFile, txIndex.pos.nBlockPos, false))
+	    CBlock prevBlock;
+	    if (!prevBlock.ReadFromDisk(txIndex.pos.nFile, txIndex.pos.nBlockPos, false))
 	      return error("CTransaction::UpdateVoteCounts, can't read block of prior tx");
 
 	    if(txPrev.GetVoteTxnData(txin.prevout.n,txnHash))
-	      AddToVoteCount(txdb, block.nTime, hashToTxnAndVoteCounts, txnHash,
-			     txPrev.GetValueOut());
+	      AddToVoteCount(txdb, prevBlock.nTime, hashToTxnAndVoteCounts, txnHash,
+			     txPrev.GetValueOut(), pindex->nTime);
 	  }
 
 	//note there is no need to "un-run" the passed proposals for the public, because

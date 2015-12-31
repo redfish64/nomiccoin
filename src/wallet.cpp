@@ -2200,6 +2200,10 @@ void CWallet::SetProposalPassed(uint256 propHash, bool passed)
 {
   if(mapWallet.count(propHash) != 0)
     {
-      mapWallet[propHash].isProposalPassed = passed;
+      CWalletTx & wtx = mapWallet[propHash];
+      
+      wtx.isProposalPassed = passed;
+      wtx.WriteToDisk();
+      vWalletUpdated.push_back(propHash);
     }
 }

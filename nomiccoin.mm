@@ -2297,7 +2297,7 @@
 </node>
 </node>
 <node CREATED="1445065454955" ID="ID_1110428196" MODIFIED="1450430568212" POSITION="right" TEXT="bitcoin analysis">
-<node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1444298361919" TEXT="How does double spend work (in bitcoin)???">
+<node CREATED="1444032910416" ID="ID_170959613" MODIFIED="1451477789002" TEXT="How does double spend work (in bitcoin)???">
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2307,7 +2307,8 @@
       It should help us figure out how best to tally votes
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 <node CREATED="1444200203358" ID="ID_1613232044" MODIFIED="1444200210098" TEXT="No more funds?">
 <node CREATED="1444085804844" ID="ID_181210212" MODIFIED="1444085820209" TEXT="Entire database is searched for txn&apos;s using the TXO"/>
 </node>
@@ -2385,7 +2386,7 @@
 </node>
 <node CREATED="1445559168229" ID="ID_1682630739" MODIFIED="1445908623081" TEXT="CMerkleTx"/>
 <node CREATED="1445566515347" ID="ID_381341770" MODIFIED="1445581460853" TEXT="CBlockIndex">
-<node CREATED="1445566521931" ID="ID_1857117095" MODIFIED="1445566547343" TEXT="Can be retrieve from block with this code">
+<node CREATED="1445566521931" ID="ID_1857117095" MODIFIED="1451477789078" TEXT="Can be retrieve from block with this code">
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2407,7 +2408,8 @@
       &#160;&#160;&#160;
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 </node>
 <node CREATED="1450571765388" ID="ID_347098749" MODIFIED="1450571767976" TEXT="CTransaction">
@@ -2592,8 +2594,7 @@
       Instead, we allow the public to compile the branch themselves and release it to each other as public services (as is done with most software today)
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node COLOR="#ff0000" CREATED="1449988522638" ID="ID_625150262" MODIFIED="1449988525758" TEXT="TODO"/>
 </node>
 </node>
@@ -2628,8 +2629,7 @@
       
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1450424821553" ID="ID_1919625525" MODIFIED="1450424881189" TEXT="Yes, because even if there are millions of proposals, we could prevet a slowdown by changing the client to have a second index that only has proposal over a 5% threshold of votes or something"/>
 </node>
 </node>
@@ -2669,8 +2669,7 @@
       We'll just use a special script for proposal outputs, and these outputs will have zero coins attached
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1450430956849" ID="ID_1403610035" MODIFIED="1450430980293" TEXT="Wait, we need the full transaction for a proposal, because the funds get sent to private parties">
 <node CREATED="1450431110225" ID="ID_1050919086" MODIFIED="1450431152719">
@@ -2736,8 +2735,7 @@
       I think that most people are honest, and wouldn't do it. Especially considering that if they own the coin, double spends would greatly reduce the value of it
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1450438927416" ID="ID_1749190471" MODIFIED="1450438956820" TEXT="Getting a bunch of old keys and minting to create an alternative chain">
@@ -2777,8 +2775,7 @@
       Otherwise, someone could make a million votes, and then stake a block, causing the entire network to have to trace through the million stake-thrus
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -2801,8 +2798,7 @@
       It needs to continuously grow, otherwise no one will stake and a takeover is possible. However, the growth of coin is fixed, so this can be figured out beforehand.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -2818,8 +2814,7 @@
       With a constant stake reward, maybe we could get away without having a stake thru. The loss of the chance to stake is the fee for voting
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1450585382880" ID="ID_348135621" MODIFIED="1450585422172" TEXT="However, this might be considered too great. Also, it lowers the number of people staking, especially after an important vote"/>
 </node>
 <node CREATED="1450583206527" ID="ID_892831896" MODIFIED="1450583226098" TEXT="If we keep stake-thru, should we expand it beyond voting?">
@@ -2839,8 +2834,7 @@
       If we don't have a consistent layout, it's too easy to not know which input of a transaction &quot;belongs&quot; to what output
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1450583562202" ID="ID_686542112" MODIFIED="1450583566998" TEXT="So, no, just voting"/>
 </node>
@@ -2882,8 +2876,7 @@
       For example, given a constant stake reward, a person with 1000 UTXO's will stake more than one with 1 UTXO even with the same amount of coin, because whenever a stake occurs, the min stake age comes into play
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1450679254706" ID="ID_1424912798" MODIFIED="1450679256014" TEXT="voting">
@@ -2913,8 +2906,7 @@
       From the client perspective, it cast the vote. Only the vote is rejected by the network, yet the client never knows this.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1450841227642" ID="ID_916840832" MODIFIED="1450841247542" TEXT="Therefore, we need to accept votes past the deadline. They just can&apos;t alter the vote totals"/>
 <node CREATED="1450841346042" ID="ID_152047669" MODIFIED="1450841457035" TEXT="But without the deadline, which is in the proposal, we will never know whether to count the vote or not.">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>

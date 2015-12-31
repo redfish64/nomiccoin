@@ -979,10 +979,16 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
+	if(deadline < MIN_PROPOSAL_DEADLINE_TIME + GetAdjustedTime())
+	  throw JSONRPCError(-1, "Proposal deadline too soon, must be at least "+boost::lexical_cast<std::string>(MIN_PROPOSAL_DEADLINE_TIME)+" seconds from now");
+
+	if(deadline > MAX_PROPOSAL_DEADLINE_TIME + GetAdjustedTime())
+	  throw JSONRPCError(-1, "Proposal deadline too late, must be at most "+boost::lexical_cast<std::string>(MAX_PROPOSAL_DEADLINE_TIME)+" seconds from now");
+
 	string title = params[1].get_str();
 
 	if(title.length() > MAX_PROPOSAL_TITLE_LENGTH)
-		throw JSONRPCError(-5, "Title too long");
+		throw JSONRPCError(-2, "Title too long");
 
 	CTransaction tx;
 	tx.vin.resize(1);
@@ -1001,13 +1007,13 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 		if (command.compare("upgradeclient") == 0) {
 			if(upgradedClientAlready)
-				throw JSONRPCError(-5, "Only one upgrade client command is allowed");
+				throw JSONRPCError(-3, "Only one upgrade client command is allowed");
 
 			//TODO 2 make this use the xxx.xxx.xxx.xxx versioning, rather than a number
 			int clientVersion = atoi(params[++i].get_str().c_str());
 
 			if(clientVersion <= CLIENT_VERSION)
-				throw JSONRPCError(-5, "Client version should be greater than the current version");
+				throw JSONRPCError(-4, "Client version should be greater than the current version");
 
 			int deadlineEpoch =
 					ConvertTimeishToEpochSecs(params[++i].get_str());
@@ -1028,7 +1034,7 @@ Value submitproposal(const Array& params, bool fHelp) {
 			int64 amt = AmountFromValue(amtVal);
 
 			if (amt < MIN_TXOUT_AMOUNT)
-				throw JSONRPCError(-101, "Send amount too small");
+				throw JSONRPCError(-6, "Send amount too small");
 
 			CScript sendMoney;
 			sendMoney.SetDestination(address.Get());
@@ -1038,7 +1044,7 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 			++i;
 		} else
-			throw runtime_error("don't understand command " + command);
+			throw JSONRPCError(-7,"don't understand command " + command);
 	}
 
 	CTxOut publicOut(0, pubScript);
@@ -1047,7 +1053,7 @@ Value submitproposal(const Array& params, bool fHelp) {
 	std::string res = pwalletMain->SubmitProposal(tx, false);
 
 	if(res != "")
-		throw JSONRPCError(-4, "Creation failed: "+res);
+		throw JSONRPCError(-8, "Creation failed: "+res);
 
 	return tx.GetHash().GetHex();
 }
@@ -1104,7 +1110,7 @@ Value getvoteinfo(const Array& params, bool fHelp)
   if (!txdb.ReadDiskTx(uint256(params[0].get_str()), proposalTxn))
   {
 	  //TODO 2 check for it in memory????
-	  throw JSONRPCError(-1, "Proposal not found. (it may not be in the block chain, yet");
+	  throw JSONRPCError(-1, "Proposal not found. (it may not be in the block chain, yet)");
   }
 
 
@@ -1238,6 +1244,9 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
         if (wtx.IsCoinBase() || wtx.IsCoinStake() || !wtx.IsFinal())
             continue;
 
+	if(wtx.IsProposal() && !wtx.IsProposalSpendable())
+	  continue;
+
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             if (txout.scriptPubKey == scriptPubKey)
                 if (wtx.GetDepthInMainChain() >= nMinDepth)
@@ -1246,7 +1255,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 
     return  ValueFromAmount(nAmount);
 }
-
+//TODO 2 test altering code to try and spend a non approved proposal
 void GetAccountAddresses(string strAccount, set<CTxDestination>& setAddress)
 {
     BOOST_FOREACH(const PAIRTYPE(CTxDestination, string)& item, pwalletMain->mapAddressBook)
