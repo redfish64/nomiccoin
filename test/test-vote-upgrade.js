@@ -12,8 +12,8 @@ export async function test( ) {
 
     await compileWith( fastChain, smallChain );
 
-    var client1 = await spawnClient( { delay : 3, keepalive : true } );
-    var client2 = await spawnClient( { addnode : client1.target, delay : 3, keepalive : true
+    var client1 = await spawnClient( { keepalive : true } );
+    var client2 = await spawnClient( { addnode : client1.target, keepalive : true
 				     } );
 
     var rpc = await sendRpcQuery( client1, { method : 'getvotingbalance' } );
@@ -21,7 +21,6 @@ export async function test( ) {
     expect( rpc.result ).to.equal( 0 );
 
     //mine some blocks to get some funds
-    //TODO 3 why does the first 2 blocks not give us any money?
     await mineSomePowBlocks( client1, 10);
     await delayExecution( 2 );
     await mineSomePowBlocks( client2, 2);

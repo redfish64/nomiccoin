@@ -17,13 +17,13 @@ export async function test( ) {
     expect( rpc.result ).to.be.equal( 0);
 
     //mine some blocks to get some funds
-    await mineSomePowBlocks( client1, 10);
-    await waitForBlocks(client2,10);
+    await mineSomePowBlocks( client1, 3);
+    await waitForBlocks(client2);
     await mineSomePowBlocks( client2, 5);
-    await waitForBlocks(client1,15);
+    await waitForBlocks(client1);
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
-    expect( rpc.result ).to.be.equal( 10 );
+    expect( rpc.result ).to.be.equal( 3 );
 
     //create an address to receive pool funds
     var rpc = await sendRpcQuery( client1, { method : 'getnewaddress' } );
@@ -48,7 +48,7 @@ export async function test( ) {
 							  propRecvAddr,
 							  "2.5"
 							  ]
-						       	}
+					   }, { quit : true }
 					    );
     var prophash = rpc.result;
 	
@@ -76,7 +76,7 @@ export async function test( ) {
 
     await waitForTxHash(client2, votehash)
     await mineSomePowBlocks( client2, 1 );
-    await waitForBlocks(client1,16);
+    await waitForBlocks(client1);
 
     var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",
     					     params :
@@ -86,12 +86,12 @@ export async function test( ) {
     					   })
 
     
-    expect ( rpc.result.votesForProposal ).to.be.equal( 10 )
-    expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 10 )
+    expect ( rpc.result.votesForProposal ).to.be.equal( 3 )
+    expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 3 )
     expect ( rpc.result.isVotingPeriodOver ).to.be.equal( false )
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
-    expect( rpc.result ).to.be.equal( 10 );
+    expect( rpc.result ).to.be.equal( 3 );
 
     //if the proposal hasn't passed yet, the amount received by the address receiving the
     //money should be zero
@@ -105,12 +105,12 @@ export async function test( ) {
 
     //mine some blocks to acquire some more funds
     await mineSomePowBlocks( client1, 10 );
-    await waitForBlocks(client2, 26)
+    await waitForBlocks(client2)
     await mineSomePowBlocks( client2, 2 );
-    await waitForBlocks(client1, 28)
+    await waitForBlocks(client1)
 
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
-    expect( rpc.result ).to.be.equal( 20 ); 
+    expect( rpc.result ).to.be.equal( 13 ); 
 
     //try voting again
     var rpc = await sendRpcQuery( client1, { method : "vote",
@@ -132,12 +132,12 @@ export async function test( ) {
 
     await waitForTxHash( client2, rpc.result );
     await mineSomePowBlocks( client2, 1 );
-    await waitForBlocks(client1, 29)
+    await waitForBlocks(client1)
 
     //make sure the null vote updated the coins
     var rpc = await sendRpcQuery( client1, { method : "getinfo",
     					   })
-    expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 20 )
+    expect ( rpc.result.votingPeriodVotedCoins ).to.be.equal( 13 )
 
     //before maturity period, so funds aren't received yet
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
@@ -146,7 +146,7 @@ export async function test( ) {
     expect ( rpc.result ).to.be.equal(0);
 
     await mineSomePowBlocks( client2, 3 );
-    await waitForBlocks(client1, 32)
+    await waitForBlocks(client1)
     //funds are spendable after the maturity period
     var rpc = await sendRpcQuery( client1, { method : "getreceivedbyaddress",
     					     params : [ propRecvAddr ]
@@ -154,19 +154,23 @@ export async function test( ) {
     expect ( rpc.result ).to.be.equal(2.5);
     
     var rpc = await sendRpcQuery( client1, { method : 'getbalance' } );
-    expect( rpc.result ).to.be.equal( 22.5 );
+    expect( rpc.result ).to.be.equal( 15.5 );
 
     //send all our funds to client2 to make sure we can transfer those from the funds pool
     var rpc = await sendRpcQuery( client2, { method : 'getnewaddress' } );
     var client2Addr = rpc.result;
 
     var rpc = await sendRpcQuery( client1, { method : 'sendtoaddress',
-					     params : [ client2Addr, 22.5 ] },
+					     params : [ client2Addr, 15.5 ] },
 				  //{ quit : true }
 				);
 
+    await mineSomePowBlocks( client1, 1 );
+    await waitForBlocks(client2)
+    
     var rpc = await sendRpcQuery( client2, { method : "getreceivedbyaddress",
     					     params : [ client2Addr ]
     					   })
+    expect( rpc.result ).to.be.equal( 15.5 );
 }
 //TODO 2 make forcevote to force voting after an expiration to make sure it doesn't count (in the test section of bitcoinrpc)

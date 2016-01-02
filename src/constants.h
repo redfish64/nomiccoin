@@ -38,6 +38,7 @@ extern uint32_t                         (*AUTO_IP_SEEDS);
 extern uint8_t                           PUBKEY_ADDRESS_PREFIX;
 extern uint8_t                           PRVKEY_ADDRESS_PREFIX;
 extern uint8_t                           SCRIPT_ADDRESS_PREFIX;
+extern uint8_t                           PROPOSAL_ADDRESS_PREFIX;
 
 extern hash_t                            GENESIS_MERKLE_HASH;
 extern hash_t                            GENESIS_HASH;

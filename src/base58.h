@@ -417,4 +417,58 @@ public:
     }
 };
 
+
+class CProposalAddress : public CBase58Data
+{
+public:
+    bool Set(const hash_t &val)
+    {
+      SetData(PROPOSAL_ADDRESS_PREFIX, &val, 32);
+      return true;
+    }
+
+    bool IsValid() const
+    {
+      if (nVersion != PROPOSAL_ADDRESS_PREFIX)
+	return false;
+      
+      if (vchData.size() != 32)
+	return false;
+
+      return true;
+    }
+
+    CProposalAddress()
+    {
+    }
+
+    CProposalAddress(const hash_t &val)
+    {
+        Set(val);
+    }
+
+    CProposalAddress(const std::string& strAddress)
+    {
+        SetString(strAddress);
+    }
+
+    CProposalAddress(const char* pszAddress)
+    {
+        SetString(pszAddress);
+    }
+
+    hash_t Get() const
+    {
+        if (!IsValid())
+	  return 0;
+
+        uint256 id;
+
+	memcpy(&id, &vchData[0], 32);
+	return id;
+    }
+
+};
+
+
 #endif

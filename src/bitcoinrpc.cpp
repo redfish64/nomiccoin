@@ -1055,7 +1055,9 @@ Value submitproposal(const Array& params, bool fHelp) {
 	if(res != "")
 		throw JSONRPCError(-8, "Creation failed: "+res);
 
-	return tx.GetHash().GetHex();
+	CProposalAddress pa(tx.GetHash());
+
+	return pa.ToString();
 }
 
 Value vote(const Array& params, bool fHelp)

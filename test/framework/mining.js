@@ -6,6 +6,8 @@ import { delayExecution }        from './time';
  * This function guarantee that at least N blocks will be mined, but cannot guarantee that exactly N blocks will be mined.
  */
 
+var currentBlock = 0
+
 export async function mineSomePowBlocks( client, count ) {
 
     let s = count === 1 ? '' : 's';
@@ -19,13 +21,17 @@ export async function mineSomePowBlocks( client, count ) {
     if ( req.result.length < count )
         throw new Error( 'The client hasn\'t been able to mine enough blocks' );
 
+    currentBlock += count;
+
     return req.result;
 
 }
 
-export async function waitForBlocks( client, index ) {
+export async function waitForBlocks( client ) {
 
     let req;
+
+    let loops = 0;
     
     while(1)
     {
@@ -35,14 +41,20 @@ export async function waitForBlocks( client, index ) {
 	if ( req.error )
             throw new Error( 'An error happened' );
 	
-	if(req.result >= index)
+	if(req.result >= currentBlock)
 	    break;
 
 	await delayExecution(.25);
+
+	loops++;
+
+	if(loops % 10 == 0)
+	    console.log("waiting for client to catch up, expecting %d blocks, got %d blocks",
+			currentBlock, req.result)
     }
 	
-    if(req.result != index)
-	throw new Error( 'Expected %d blocks, got %d blocks\n', index, req.result);
+    if(req.result != currentBlock)
+	throw new Error( 'Expected %d blocks, got %d blocks\n', currentBlock, req.result);
 }
 
 export async function waitForTxHash( client, hash ) {

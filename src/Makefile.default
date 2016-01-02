@@ -59,11 +59,10 @@ SOURCES_HEADLESS_TEST = \
   constants.test.cpp
 
 
-SOURCES_QT = \
+SOURCES_QT_BASE = \
   $(SOURCES_COMMON) \
   init.qt.cpp \
   wallet.qt.cpp \
-  constants.cpp \
   qt/aboutdialog.cpp \
   qt/aboutdialog.h \
   qt/addressbookpage.cpp \
@@ -152,6 +151,16 @@ SOURCES_QT = \
   qt/walletmodel.h \
   $(patsubst %.ts, %.qm, $(shell find qt/locale -name '*.ts'))
 
+SOURCES_QT = \
+  $(SOURCES_QT_BASE) \
+  constants.cpp
+
+SOURCES_QT_TEST = \
+  $(SOURCES_QT_BASE) \
+  constants.test.cpp
+
+
+
 OBJECTS_HEADLESS = \
   $(addsuffix .o, $(filter %.cpp, $(SOURCES_HEADLESS)))
 DEPENDENCIES_HEADLESS = \
@@ -166,3 +175,8 @@ OBJECTS_QT = \
   $(addsuffix .o, $(filter %.cpp, $(SOURCES_QT)))
 DEPENDENCIES_QT = \
   $(addsuffix .d, $(filter %.cpp, $(SOURCES_QT)))
+
+OBJECTS_QT_TEST = \
+  $(addsuffix .o, $(filter %.cpp, $(SOURCES_QT_TEST)))
+DEPENDENCIES_QT_TEST = \
+  $(addsuffix .d, $(filter %.cpp, $(SOURCES_QT_TEST)))

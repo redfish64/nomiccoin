@@ -31,10 +31,11 @@ char const *                    (*AUTO_DNS_SEEDS)[2]          = MAINNET_AUTO_DNS
 uint32_t                        (*AUTO_IP_SEEDS)              = MAINNET_AUTO_IP_SEEDS;
 
 //                                These numbers map in a very convoluted way to the first character of the address. Found by trial and error.
-
 uint8_t                           PUBKEY_ADDRESS_PREFIX       =  34; // "E"
 uint8_t                           PRVKEY_ADDRESS_PREFIX       =  95; 
 uint8_t                           SCRIPT_ADDRESS_PREFIX       = 35; // "F"
+
+uint8_t                           PROPOSAL_ADDRESS_PREFIX       = 24; // "p" (note, this is no capital 'P', you get N through Q)
 
 //                                The following constants define the genesis block of the coin network
 //                                If you change them, the hash will probably be wrong and the genesis invalid (because its hash would be higher than the initial target), and the client will try to generate a new valid genesis at startup

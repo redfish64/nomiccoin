@@ -149,16 +149,19 @@ static void handleRunawayException(std::exception *e)
     exit(1);
 }
 
-//TODO 2: get rid of voteblob... since we put the proposal in the block chain, it serves no purpose anymore
-
 #ifdef WIN32
 #define strncasecmp strnicmp
 #endif
 #ifndef BITCOIN_QT_TEST
 int main(int argc, char *argv[])
 {
-    if (!CheckClientSanity())
+#ifdef TESTING
+    if (!CheckClientSanity(true))
         return 1;
+#else
+    if (!CheckClientSanity(false))
+        return 1
+#endif
 
 #if !defined(MAC_OSX) && !defined(WIN32)
 // TODO: implement qtipcserver.cpp for Mac and Windows

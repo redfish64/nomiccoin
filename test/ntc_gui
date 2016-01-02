@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+
+if(@ARGV==0)
+{
+    print qq{
+Usage $0 <client number from zero> 
+
+Kills the nomiccoind process and runs the gui using the same parameters
+};
+    exit 1;
+}
+
+$n = shift @ARGV;
+
+$pid = `cat /tmp/coin-datadir-${n}/pid`;
+
+kill 'TERM',$pid;
+
+use Time::HiRes qw(usleep);
+
+while(1)
+{
+    usleep(100000);
+    kill 0,$pid or last;
+    if(($i++ % 10) == 0) { print "Still waiting for pid to die\n"; }
+}
+
+my $dirname = `dirname $0`;
+chomp $dirname;
+$command = "gdb $dirname/../src/nomiccoin-qt-test -ex \"set args ".`cat /tmp/coin-datadir-${n}/commandline`."\"";
+
+print "Running: $command\n";
+
+exec $command;
+
+
+
+
+
+

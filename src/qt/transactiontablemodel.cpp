@@ -358,6 +358,8 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
         return tr("Mined");
     case TransactionRecord::StakeMint:
         return tr("Mint by stake");
+    case TransactionRecord::SubmittedProposal:
+        return tr("Submitted Proposal");
     default:
         return QString();
     }

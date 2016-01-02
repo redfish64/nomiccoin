@@ -126,7 +126,9 @@ export async function spawnClient( options = { } ) {
     client.target = `127.0.0.1:${client.port}`;
 
     writeFileSync(`${datadir}/pid`,client.pid)
+    writeFileSync(`${datadir}/commandline`,commandLine.join(" "))
 
+    
     while(1) {
 	await delayExecution ( .25);
 	try {
