@@ -2064,5 +2064,6 @@ extern bool CreateVoteTxn(const CKeyStore *keyStore, const CTransaction& tran, i
 		uint256 proposalHash, CTransaction& txNew);
 
 
+extern CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count);
 #endif
 

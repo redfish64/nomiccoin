@@ -157,12 +157,12 @@ timestamp_t                       TARGET_TIMESPAN             = 2 * HOUR;
 // -- You can use the -checkpointkey command line parameter to specify the private key. If you do this, and if the private key is correct, your client will start sending checkpoints regularly
 // -- In order to generate a new valid checkpoint key, you have to use the `makekeypair` rpc command - don't try to generate it yourself
 
-std::string                       CHECKPOINT_PUBLIC_KEY       = "047cc09d2fe1e20623b9c07fa1b6dba2d19307fe4e89984938def6f2d3c96093e3a3b4b1c1687cd06a862a7d801b76ae97ee3d690f420828aba2b832450538f475";
+std::string                       CHECKPOINT_PUBLIC_KEY       = ""; //nomiccoin doesn't have central checkpointing, so we leave this blank (but we keep the checkpointing code just in case it gets voted in one day)
 std::string                       CHECKPOINT_PRIVATE_KEY      = ""; // Do NOT set it here; use -checkpointkey instead
 
 // -- The private key has to be specified when you use the sendalert rpc call. It doesn't have to be in the source code.
 
-std::string                       CALERT_PUBLIC_KEY           = "046cad722ce2f38f6bd434d64423fc9613c7cb360dd4f957ae56f140a8c65882857c3436f3004733b56560e43e677744b557d471de132b48363fafcb0e18b8b0f6";
+std::string                       CALERT_PUBLIC_KEY           = "";
 
 // -- These variables should probably not be modified, since they rely on the previous ones
 // -- Don't forget that the testnet code also has to change them if it changes the variables they depend from
@@ -225,3 +225,11 @@ double PROPOSAL_PRIORITY_MULTIPLIER = 100;
  * with bathroom scrawls all over them you damn kids
  */
 money_t PROPOSAL_ADDITIONAL_FEE = 1*COIN;
+
+/**
+ * The number of blocks prior from the best index in the chain to use for hardcoded upgrade 
+ * checkpoints. This is used by the rpc call, createblockcheckpointcode to choose a block for
+ * thispurpose
+ */
+int CHECKPOINT_MATURITY_BLOCKS = 500;
+

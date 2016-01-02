@@ -425,15 +425,17 @@ namespace Checkpoints
 
     // Is the sync-checkpoint too old?
     bool IsSyncCheckpointTooOld(unsigned int nSeconds) {
+      //co: nomiccoin doesn't use sync checkpoints
+      return false;
 
-        LOCK(cs_hashSyncCheckpoint);
+        // LOCK(cs_hashSyncCheckpoint);
 
-        // sync-checkpoint should always be accepted block
-        assert(mapBlockIndex.count(hashSyncCheckpoint));
+        // // sync-checkpoint should always be accepted block
+        // assert(mapBlockIndex.count(hashSyncCheckpoint));
 
-        const CBlockIndex* pindexSync = mapBlockIndex.at(hashSyncCheckpoint);
+        // const CBlockIndex* pindexSync = mapBlockIndex.at(hashSyncCheckpoint);
 
-        return (pindexSync->GetBlockTime() + nSeconds < GetAdjustedTime());
+        // return (pindexSync->GetBlockTime() + nSeconds < GetAdjustedTime());
 
     }
 }

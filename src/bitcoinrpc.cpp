@@ -2769,6 +2769,35 @@ Value getbestblockhash(const Array& params, bool fHelp)
     return pblockindex->phashBlock->GetHex();
 }
 
+Value createblockcheckpointcode(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "createblockcheckpointcode\n"
+            "Prints the C++ code to create a hard checkpoint. This should usually be included in constants.cpp for each upgrade to the nomiccoin source, ie:\n \n  std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = <...>; \n\nThese checkpoints are important to prevent the use of old keys to perform a block chain fork, and\nshould be updated for every nomiccoin release. (A sizeable number of coins from unused keys, close to the average percent of coins being used for minting would be necessary to fork the blockchain, so this is a somewhat remote possibly. Nevertheless, without these checkpoints, if 80% of the original founders of the coin decided they wanted to get together and fork the chain, this would theoretically be able to. Also considering that, at genesis, there really is only one owner, which is me, that would mean I would have the possibly to destroy the blockchain if I reused my original old key to create an alternate fork. I don't want this power.");
+
+    CBlockIndex* pblockindex = mapBlockIndex.at(hashBestChain);
+
+    pblockindex = GetPriorBlockIndex(pblockindex, CHECKPOINT_MATURITY_BLOCKS);
+
+    if(pblockindex == NULL)
+      {
+	throw JSONRPCError(-1, "Not enough blocks have passed to produce a new checkpoint");
+      }
+
+    int maxBlockHeight = BLOCK_CHECKPOINTS.rbegin()->first;
+
+    if(pblockindex->nHeight <  maxBlockHeight)
+      {
+	throw JSONRPCError(-2, "Block chain hasn't be loaded past last checkpoint");
+      }
+
+    std::ostringstream stringStream;
+    
+    stringStream << "//Replace the corresponding line in constants.cpp with this line:\nstd::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)(" << pblockindex->nHeight << ", hash_t(\"" << pblockindex->phashBlock->GetHex() << "\"));";
+    return stringStream.str(); 
+}
+
 Value getblock(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 3)
@@ -3619,15 +3648,26 @@ VirtualCoinStakeStatus getVirtualCoinStakeStatus()
 
 #ifdef TESTING
 
-//wait for the given block index to be mined
+//returns current block height
 static Value getblockindex(const Array& params, bool fHelp)
 {
+  if (fHelp)
+    throw runtime_error(
+			"getblockindex\n"
+			"returns the current block height.\n");
+
   return nBestHeight;
 }
 
 //wait for the tx hash to appear in the memory pool
 static Value txhashinmem(const Array& params, bool fHelp)
 {
+  if (fHelp || params.size() != 1)
+    throw runtime_error(
+			"txhashinmem\n"
+			"returns true if the tx exists in the mempool.\n");
+
+  
   uint256 hash = uint256(params[0].get_str());
   
   return mempool.exists(hash);
@@ -3698,6 +3738,7 @@ static const CRPCCommand vRPCCommands[] =
     { "help",                   &help,                   true },
     { "addnode",                &addnode,                true },
     { "stop",                   &stop,                   true },
+    { "createblockcheckpointcode", &createblockcheckpointcode, true },
     { "getblockcount",          &getblockcount,          true },
     { "getblocknumber",         &getblocknumber,         true },
     { "getconnectioncount",     &getconnectioncount,     true },

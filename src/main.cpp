@@ -3358,13 +3358,14 @@ string GetWarnings(string strFor)
         strStatusBar = strMiscWarning;
     }
 
+    // co: nomiccoin does not use sync checkpoints
     // ppcoin: should not enter safe mode for longer invalid chain
     // ppcoin: if sync-checkpoint is too old do not enter safe mode
-    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 10))
-    {
-      nPriority = 100;
-      strStatusBar = "Warning: No sync-checkpoint received for quite a long time.";
-    }
+    // if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 10))
+    // {
+    //   nPriority = 100;
+    //   strStatusBar = "Warning: No sync-checkpoint received for quite a long time.";
+    // }
 
     std::string upgradeStatus = GetUpgradeStatus();
 
