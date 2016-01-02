@@ -468,6 +468,16 @@ public:
 	return id;
     }
 
+    bool SetString(const char* val)
+    {
+      return CBase58Data::SetString(val) && IsValid();
+    }
+
+    bool SetString(const std::string& val)
+    {
+      return SetString(val.c_str());
+    }
+
 };
 
 

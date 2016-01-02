@@ -40,6 +40,7 @@ ui_*.h
 /src/nomiccoind
 /src/nomiccoind-test
 /src/nomiccoin-qt
+/src/nomiccoin-qt-test
 
 /src/nomiccoind.exe
 /src/nomiccoin-qt.exe

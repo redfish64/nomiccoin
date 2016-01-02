@@ -48,12 +48,13 @@ export async function test( ) {
 							  propRecvAddr,
 							  "2.5"
 							  ]
-					   }, { quit : true }
+					   }//, { quit : true }
 					    );
-    var prophash = rpc.result;
+    var proptxn = rpc.result.proposalTxn;
+    var prophash = rpc.result.proposalAddr;
 	
     //wait for the proposal to be transmitted to the other client	
-    await waitForTxHash(client1, prophash)
+    await waitForTxHash(client1, proptxn)
     
     var rpc = await sendRpcQuery( client1, { method : "vote",
     					     params :
@@ -64,7 +65,7 @@ export async function test( ) {
     expect ( rpc.result ).to.match( /^[A-Za-z0-9]{64}$/ )
     var votehash = rpc.result
 
-    var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",
+    var rpc = await sendRpcQuery( client1, { method : "getproposalinfo",
     					     params :
     					     [
     						 prophash
@@ -78,7 +79,7 @@ export async function test( ) {
     await mineSomePowBlocks( client2, 1 );
     await waitForBlocks(client1);
 
-    var rpc = await sendRpcQuery( client1, { method : "getvoteinfo",
+    var rpc = await sendRpcQuery( client1, { method : "getproposalinfo",
     					     params :
     					     [
     						 prophash
@@ -120,7 +121,7 @@ export async function test( ) {
     					     ]
     					   })
 
-    expect ( rpc.error.code ).to.be.equal( -4); //vote failed, expired
+    expect ( rpc.error.code ).to.be.equal( -2); //vote failed, expired
 
     //do a null vote
     var rpc = await sendRpcQuery( client1, { method : "vote",

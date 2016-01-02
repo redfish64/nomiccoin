@@ -953,6 +953,7 @@ void ConvertTo(Value& value)
 }
 
 
+//TODO 2 2016-01-02 01:13:11 UTC ERROR: ConnectInputs() : transaction timestamp earlier than input transaction
 
 int ConvertTimeishToEpochSecs(string timeish)
 {
@@ -1057,7 +1058,12 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 	CProposalAddress pa(tx.GetHash());
 
-	return pa.ToString();
+	Object obj;
+
+	obj.push_back(Pair("proposalAddr", pa.ToString()));
+	obj.push_back(Pair("proposalTxn", tx.GetHash().GetHex()));
+
+	return obj;
 }
 
 Value vote(const Array& params, bool fHelp)
@@ -1066,7 +1072,7 @@ Value vote(const Array& params, bool fHelp)
   if (pwalletMain->IsCrypted() || (fHelp || params.size() != 1))
         throw runtime_error(
 			    string("") +
-			    "vote <proposaltxnhash|0>\n"
+			    "vote <proposal addr|0>\n"
             "Votes with all coins for the given proposal.\n"
 	    "If 'vote 0' is specified, then the coins will be registered as a no vote for all current proposals.\n"
 	    "\n"
@@ -1083,20 +1089,26 @@ Value vote(const Array& params, bool fHelp)
       res = pwalletMain->VoteForProposal(0, voteHash, false);
     }
   else
-	  res = pwalletMain->VoteForProposal(uint256(params[0].get_str()),
-			  voteHash,false);
+    {
+      CProposalAddress pa(params[0].get_str());
 
+      if(!pa.IsValid())
+	throw JSONRPCError(-121, "Proposal address is not valid: "+params[0].get_str());
+      
+      res = pwalletMain->VoteForProposal(pa.Get(), voteHash,false);
+    }
+  
   if(res != "")
-    throw JSONRPCError(-4, "Voting failed: "+res);
-
+    throw JSONRPCError(-2, "Voting failed: "+res);
+  
   return voteHash.GetHex();
 }
 
-Value getvoteinfo(const Array& params, bool fHelp)
+Value getproposalinfo(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 1)
     throw runtime_error(
-			"getvoteinfo <txnhash>\n"
+			"getproposalinfo <propopsal addr>\n"
 			"Returns the total votes for the proposal, and other information about it.\n"
 			);
   
@@ -1105,11 +1117,16 @@ Value getvoteinfo(const Array& params, bool fHelp)
   bool isVoteWon;
   bool isVotingPeriodOver;
 
+  CProposalAddress pa(params[0].get_str());
+  
+  if(!pa.IsValid())
+    throw JSONRPCError(-121, "Proposal address is not valid: "+params[0].get_str());
+      
   CTxDB txdb("r");
   
   //get the proposal txn
   CTransaction proposalTxn;
-  if (!txdb.ReadDiskTx(uint256(params[0].get_str()), proposalTxn))
+  if (!txdb.ReadDiskTx(pa.Get(), proposalTxn))
   {
 	  //TODO 2 check for it in memory????
 	  throw JSONRPCError(-1, "Proposal not found. (it may not be in the block chain, yet)");
@@ -3745,7 +3762,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setnosplitmaxcombine",   &setnosplitmaxcombine,   false },
     { "submitproposal",   &submitproposal,   true },
     { "vote",   &vote,   false },
-    { "getvoteinfo",   &getvoteinfo,   true },
+    { "getproposalinfo",   &getproposalinfo,   true },
     { "getupgradeinfo",   &getupgradeinfo,   true },
 #ifdef TESTING
     { "getblockindex",           &getblockindex,           true },
