@@ -1,4 +1,4 @@
-import { RPC_USER, RPC_PASSWORD } from '../_config';
+import { RPC_USER, RPC_PASSWORD } from './spawn';
 import { merge } from './lodash';
 
 export function sendRpcQuery( client, json, params ) {

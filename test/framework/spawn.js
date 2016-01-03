@@ -1,8 +1,6 @@
 import { CLIENT_PATH, MINER_PATH }       from '../_config';
 import { BASE_DATADIR }                  from '../_config';
 import { BASE_PORT, BASE_RPC_PORT }      from '../_config';
-import { RPC_USER, RPC_PASSWORD }        from '../_config';
-
 import { compact, flatten, last, merge } from './lodash';
 import { delayExecution }                from './time';
 import { sendRpcQuery }          from './query';
@@ -14,6 +12,20 @@ var gClientId = 0;
 var spawn = require( 'child_process' ).spawn;
 
 var writeFileSync = require('fs').writeFileSync;
+
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 10; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
+export var RPC_USER      = makeid();
+export var RPC_PASSWORD  = makeid();
 
 function checkPort( port ) {
 
@@ -74,7 +86,7 @@ export async function spawnClient( options = { } ) {
 
         rpcuser : RPC_USER,
         rpcpassword : RPC_PASSWORD,
-        rpcallowip : '*',
+        rpcallowip : '127.0.0.1',
 
         gen : false,
         stakegen : false,

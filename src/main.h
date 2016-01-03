@@ -1204,98 +1204,8 @@ enum BlockIndexObjectType
     UPGRADE_REQUEST=2
   };
 
-class CAppState;
 
 
-/**
- * Forces the client to upgrade at a specific block
- */
-class CUpgradeRequest
-{
- public:
-  int upgradeVersion;//zero if no upgrade. Value of the CLIENT_VERSION constant of the
-  //upgraded version
-  
-  uint160 upgradeGitCommit; //git commit of upgrade.
-
-  uint64 upgradeDeadline; //after this deadline, if the upgrade hasn't occurred yet, the
-  //client will shutdown and refuse to run
-
-  void SetNull()
-  {
-    upgradeVersion = 0;
-    upgradeGitCommit = 0;
-    upgradeDeadline = 0;
-    }
-
-  IMPLEMENT_SERIALIZE
-    (
-     READWRITE(upgradeVersion);
-     READWRITE(upgradeGitCommit);
-     READWRITE(upgradeDeadline);
-     );
-
-  void mergeUpgradeRequest(const CUpgradeRequest& ur)
-  {
-    if(ur.upgradeVersion <= CLIENT_VERSION)
-      return;
-    
-    if((ur.upgradeVersion != 0 && ur.upgradeDeadline < upgradeDeadline)
-       || upgradeDeadline == 0)
-      upgradeDeadline = ur.upgradeDeadline;
-    
-    if(ur.upgradeVersion > upgradeVersion)
-      {
-	upgradeVersion = ur.upgradeVersion;
-	upgradeGitCommit = ur.upgradeGitCommit;
-      }
-  }
-
-  uint256 GetHash() const
-  {
-    return SerializeHash(*this);
-  }
-};
-
-
-/**
- * A state of the application as it relates to CBlockIndexObjects
- */
-class CAppState
-{
- public:
-  int version;
-  CUpgradeRequest ur;
-
-  CAppState()
-    {
-      SetNull();
-    }
-  
-  void SetNull()
-  {
-    version=0;
-    ur.SetNull();
-  }
-
-
-  IMPLEMENT_SERIALIZE
-    (
-     READWRITE(version);
-     READWRITE(ur);
-     );
-
-  void add(const CUpgradeRequest & otherUr)
-  {
-    ur.mergeUpgradeRequest(otherUr);
-  }
-
-  /**
-   * Updates the app state for moving to the next block
-   */
-  void receiveNewBlock(CBlockIndex *pindex, CAppState& appStateOut);
-  
-};
 
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
@@ -1345,8 +1255,6 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
-
-    CAppState appState;
 
     CBlockIndex()
     {

@@ -209,7 +209,7 @@ enum opcodetype
     OP_UPGRADE_CLIENT = 0xd1,
 
     //title of proposal, args: <title (80 chars max)
-    OP_VOTE_TITLE = 0xd2,
+    OP_PROP_TITLE = 0xd2,
 
     //votes for a proposal, args: <txn hash>
     OP_VOTE = 0xd3,

@@ -2247,35 +2247,6 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
     return true;
 }
 
-void UpdateUpgradeStatusForNewPindexBest()
-{
-  CUpgradeRequest& ur = pindexBest->appState.ur;
-  if(ur.upgradeVersion <= CLIENT_VERSION)
-    return; //we are already upgraded
-
-  //else we give the user a nag to upgrade
-  printf("*** An upgrade of the client MUST be performed.\n"
-	 "*** You have %ld seconds before deadline expires on %s"
-	 "*** Afterwards, client will shutdown and refuse to start.\n",
-	 (ur.upgradeDeadline - GetAdjustedTime()),
-	 DateTimeStrFormat(ur.upgradeDeadline).c_str());
-  
-  printf("New version #:   %20d\n"
-		 "Deadline:        %20s\n"
-		 "Source git hash: %20s\n",
-		ur.upgradeVersion,
-		DateTimeStrFormat(ur.upgradeDeadline).c_str(),
-		std::string(ur.upgradeGitCommit.begin(), ur.upgradeGitCommit.end()).c_str()
-  	  );
-
-  if(ur.upgradeDeadline < (uint64)GetAdjustedTime())
-    {
-      printf("*** Deadline has expired. Will shutdown now\n");
-      StartShutdown();
-      return;
-    }
-
-}
 
 bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 {

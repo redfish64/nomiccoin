@@ -3,26 +3,20 @@
 if(@ARGV==0)
 {
     print qq{
-Usage $0 <commands...> <client number from zero> 
+Usage $0 <client number from zero> <commands...> 
 
 Runs test client with the given commands
 };
     exit 1;
 }
 
-$c = shift @ARGV;
+my $n = shift @ARGV;
 
-$port = 5100+$c;
-$rpcport = 6100+$c;
+my $dirname = `dirname $0`;
+chomp $dirname;
+$command = "$dirname/../src/nomiccoind-test ".`cat /tmp/coin-datadir-${n}/commandline`." '".join("' '", @ARGV)."'";
 
-if($port != 5100)
-{
-    @an_str = ("-addnode=127.0.0.1:5100");
-}
+print "Running: $command\n";
 
-@stuff = ("/home/tim/projects/nomiccoin/test/../src/nomiccoind", "-v", "-datadir=/tmp//coin-datadir-$c/", "-port=$port", "-rpcport=$rpcport", "-rpcuser=user", "-rpcpassword=password", "-rpcallowip=*", "-gen=0", "-stakegen=0", "-dnsseed=0", @an_str, @ARGV);
-
-print "Running: '".join("' '",@stuff)."'\n";
-
-system(@stuff);
+exec $command;
 

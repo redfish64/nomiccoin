@@ -1471,6 +1471,13 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 	  //upgrade deadline seconds from epoch
 	  scriptPubKey.GetOp(iter, opcode);
 
+	  //upgrade version
+	  scriptPubKey.GetOp(iter, opcode);
+
+	  if(*iter != OP_UPGRADE_CLIENT)
+		  return false;
+	  iter++;
+
 	  if(iter == scriptPubKey.end())
 		  return true;
 	  else

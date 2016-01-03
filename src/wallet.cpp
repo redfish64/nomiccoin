@@ -1209,6 +1209,9 @@ std::string CWallet::SubmitProposal(CTransaction &txn, bool fAskFee)
     CReserveKey preChangeReserveKey(this);
 
     CWalletTx preTx;
+    //if the pre txn is later than the proposal, then the later will fail because all inputs
+    //must be equal to or earlier for any transaction
+    preTx.nTime = txn.nTime;
 
     int64 preFee;
 

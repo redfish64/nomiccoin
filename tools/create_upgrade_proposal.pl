@@ -119,7 +119,7 @@ my $version = parse_coin_version("../src/version.h");
 my ($block_height, $block_checkpoint) = parse_last_block_checkpoint("../src/constants.cpp");
 
 my $rpc = "submitproposal \"$deadline_str\" \"$title\" upgradeclient $version \"$upgrade_deadline_str\" $git_commit $block_height:$block_checkpoint "
-    .join(" ",map { ("spend pool $_ ".$spendvalues{$_}); } sort keys %spendvalues);
+    .join(" ",map { ("spendpool $_ ".$spendvalues{$_}); } sort keys %spendvalues);
 
 print "$rpc\n";
 

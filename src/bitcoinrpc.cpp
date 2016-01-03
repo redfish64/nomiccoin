@@ -1016,11 +1016,14 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
+	if(deadline == 0)
+	  throw JSONRPCError(-111, "Could not parse deadline, got '"+params[0].get_str()+"'");
+
 	if(deadline < MIN_PROPOSAL_DEADLINE_TIME + GetAdjustedTime())
 	  throw JSONRPCError(-1, "Proposal deadline too soon, must be at least "+boost::lexical_cast<std::string>(MIN_PROPOSAL_DEADLINE_TIME)+" seconds from now");
 
 	if(deadline > MAX_PROPOSAL_DEADLINE_TIME + GetAdjustedTime())
-	  throw JSONRPCError(-1, "Proposal deadline too late, must be at most "+boost::lexical_cast<std::string>(MAX_PROPOSAL_DEADLINE_TIME)+" seconds from now");
+	  throw JSONRPCError(-11, "Proposal deadline too late, must be at most "+boost::lexical_cast<std::string>(MAX_PROPOSAL_DEADLINE_TIME)+" seconds from now");
 
 	string title = params[1].get_str();
 

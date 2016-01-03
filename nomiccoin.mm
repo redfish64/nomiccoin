@@ -2933,7 +2933,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1450848953296" ID="ID_1102497" MODIFIED="1450848955196" POSITION="right" TEXT="plan4">
+<node CREATED="1450848953296" ID="ID_1102497" MODIFIED="1451811579851" POSITION="right" TEXT="plan4">
 <node CREATED="1450848956720" ID="ID_761943453" MODIFIED="1450848973596" TEXT="proposals have a fee and the inputs must specify the fee">
 <node CREATED="1450848978448" ID="ID_1031416311" MODIFIED="1450848986916" TEXT="In this way we can increase the cost of proposals"/>
 <node CREATED="1450849848896" ID="ID_1419958051" MODIFIED="1450849861108" TEXT="The fee gets added to the pool/minting fee"/>
@@ -3231,6 +3231,31 @@
 </node>
 </node>
 <node COLOR="#ff0000" CREATED="1451729487626" ID="ID_1046499821" MODIFIED="1451729517347" TEXT="We need emergency &quot;run anyway&quot; flag for failed upgrades"/>
+<node COLOR="#ff0000" CREATED="1451811583702" ID="ID_1579834562" MODIFIED="1451811594510" TEXT="gui needs message for upgrading"/>
+<node CREATED="1451817186662" ID="ID_1807418515" MODIFIED="1451817191473" TEXT="Upgrades">
+<node CREATED="1451817192614" ID="ID_627402132" MODIFIED="1451817214337" TEXT="A new thread will be created specifically for handling upgrade messages">
+<node CREATED="1451817215486" ID="ID_1007660445" MODIFIED="1451817233706" TEXT="(There doesn&apos;t seem to be any thread for general utility stuff)"/>
+</node>
+<node CREATED="1451817236422" ID="ID_707176819" MODIFIED="1451817253530" TEXT="A new table will be created for upgrades">
+<node CREATED="1451817254342" ID="ID_1010427830" MODIFIED="1451817264873" TEXT="Fields">
+<node CREATED="1451817266558" ID="ID_1378908806" MODIFIED="1451817274377" TEXT="Block height">
+<node CREATED="1451817275726" ID="ID_1325948590" MODIFIED="1451817278433" TEXT="Primary key"/>
+</node>
+<node CREATED="1451817279294" ID="ID_1733173421" MODIFIED="1451817659633" TEXT="Version"/>
+<node CREATED="1451817660013" ID="ID_13229339" MODIFIED="1451817661978" TEXT="Git Version"/>
+<node CREATED="1451817662277" ID="ID_1297787471" MODIFIED="1451817665554" TEXT="Upgrade deadline"/>
+<node CREATED="1451817668838" ID="ID_1425299082" MODIFIED="1451817673729" TEXT="Proposal Hash"/>
+</node>
+</node>
+<node CREATED="1451817685757" ID="ID_1655355277" MODIFIED="1451817715801" TEXT="Every second or so, the thread will check the cached upgrade row to see if we are passed the deadline and shutdown if so"/>
+<node CREATED="1451817728422" ID="ID_1397479728" MODIFIED="1451817749466" TEXT="When we boot, we fill in the upgrade row and shutdown immediately if necessary">
+<node CREATED="1451817758046" ID="ID_616988035" MODIFIED="1451817763761" TEXT="Notifying the user for gui"/>
+</node>
+<node CREATED="1451817764870" ID="ID_1824181151" MODIFIED="1451817770186" TEXT="Gui">
+<node CREATED="1451817771518" ID="ID_1300902410" MODIFIED="1451817778619" TEXT="Status bar will tell the user to upgrade"/>
+<node CREATED="1451817781869" ID="ID_435573075" MODIFIED="1451817812554" TEXT="When upgrade status first occurs, and on startup a dialog will pop up"/>
+</node>
+</node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">
