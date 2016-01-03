@@ -18,5 +18,10 @@ bool CheckClientSanity(bool fAllowVulnerabilities)
     if (TARGET_TIMESPAN < TARGET_SPACING)
         return error("[Sanity fail] The target timespan should not be lower than the target spacing");
 
+    if (COIN_VERSION == 0)
+      return error("Invalid COIN_VERSION");
+    if (CLIENT_VERSION == 0)
+      return error("Invalid CLIENT_VERSION");
+
     return true;
 }

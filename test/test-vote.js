@@ -31,7 +31,7 @@ export async function test( ) {
     console.log('receiving address : %s', propRecvAddr);
 
     //'2012-11-04T14:51:06.157Z'
-    //create a deadline 30 seconds from now
+    //create a deadline a few seconds from now
     var deadlineStr = new Date(new Date().getTime() 
 			       //+ 3000*1000
 			       + 5*1000

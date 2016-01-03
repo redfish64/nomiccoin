@@ -10,7 +10,7 @@ Runs test client with the given commands
     exit 1;
 }
 
-$c = pop @ARGV;
+$c = shift @ARGV;
 
 $port = 5100+$c;
 $rpcport = 6100+$c;

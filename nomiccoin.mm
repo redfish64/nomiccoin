@@ -2985,10 +2985,7 @@
 <node CREATED="1451133780981" ID="ID_1248553406" MODIFIED="1451133814977" TEXT="When we write over a previous UTXO, we don&apos;t know the block it was in, therefore, we don&apos;t know whether its vote should have counted against the proposal, because we don&apos;t know the blocktime"/>
 <node CREATED="1451134200726" ID="ID_171407566" MODIFIED="1451134720570" TEXT="You can, see GetTransaction(x,y,z) in main line 1178, with the TxIndex"/>
 </node>
-<node CREATED="1451202881683" ID="ID_1009444253" MODIFIED="1451202886183" TEXT="How about a veto power?">
-<node CREATED="1451202892587" ID="ID_1758385677" MODIFIED="1451202939215" TEXT="We end votes at a given time, but allow 0 votes to count after the deadline for a period of time. This way, if a proposal wins &quot;by surprise&quot; there is a way to still prevent it from passing"/>
-</node>
-<node CREATED="1451696461741" ID="ID_1125862824" MODIFIED="1451696464521" TEXT="vote screen">
+<node COLOR="#ff0000" CREATED="1451696461741" ID="ID_1125862824" MODIFIED="1451729541578" TEXT="vote screen">
 <node CREATED="1449048738321" ID="ID_638920842" MODIFIED="1449058084497" TEXT="contains">
 <node CREATED="1449058062447" ID="ID_1383501251" MODIFIED="1449058065394" TEXT="Vote Box">
 <node CREATED="1449048743537" ID="ID_345971481" MODIFIED="1451696310057" TEXT="Vote Proposal ID &lt;entrybox&gt;">
@@ -3032,7 +3029,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1451644690388" ID="ID_1438381624" MODIFIED="1451644694185" TEXT="transactions screen">
+<node COLOR="#ff0000" CREATED="1451644690388" ID="ID_1438381624" MODIFIED="1451729535434" TEXT="transactions screen">
 <node CREATED="1451644696806" ID="ID_781410397" MODIFIED="1451644705128" TEXT="proposals">
 <node CREATED="1451644706565" ID="ID_1172143613" MODIFIED="1451644711792" TEXT="from me">
 <node CREATED="1451644713269" ID="ID_1316312410" MODIFIED="1451644772656" TEXT="fields">
@@ -3078,8 +3075,40 @@
 </node>
 </node>
 </node>
+<node CREATED="1451720046060" ID="ID_1438995293" MODIFIED="1451720047783" TEXT="votes">
+<node CREATED="1451720050100" ID="ID_405816850" MODIFIED="1451720053743" TEXT="fields">
+<node CREATED="1451720054980" ID="ID_1405883988" MODIFIED="1451720056719" TEXT="Address">
+<node CREATED="1451720058060" ID="ID_1584992281" MODIFIED="1451720061520" TEXT="Proposal ID"/>
 </node>
-<node CREATED="1451645678445" ID="ID_13587018" MODIFIED="1451645686304" TEXT="proposals screen">
+<node CREATED="1451720066420" ID="ID_1911723103" MODIFIED="1451720068903" TEXT="Amount">
+<node CREATED="1451720070571" ID="ID_805825132" MODIFIED="1451720071279" TEXT="Fee"/>
+</node>
+</node>
+<node CREATED="1451720116963" ID="ID_1111519418" MODIFIED="1451720119423" TEXT="Type">
+<node CREATED="1451720121979" ID="ID_361905858" MODIFIED="1451720140815" TEXT="if before deadline">
+<node CREATED="1451720142259" ID="ID_297238473" MODIFIED="1451720148552" TEXT="if spent/revoted">
+<node CREATED="1451720193988" ID="ID_1914790764" MODIFIED="1451720229751" TEXT="Rescinded Vote"/>
+</node>
+<node CREATED="1451720174852" ID="ID_1288621989" MODIFIED="1451720178343" TEXT="if fresh">
+<node CREATED="1451720187763" ID="ID_463966385" MODIFIED="1451720191920" TEXT="Current Vote"/>
+</node>
+</node>
+<node CREATED="1451720179427" ID="ID_132821479" MODIFIED="1451720182167" TEXT="if after deadline">
+<node CREATED="1451720233052" ID="ID_17946566" MODIFIED="1451720248096" TEXT="if spent/revoted before deadline">
+<node CREATED="1451720237484" ID="ID_545281810" MODIFIED="1451720239527" TEXT="Rescinded Vote"/>
+</node>
+<node CREATED="1451720248757" ID="ID_1438109850" MODIFIED="1451720254544" TEXT="else">
+<node CREATED="1451720255956" ID="ID_1350297335" MODIFIED="1451720273256" TEXT="Previous Vote"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1451720320364" ID="ID_257357875" MODIFIED="1451720328432" TEXT="Can we use mapWallet to look for linked transactions?">
+<node CREATED="1451720372852" ID="ID_462064628" MODIFIED="1451720391327" TEXT="It&apos;s not used anywhere in decomposeTransaction in the original code"/>
+<node CREATED="1451720391595" ID="ID_529724398" MODIFIED="1451720399848" TEXT="Where it is used, it locks the wallet beforehand"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1451645678445" ID="ID_13587018" MODIFIED="1451729534547" TEXT="proposals screen">
 <node CREATED="1451645751013" ID="ID_1645605013" MODIFIED="1451645757392" TEXT="label">
 <node CREATED="1451645759261" ID="ID_1545947835" MODIFIED="1451645763209" TEXT="View Proposals"/>
 </node>
@@ -3161,7 +3190,7 @@
 <node CREATED="1451696166581" ID="ID_975541399" MODIFIED="1451696184800" TEXT="Vote for 0 (unvote for all proposals)"/>
 </node>
 </node>
-<node CREATED="1451648660332" ID="ID_1385250024" MODIFIED="1451648670048" TEXT="Should proposal ids be base58 encoded?">
+<node CREATED="1451648660332" FOLDED="true" ID="ID_1385250024" MODIFIED="1451729528243" TEXT="Should proposal ids be base58 encoded?">
 <node CREATED="1451648671412" ID="ID_1861129228" MODIFIED="1451648699120" TEXT="The one downside I see is the proposal id is the same as the transaction id">
 <node CREATED="1451648704357" ID="ID_957591805" MODIFIED="1451648726297" TEXT="Because so, it would be confusing, in that there are now two ways to identify a proposal"/>
 <node CREATED="1451648796053" ID="ID_364453272" MODIFIED="1451648830760" TEXT="I can&apos;t see how this would affecting anything except that external tools would have to be able to convert proposal ids">
@@ -3177,6 +3206,31 @@
 <node CREATED="1451648914716" ID="ID_314439573" MODIFIED="1451648933041" TEXT="We would be able to set the version, then, and get to pick a starting letter"/>
 </node>
 </node>
+<node CREATED="1451720860964" ID="ID_1619991431" MODIFIED="1451720867543" TEXT="Upgrade procedure">
+<node CREATED="1451720869437" ID="ID_1464001662" MODIFIED="1451720872223" TEXT="Purpose">
+<node CREATED="1451720873283" ID="ID_1449313686" MODIFIED="1451720886527" TEXT="We want to make it easy to upgrade, and create a proposal to do so"/>
+</node>
+<node COLOR="#ff0000" CREATED="1451720891483" ID="ID_853824136" MODIFIED="1451729524114" TEXT="create_upgrade_proposal_from_source.pl">
+<node CREATED="1451720910036" ID="ID_1425052404" MODIFIED="1451720938751" TEXT="Creates an rpc submitproposal invokation appropriately for tree">
+<node CREATED="1451721013868" ID="ID_457342760" MODIFIED="1451721051520" TEXT="Adds the checkpoint hashblock to the submit proposal command, so that it can be checked by the client"/>
+</node>
+<node CREATED="1451720944252" ID="ID_988355515" MODIFIED="1451721069120" TEXT="Prints out a blurb about bumping version and creating a hashblock"/>
+<node CREATED="1451720965876" ID="ID_987918128" MODIFIED="1451720971343" TEXT="Checks that git is clean"/>
+</node>
+<node CREATED="1451721661100" ID="ID_377239506" MODIFIED="1451721677456" TEXT="Do we want to get rid of upgrade proposal option in the gui?">
+<node CREATED="1451721678940" ID="ID_1345327636" MODIFIED="1451721715056" TEXT="It seems kind of useless, considering that a developer would be more comfortable with the command line then filling in some forms in a gui anyway (especially with create_upgrade_proposal_from_source.pl)"/>
+</node>
+</node>
+<node CREATED="1451722038196" ID="ID_1316974643" MODIFIED="1451722046911" TEXT="Veto period for proposals">
+<node CREATED="1451722048459" ID="ID_893926003" MODIFIED="1451722090480" TEXT="In order to prevent someone from voting immediately before the deadline ends, and winning a proposal that seemed like it would fail, there is a 24 hour period for users to veto the proposal">
+<node CREATED="1451722093900" ID="ID_1777266605" MODIFIED="1451722127544" TEXT="During this time, the proposal can&apos;t be voted for, but votes can still be changed to against the proposal."/>
+</node>
+<node CREATED="1451722160636" ID="ID_830916660" MODIFIED="1451722184455" TEXT="Do we really need this? It seems complex, and somewhat far fetched that people that are interested in politics wouldn&apos;t keep their client registered"/>
+<node CREATED="1451722191132" ID="ID_839550548" MODIFIED="1451722204887" TEXT="I&apos;d say no. This is an experiment. If it fails, we can start it again">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node COLOR="#ff0000" CREATED="1451729487626" ID="ID_1046499821" MODIFIED="1451729517347" TEXT="We need emergency &quot;run anyway&quot; flag for failed upgrades"/>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
 <node CREATED="1444793439272" ID="ID_846126192" MODIFIED="1444793501045" TEXT="logo?">

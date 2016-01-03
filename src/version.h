@@ -14,7 +14,7 @@
 #define COIN_VERSION_MAJOR      1
 #define COIN_VERSION_MINOR      1
 #define COIN_VERSION_REVISION   0
-#define COIN_VERSION_BUILD      0
+#define COIN_VERSION_BUILD      2
 
 #define CLIENT_VERSION_MAJOR    COIN_VERSION_MAJOR
 #define CLIENT_VERSION_MINOR    COIN_VERSION_MINOR
@@ -25,17 +25,15 @@ extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
 extern const std::string CLIENT_DATE;
 
+//returns build number or 0 if cannot be parsed
+extern int build_version_number(int v1,int v2,int v3,int v4);
+
 static const int CLIENT_VERSION =
-                           1000000 * CLIENT_VERSION_MAJOR
-                         +   10000 * CLIENT_VERSION_MINOR
-                         +     100 * CLIENT_VERSION_REVISION
-                         +       1 * CLIENT_VERSION_BUILD;
+  build_version_number(CLIENT_VERSION_MAJOR,CLIENT_VERSION_MINOR,CLIENT_VERSION_REVISION,CLIENT_VERSION_BUILD);
 
 static const int COIN_VERSION =
-                           1000000 * COIN_VERSION_MAJOR
-                         +   10000 * COIN_VERSION_MINOR
-                         +     100 * COIN_VERSION_REVISION
-                         +       1 * COIN_VERSION_BUILD;
+  build_version_number(COIN_VERSION_MAJOR,COIN_VERSION_MINOR,COIN_VERSION_REVISION,COIN_VERSION_BUILD);
+ 
 
 //
 // network protocol versioning

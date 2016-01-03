@@ -65,3 +65,18 @@ const std::string CLIENT_NAME("Satoshi");
 
 const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);
 const std::string CLIENT_DATE(BUILD_DATE);
+
+int build_version_number(int v1,int v2,int v3,int v4)
+{
+  if(v4 >= 0 && v4 < 100 
+     && v3 >= 0 && v3 < 100
+     && v2 >= 0 && v2 < 100
+     && v1 >= 0 && v1 < 100)
+    return 1000000 * v1
+      +   10000 * v2
+      +     100 * v3
+      +       1 * v4;
+
+  return 0;
+}
+

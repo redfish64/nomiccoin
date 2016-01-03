@@ -2065,5 +2065,8 @@ extern bool CreateVoteTxn(const CKeyStore *keyStore, const CTransaction& tran, i
 
 
 extern CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count);
+
+extern CBlockIndex *GetBlockIndexAtHeight(CBlockIndex *pindex, int height);
+
 #endif
 

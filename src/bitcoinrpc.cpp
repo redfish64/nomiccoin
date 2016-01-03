@@ -967,16 +967,52 @@ int ConvertTimeishToEpochSecs(string timeish)
   return timegm(&tm);
 }
 
+int parse_client_version_str(std::string s)
+{
+  int v1,v2,v3,v4;
+  int matches = sscanf(s.c_str(),"%d.%d.%d.%d",&v1,&v2,&v3,&v4);
+
+  if(matches != 4) return 0;
+
+  return build_version_number(v1,v2,v3,v4);
+}
+
+void check_proposal_block_checkpoint(string blockHeight_blockCheckpoint)
+{
+  std::size_t colon = blockHeight_blockCheckpoint.find(":");
+  if(colon == std::string::npos)
+    throw JSONRPCError(-30, "cannot find colon in <(block height):(block checkpoint)> pparameter, got "+blockHeight_blockCheckpoint);
+  const string blockHeightStr = blockHeight_blockCheckpoint.substr(0, colon);
+  const string blockCheckpointStr = blockHeight_blockCheckpoint.substr(colon+1);
+  
+  int blockHeight = atoi(blockHeightStr);
+  
+  if(blockHeight <= BLOCK_CHECKPOINTS.rbegin()->first)
+    throw JSONRPCError(-31, "the block checkpoint height must be greater than the current checkpoint " + boost::lexical_cast<std::string>(BLOCK_CHECKPOINTS.rbegin()->first)
+		       + ", got " + boost::lexical_cast<std::string>(blockHeight));
+  
+  CBlockIndex *pindex = GetBlockIndexAtHeight(pindexBest, blockHeight);
+  
+  if(pindex == NULL)
+    throw JSONRPCError(-32, "can't find block index for height "
+		       + boost::lexical_cast<std::string>(blockHeight));
+  
+  if(*(pindex->phashBlock) != hash_t(blockCheckpointStr))
+    throw JSONRPCError(-33, "block checkpoint given doesn't live blockchain, expected " + pindex->phashBlock->GetHex() + ", got " + blockCheckpointStr);
+
+}
+
 Value submitproposal(const Array& params, bool fHelp) {
 	if (fHelp || params.size() < 2)
 		throw runtime_error(
 				"submitproposal <deadline(YYYY-MM-DD HH:MM:SS TZ)> <title (max 80 chars)> [commands...]\n"
 				"Creates a new proposal\n\n"
 					"commands are:\n"
-					"upgradeclient <version> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
+					"upgradeclient <version as XX.XX.XX.XX> <deadline(YYYY-MM-DD HH:MM:SS TZ)> "
 					"<git commit/tag>\n"
+				        "<(block height):(block checkpoint)>"
 					"spendpool <toaddress> <amt>\n\n"
-					"There may be only one upgradeclient call (but more than one spendpool).");
+					"There may be only one upgradeclient call (but more than one spendpool). \n\n<(block height):(block checkpoint)> - this should be the block height and block checkpoint hardcoded into BLOCK_CHECKPOINTS in constants.cpp for the upgraded version. Each upgrade is required to create a block checkpoint, and that block checkpoint is checked here for saneness and validity against the live blockchain.\n\n** Note, in general, you'll want to use tools/create_proposal_rpc_command_from_source_tree.pl to create an upgrade proposal which will handle most things for you. **\n");
 
 	timestamp_t deadline = ConvertTimeishToEpochSecs(params[0].get_str());
 
@@ -1010,21 +1046,27 @@ Value submitproposal(const Array& params, bool fHelp) {
 			if(upgradedClientAlready)
 				throw JSONRPCError(-3, "Only one upgrade client command is allowed");
 
-			//TODO 2 make this use the xxx.xxx.xxx.xxx versioning, rather than a number
-			int clientVersion = atoi(params[++i].get_str().c_str());
+			int clientVersion = parse_client_version_str(params[++i].get_str());
+
+			if(clientVersion == 0)
+			  throw JSONRPCError(-41, "Cannot parse client version");
 
 			if(clientVersion <= CLIENT_VERSION)
-				throw JSONRPCError(-4, "Client version should be greater than the current version");
+			  throw JSONRPCError(-4, "Client version should be greater than the current version");
 
 			int deadlineEpoch =
 					ConvertTimeishToEpochSecs(params[++i].get_str());
 			string gitStr = params[++i].get_str();
 			uint160 gitHash = uint160(gitStr);
 
+			//this block checkpoint stuff is just to check to make sure the developer
+			//updated the hardcoded block checkpoint. It isn't used in the proposal at all
+			check_proposal_block_checkpoint(params[++i].get_str());
 			pubScript = pubScript  << gitHash
 					<< deadlineEpoch << clientVersion << OP_UPGRADE_CLIENT;
 
 			upgradedClientAlready = true;
+			++i;
 		} else if (command.compare("spendpool") == 0) {
 			CBitcoinAddress address(params[++i].get_str());
 			if (!address.IsValid())

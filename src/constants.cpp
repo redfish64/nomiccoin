@@ -50,9 +50,8 @@ uint32_t                          GENESIS_BLOCK_VERSION       = 1;
 hash_t NULL_PROPOSAL_TXN_HASH = hash_t("486471692b7748edcce4935766dfe2bf7edf65fd8cb9912cd157bcd5364a1c2d");
 
 
-// std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH)
-//   (600, hash_t("0000002116c928d1b212578d6d13ada478bb22cc7f82c38a743ee6084d2690de"));
 std::map<blockheight_t, hash_t>   BLOCK_CHECKPOINTS           = boost::assign::map_list_of(0, GENESIS_HASH);
+
 std::map<blockheight_t, uint32_t> STAKE_MODIFIER_CHECKPOINTS  = boost::assign::map_list_of(0, 0x0e00670b);
 
 //                                The maturity is the number of block required for a coinbase/coinstake transaction to be confirmed by the network (excluding the block which embeds the transaction)

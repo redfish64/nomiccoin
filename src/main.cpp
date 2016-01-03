@@ -1705,6 +1705,16 @@ CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count)
   return pindex;
 }
 
+CBlockIndex *GetBlockIndexAtHeight(CBlockIndex *pindex, int height)
+{
+  while(pindex && pindex->nHeight > height)
+    pindex = pindex->pprev;
+  while(pindex && pindex->nHeight < height)
+    pindex = pindex->pnext;
+
+  return pindex;
+}
+
 /**
  * Writes proposal vote counts from map to the db
  */
