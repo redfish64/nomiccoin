@@ -3233,27 +3233,43 @@
 <node COLOR="#ff0000" CREATED="1451729487626" ID="ID_1046499821" MODIFIED="1451729517347" TEXT="We need emergency &quot;run anyway&quot; flag for failed upgrades"/>
 <node COLOR="#ff0000" CREATED="1451811583702" ID="ID_1579834562" MODIFIED="1451811594510" TEXT="gui needs message for upgrading"/>
 <node CREATED="1451817186662" ID="ID_1807418515" MODIFIED="1451817191473" TEXT="Upgrades">
+<node CREATED="1451817236422" ID="ID_707176819" MODIFIED="1451820486367" TEXT="We simply store the upgrade propHash in the CBlockIndex"/>
 <node CREATED="1451817192614" ID="ID_627402132" MODIFIED="1451817214337" TEXT="A new thread will be created specifically for handling upgrade messages">
 <node CREATED="1451817215486" ID="ID_1007660445" MODIFIED="1451817233706" TEXT="(There doesn&apos;t seem to be any thread for general utility stuff)"/>
 </node>
-<node CREATED="1451817236422" ID="ID_707176819" MODIFIED="1451817253530" TEXT="A new table will be created for upgrades">
-<node CREATED="1451817254342" ID="ID_1010427830" MODIFIED="1451817264873" TEXT="Fields">
-<node CREATED="1451817266558" ID="ID_1378908806" MODIFIED="1451817274377" TEXT="Block height">
-<node CREATED="1451817275726" ID="ID_1325948590" MODIFIED="1451817278433" TEXT="Primary key"/>
-</node>
-<node CREATED="1451817279294" ID="ID_1733173421" MODIFIED="1451817659633" TEXT="Version"/>
-<node CREATED="1451817660013" ID="ID_13229339" MODIFIED="1451817661978" TEXT="Git Version"/>
-<node CREATED="1451817662277" ID="ID_1297787471" MODIFIED="1451817665554" TEXT="Upgrade deadline"/>
-<node CREATED="1451817668838" ID="ID_1425299082" MODIFIED="1451817673729" TEXT="Proposal Hash"/>
-</node>
-</node>
-<node CREATED="1451817685757" ID="ID_1655355277" MODIFIED="1451817715801" TEXT="Every second or so, the thread will check the cached upgrade row to see if we are passed the deadline and shutdown if so"/>
+<node CREATED="1451817685757" ID="ID_1655355277" MODIFIED="1451820634786" TEXT="Every second or so, the thread will check the pindexBest to check the propHash. It will load the propTx (if it hasn&apos;t already done so, checked with local variables), and then print out the nag message/shutdown if applicable from that"/>
 <node CREATED="1451817728422" ID="ID_1397479728" MODIFIED="1451817749466" TEXT="When we boot, we fill in the upgrade row and shutdown immediately if necessary">
 <node CREATED="1451817758046" ID="ID_616988035" MODIFIED="1451817763761" TEXT="Notifying the user for gui"/>
 </node>
 <node CREATED="1451817764870" ID="ID_1824181151" MODIFIED="1451817770186" TEXT="Gui">
 <node CREATED="1451817771518" ID="ID_1300902410" MODIFIED="1451817778619" TEXT="Status bar will tell the user to upgrade"/>
 <node CREATED="1451817781869" ID="ID_435573075" MODIFIED="1451817812554" TEXT="When upgrade status first occurs, and on startup a dialog will pop up"/>
+</node>
+<node CREATED="1451821793422" ID="ID_1698382007" MODIFIED="1451821850554" TEXT="If we allow the next proposal to overwrite the previous one, then what happens if we are catching up in the block chain, and we pass a proposal that would have shut down the client immediately?"/>
+<node CREATED="1451821851510" ID="ID_703448814" MODIFIED="1451821886106" TEXT="What if instead of a shutdown, we just refuse to process any more blocks?">
+<node CREATED="1451821924031" ID="ID_870172494" MODIFIED="1451821931929" TEXT="It wouldn&apos;t be so jarring to the user that way"/>
+<node CREATED="1451821953542" ID="ID_764491319" MODIFIED="1451821997106" TEXT="And it would make more sense to them, &quot;Oh, I can&apos;t process the next block, because I didn&apos;t upgrade...&quot; (even though technically it doesn&apos;t make sense, since its based on a time period, rather than a block count)"/>
+<node CREATED="1451822000831" ID="ID_790855793" MODIFIED="1451822011202" TEXT="Why not use a block count instead of a time, anyway?">
+<node CREATED="1451822030878" ID="ID_130115072" MODIFIED="1451822051570" TEXT="That may make more sense, because then all the clients know when exactly the upgrade to the chain will occur"/>
+<node CREATED="1451822110263" ID="ID_495849557" MODIFIED="1451822137475" TEXT="And then the new version could programmatically decide, that hey, its an old version that shouldn&apos;t be running, therefore I won&apos;t even connect to it."/>
+<node CREATED="1451822221127" ID="ID_422510955" MODIFIED="1451822267454" TEXT="Actually, though, a time should work the same way, block count or time, it really doesn&apos;t make a difference. Can be programmatically checked either way">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+<node CREATED="1451822291919" ID="ID_1983072458" MODIFIED="1451822300082" TEXT="Also a time is less confusing to the end user"/>
+</node>
+<node CREATED="1451822314038" ID="ID_234775194" MODIFIED="1451822322922" TEXT="What about network issues?">
+<node CREATED="1451822324167" ID="ID_655758297" MODIFIED="1451822331730" TEXT="A ton of clients are rejecting blocks now"/>
+<node CREATED="1451822340343" ID="ID_1848802013" MODIFIED="1451822345075" TEXT="They won&apos;t fork, though"/>
+<node CREATED="1451822356590" ID="ID_754509866" MODIFIED="1451822363187" TEXT="It should be ok, I think the testnet would catch it"/>
+</node>
+<node CREATED="1451822364775" ID="ID_1504247100" MODIFIED="1451822372378" TEXT="nomiccoind">
+<node CREATED="1451822383118" ID="ID_1525334152" MODIFIED="1451822405866" TEXT="Every incoming block would nag the user about the upgrade in the log file"/>
+<node CREATED="1451822408039" ID="ID_1917812235" MODIFIED="1451822435474" TEXT="After the deadline, an error message would appear for every block"/>
+<node CREATED="1451822443111" ID="ID_556570259" MODIFIED="1451822484043" TEXT="would go into &quot;safe mode&quot;, where most commands nag rather than respond (unless -safe is specified)"/>
+</node>
+<node CREATED="1451822487647" ID="ID_1406862696" MODIFIED="1451822488955" TEXT="gui">
+<node CREATED="1451822490286" ID="ID_1211899358" MODIFIED="1451822495394" TEXT="status bar would indicate status"/>
+</node>
 </node>
 </node>
 </node>

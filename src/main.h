@@ -1232,6 +1232,7 @@ public:
     money_t votingPeriodVotedCoins; //the total number of coins that were voted with in the given
     //VOTE_REG_PERIOD_BLOCKS voting period and remain unspent. This is used as the divisor to determine the percentage
     // of a particular vote and thus whether it won
+    votehash_t upgradePropHash; // the latest prophash to upgrade to (only populated after maturity period)
 
     unsigned int nFlags;  // ppcoin: block index flags
     enum

@@ -1888,7 +1888,7 @@ bool CBlockIndex::GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpa
   return true;
 }
 
-bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
+bool CBlock::ConnectBlockConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Check it again in case a previous version let a bad block in
     // (unless it is the genesis block)
@@ -2008,8 +2008,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     
     //TODO 2, do not allow votes for deadlines less than 2 weeks since the coin started
 
-    pindex->appState = pindex->pprev->appState;
-
     std::vector<proposalpair_t> proposalsToRun;
     if(!pindex->GetProposalsToRunForBlock(txdb, proposalsToRun))
       return error("CBlock::ConnectBlock() : Unable to get proposals to run");
@@ -2040,8 +2038,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	RunProposalForPublic(&t, pindex->appState, pindex->nHeight);
 	
 	SyncPassedProposalWithWallets(proposalPair.first, true);
+
+	
 	//TODO 2.1 display in the GUI that the proposals passed (do this after we got the gui setup)
-	//TODO 2.1 add functionality to run command on passed proposal, etc.
+	//TODO 3 add hook to run external command on passed proposal, etc.
 	
 	//TODO 2 make sure that reconstructing the wallet works right (see option "-rescan")
       }
@@ -3030,7 +3030,7 @@ bool LoadBlockIndex(bool fAllowNew)
         CScript pubScript;
 	
     	pubScript << OP_PUBLIC_SCRIPT << ((timestamp_t) 0) << OP_VOTE_DEADLINE
-    			<< titlecharvect << OP_VOTE_TITLE;
+    			<< titlecharvect << OP_PROP_TITLE;
     	nullProposal.vout.push_back(CTxOut(0, pubScript));
     	nullProposal.nTime = GENESIS_BLOCK_TIME;
 
