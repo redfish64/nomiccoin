@@ -1888,7 +1888,7 @@ bool CBlockIndex::GetProposalsToRunForBlock(CTxDB & txdb, std::vector<proposalpa
   return true;
 }
 
-bool CBlock::ConnectBlockConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
+bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Check it again in case a previous version let a bad block in
     // (unless it is the genesis block)
@@ -2039,7 +2039,15 @@ bool CBlock::ConnectBlockConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 	
 	SyncPassedProposalWithWallets(proposalPair.first, true);
 
-	
+	if(IsUpgradeProposal(t))
+	  {
+	    //the later proposal always overwrites the earlier one, regardless of the deadline
+	    //but if a proposals upgrade deadline has passed, we reject the block
+	    pindex->propHash = proposalPair.first;
+
+	    
+	  }
+	    
 	//TODO 2.1 display in the GUI that the proposals passed (do this after we got the gui setup)
 	//TODO 3 add hook to run external command on passed proposal, etc.
 	
@@ -3304,18 +3312,6 @@ CCriticalSection cs_mapAlerts;
 static string strMintMessage = _("Warning: Minting suspended due to locked wallet.");
 static string strMintWarning;
 
-string GetUpgradeStatus()
-{
-	  CUpgradeRequest& ur = pindexBest->appState.ur;
-	  if(ur.upgradeVersion <= CLIENT_VERSION)
-	    return ""; //we are already upgraded
-
-	string upgradeStatus = "Upgrade Required. New version: " + to_string(ur.upgradeVersion)
-			+ ", Deadline: " + DateTimeStrFormat(ur.upgradeDeadline);
-
-	return upgradeStatus;
-}
-
 string GetWarnings(string strFor)
 {
     int nPriority = 0;
@@ -3357,7 +3353,8 @@ string GetWarnings(string strFor)
     	strRPC += ". Run getupgradeinfo for more details.";
     }
 
-    //TODO 2 fix checkpoints for nomiccoin
+    //TODO 2 test checkpoints for nomiccoin. What happens when we have an invalid checkpoint
+    // and try to load the block chain
     // ppcoin: if detected invalid checkpoint enter safe mode
     if (Checkpoints::hashInvalidCheckpoint != 0)
     {
@@ -5192,3 +5189,36 @@ bool CTransaction::IsDeadlineValid(timestamp_t timeOfProposal) const
 }
 
 
+CCriticalSection cs_cachedProposalData;
+bool GetProposalInfoForBlockIndex(const CBlockIndex *index, ProposalData & pd)
+{
+  if(index->upgradePropHash == 0)
+    {
+      pd.clear();
+      return true;
+    }
+
+  {
+    LOCK(cs_cachedProposalData);
+    if(index->upgradePropHash == cachedPropHash)
+      {
+	pd = cachedProposalData;
+	return true;
+      }
+  }
+
+  CTransaction t;
+  CTxDB db("r");
+  if(!ReadDiskTx(index->upgradePropHash, t))
+    return error("GetProposalInfoForBlockIndex Couldnt read transaction for prophash");
+  if(!GetProposalInfo(t.vout[0].scriptPubKey, pd))
+    return error("GetProposalInfoForBlockIndex Couldnt read proposal info for prophash");
+  
+  {
+    LOCK(cs_cachedProposalData);
+    cachedProposalData = pd;
+    cachedPropHash = index->upgradePropHash;
+  }
+
+  return true;
+}

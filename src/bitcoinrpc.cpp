@@ -14,6 +14,7 @@
 #include "ui_interface.h"
 #include "base58.h"
 #include "bitcoinrpc.h"
+#include "util.h"
 
 #include "IsValidAmount.h"
 #include "GetProofOfStakeReward.h"
@@ -709,23 +710,25 @@ Value getupgradeinfo(const Array& params, bool fHelp)
 
     Object obj;
 
-    CUpgradeRequest& ur = pindexBest->appState.ur;
+    ProposalData upd;
+    GetProposalInfoForBlockIndex(pindexBest, upd);
 
-    if(ur.upgradeVersion <= CLIENT_VERSION)
+    if(upd.upgradeVersion <= CLIENT_VERSION)
       {
 	obj.push_back(Pair("upgradeNeeded",           false));
 	return obj;
       }
     obj.push_back(Pair("upgradeNeeded",           true));
-    obj.push_back(Pair("upgradeDeadline", DateTimeStrFormat(ur.upgradeDeadline)));
-    obj.push_back(Pair("upgradeGitCommit",
-		       std::string(ur.upgradeGitCommit.begin(),
-				   ur.upgradeGitCommit.end())));
+    obj.push_back(Pair("upgradeDeadline", DateTimeStrFormat(upd.upgradeDeadline)));
+    obj.push_back(Pair("upgradeGitHash",
+		       upd.upgradeGitHash.GetHex()));
+    obj.push_back(Pair("upgradeVersion",
+		       FormatVersion(upd.upgradeVersion)));
+    obj.push_back(Pair("proposalTitle",
+		       upd.title));
+    obj.push_back(Pair("proposalAddr",
+		       CProposalAddress(pindexBest->upgradePropHash).ToString()));
 
-    std::pair<int,uint160> p;
-
-    Array distDataArray;
-    
     return obj;
 }
 
@@ -1037,7 +1040,7 @@ Value submitproposal(const Array& params, bool fHelp) {
 
 
 	CScript pubScript;
-	pubScript << OP_PUBLIC_SCRIPT << deadline << OP_VOTE_DEADLINE << titlecharvect << OP_VOTE_TITLE;
+	pubScript << OP_PUBLIC_SCRIPT << deadline << OP_VOTE_DEADLINE << titlecharvect << OP_PROP_TITLE;
 
 	bool upgradedClientAlready = false;
 

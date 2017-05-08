@@ -1525,7 +1525,6 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-	READWRITE(appState);
     )
 
     uint256 GetBlockHash() const
@@ -1976,6 +1975,10 @@ extern bool CreateVoteTxn(const CKeyStore *keyStore, const CTransaction& tran, i
 extern CBlockIndex *GetPriorBlockIndex(CBlockIndex *pindex, int count);
 
 extern CBlockIndex *GetBlockIndexAtHeight(CBlockIndex *pindex, int height);
+
+extern ProposalData cachedProposalData;
+extern votehash_t cachedPropHash;
+bool GetProposalInfoForBlockIndex(const CBlockIndex *index, ProposalData & pd);
 
 #endif
 

@@ -227,7 +227,7 @@ const char* GetOpName(opcodetype opcode)
 
     case OP_FUNDS_POOL_UNLOCKED    : return "OP_FUNDS_POOL_UNLOCKED"; 
     case OP_UPGRADE_CLIENT         : return "OP_UPGRADE_CLIENT";
-    case OP_VOTE_TITLE             : return "OP_VOTE_TITLE";
+    case OP_PROP_TITLE             : return "OP_PROP_TITLE";
     case OP_VOTE                   : return "OP_VOTE";
     case OP_PUBLIC_SCRIPT          : return "OP_PUBLIC_SCRIPT";
     case OP_VOTE_DEADLINE		   : return "OP_VOTE_DEADLINE";
@@ -452,7 +452,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script,
     	    popstack(stack);
     	    break;
 
-	    case OP_VOTE_TITLE: {
+	    case OP_PROP_TITLE: {
 					if (stack.size() < 1 || !runningPublicScript)
 						return false;
 					popstack(stack);
@@ -1427,6 +1427,71 @@ bool GetVoteScriptData(const CScript& scriptPubKey, votehash_t& txnHash)
 }
 
 
+bool GetProposalInfo(const CScript &scriptPubKey, ProposalData & propData)
+{
+  CScript::const_iterator iter = scriptPubKey.begin();
+  vector<unsigned char> vch;
+  opcodetype opcode;
+  
+  if(iter == scriptPubKey.end())
+    return false;
+  
+  if(*iter != OP_PUBLIC_SCRIPT)
+    return false;
+  
+  iter++;
+  scriptPubKey.GetOp(iter, opcode, vch);
+  prodData.deadline = CastToBigNum(vch).getuint64();
+
+  if(*iter != OP_VOTE_DEADLINE)
+    return false;
+  iter++;
+  
+  //-1 for the op itself
+  if(iter-start-1 > MAX_PROPOSAL_TITLE_LENGTH)
+    return false;
+  if(*iter != OP_PROP_TITLE)
+    return false;
+  iter++;
+
+  CScript::const_iterator start = iter;
+  scriptPubKey.GetOp(iter, opcode, vch);
+  propData.title = std::string(vch.begin(), vch.end());
+  
+  if(iter == scriptPubKey.end())
+    {
+      propData.upgradeVersion = 0;
+      propData.upgradeGitHash = 0;
+      propData.upgradeDeadline = 0;
+      return true;
+    }
+  
+  //upgrade git hash 160 bits
+  start = iter;
+  scriptPubKey.GetOp(iter, opcode, vch);
+  if(iter-start-1 != 20)
+    return false;
+
+  propData.upgradeGitHash = uint160(vch);
+    
+  //upgrade deadline seconds from epoch
+  scriptPubKey.GetOp(iter, opcode,vch);
+  prodData.deadline = CastToBigNum(vch).getuint64();
+
+  //upgrade version
+  scriptPubKey.GetOp(iter, opcode,vch);
+  prodData.version = CastToBigNum(vch).getint();
+
+  if(*iter != OP_UPGRADE_CLIENT)
+    return false;
+  iter++;
+  
+  if(iter == scriptPubKey.end())
+    return true;
+  else
+    return false;
+}
+
 
 //validate that proposals are in the correct format, which is:
 // 1. First output begins with OP_PUBLIC_SCRIPT
@@ -1455,7 +1520,7 @@ bool CheckProposalPublicScript(const CScript& scriptPubKey)
 	  //-1 for the op itself
 	  if(iter-start-1 > MAX_PROPOSAL_TITLE_LENGTH)
 		  return false;
-	  if(*iter != OP_VOTE_TITLE)
+	  if(*iter != OP_PROP_TITLE)
 		  return false;
 	  iter++;
 

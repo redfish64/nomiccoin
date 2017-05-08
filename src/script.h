@@ -657,4 +657,34 @@ bool IsPublicScript(const CScript& script);
 bool CheckProposalPublicScript(const CScript& scriptPubKey);
 
 bool GetVoteDeadlineForProposal(const CScript& scriptPubKey, timestamp_t& deadline);
+
+class ProposalData
+{
+ public:
+  timestamp_t deadline;
+  std::string title;
+  int upgradeVersion;
+  uint160 upgradeGitHash;
+  timestamp_t upgradeDeadline;
+
+  ProposalData()
+    {
+      clear();
+    }
+
+  void clear()
+  {
+    deadline = 0;
+    title = "";
+    upgradeVersion = 0;
+    upgradeGitHash = 0;
+    upgradeDeadline = 0;
+  }
+  
+};
+
+
+bool GetProposalInfo(const CScript &scriptPubKey, ProposalData & propData);
+
+
 #endif

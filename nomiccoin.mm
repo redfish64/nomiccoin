@@ -2310,8 +2310,7 @@
       It should help us figure out how best to tally votes
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1444200203358" ID="ID_1613232044" MODIFIED="1444200210098" TEXT="No more funds?">
 <node CREATED="1444085804844" ID="ID_181210212" MODIFIED="1444085820209" TEXT="Entire database is searched for txn&apos;s using the TXO"/>
 </node>
@@ -2411,8 +2410,7 @@
       &#160;&#160;&#160;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1450571765388" ID="ID_347098749" MODIFIED="1450571767976" TEXT="CTransaction">
@@ -2786,7 +2784,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1450576144758" FOLDED="true" ID="ID_193384780" MODIFIED="1451648426139" POSITION="right" TEXT="plan3">
+<node CREATED="1450576144758" ID="ID_193384780" MODIFIED="1479384568107" POSITION="right" TEXT="plan3">
 <node CREATED="1450576148254" ID="ID_1145117488" MODIFIED="1450576265650" TEXT="stake reward">
 <node CREATED="1450576153366" ID="ID_652461855" MODIFIED="1450583643782" TEXT="what if we had a constant stake reward (like NXT)?">
 <node CREATED="1450576168086" ID="ID_1855463446" MODIFIED="1450576193970" TEXT="Because of the min stake age, this would prevent people from creating large UTXO&apos;s to mint from, thereby increasing the security of the network"/>
@@ -2933,7 +2931,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1450848953296" ID="ID_1102497" MODIFIED="1451811579851" POSITION="right" TEXT="plan4">
+<node CREATED="1450848953296" ID="ID_1102497" MODIFIED="1452320231721" POSITION="right" TEXT="plan4">
 <node CREATED="1450848956720" ID="ID_761943453" MODIFIED="1450848973596" TEXT="proposals have a fee and the inputs must specify the fee">
 <node CREATED="1450848978448" ID="ID_1031416311" MODIFIED="1450848986916" TEXT="In this way we can increase the cost of proposals"/>
 <node CREATED="1450849848896" ID="ID_1419958051" MODIFIED="1450849861108" TEXT="The fee gets added to the pool/minting fee"/>
@@ -3246,7 +3244,7 @@
 <node CREATED="1451817781869" ID="ID_435573075" MODIFIED="1451817812554" TEXT="When upgrade status first occurs, and on startup a dialog will pop up"/>
 </node>
 <node CREATED="1451821793422" ID="ID_1698382007" MODIFIED="1451821850554" TEXT="If we allow the next proposal to overwrite the previous one, then what happens if we are catching up in the block chain, and we pass a proposal that would have shut down the client immediately?"/>
-<node CREATED="1451821851510" ID="ID_703448814" MODIFIED="1451821886106" TEXT="What if instead of a shutdown, we just refuse to process any more blocks?">
+<node CREATED="1451821851510" ID="ID_703448814" MODIFIED="1451867971746" TEXT="What if instead of a shutdown, we just refuse to process any more blocks?">
 <node CREATED="1451821924031" ID="ID_870172494" MODIFIED="1451821931929" TEXT="It wouldn&apos;t be so jarring to the user that way"/>
 <node CREATED="1451821953542" ID="ID_764491319" MODIFIED="1451821997106" TEXT="And it would make more sense to them, &quot;Oh, I can&apos;t process the next block, because I didn&apos;t upgrade...&quot; (even though technically it doesn&apos;t make sense, since its based on a time period, rather than a block count)"/>
 <node CREATED="1451822000831" ID="ID_790855793" MODIFIED="1451822011202" TEXT="Why not use a block count instead of a time, anyway?">
@@ -3270,7 +3268,383 @@
 <node CREATED="1451822487647" ID="ID_1406862696" MODIFIED="1451822488955" TEXT="gui">
 <node CREATED="1451822490286" ID="ID_1211899358" MODIFIED="1451822495394" TEXT="status bar would indicate status"/>
 </node>
+<node CREATED="1451867971735" ID="ID_935810242" MODIFIED="1451867974281" TEXT="plan">
+<node CREATED="1451867880109" ID="ID_1584700714" MODIFIED="1451868064233" TEXT="Each blockindex has upgradePropHash which is the last upgradePropHash that would make it necessary for the client to upgrade"/>
+<node CREATED="1451867976294" ID="ID_930154546" MODIFIED="1451867995842" TEXT="When we reach a block that can&apos;t be processed, we simply reject it."/>
 </node>
+<node CREATED="1451878154748" ID="ID_1571395970" MODIFIED="1451878163767" TEXT="The original method was to eval the script for the public">
+<node CREATED="1451878164811" ID="ID_1504322178" MODIFIED="1451878183591" TEXT="Should we keep this? Whenever we want to find out what a proposal does, should we eval it?">
+<node CREATED="1451878321427" ID="ID_1789792791" MODIFIED="1451878397359" TEXT="The thing is, if we keep an app state, like we orginally had it, we could use that for a multitude of things, including changing the interest rate, changing the block reward, the block size, etc."/>
+<node CREATED="1451878506587" ID="ID_1708522010" MODIFIED="1451878519927" TEXT="This would be a great feature, I think. I could see a lot of people getting behind this"/>
+<node CREATED="1451883439957" ID="ID_37280298" MODIFIED="1451883471930" TEXT="However, the problem is that without a release, we suffer all kinds of vectors for attacks. If the money supply can be expanded, then it&apos;d be easy to fork the block chain"/>
+</node>
+<node CREATED="1451878184051" ID="ID_950688047" MODIFIED="1451878194255" TEXT="What about making it standard?"/>
+</node>
+</node>
+<node CREATED="1451883483118" ID="ID_1092377758" MODIFIED="1451883499562" TEXT="Eval script vs just reading it">
+<node CREATED="1451883502109" ID="ID_66614571" MODIFIED="1451883558130" TEXT="We would be adding a lot of complexity by evaling it, because if had multiple things and a proposal didn&apos;t change all of them, then we&apos;d have to have the others show through"/>
+</node>
+</node>
+<node CREATED="1451886162581" ID="ID_766239364" MODIFIED="1451886164746" TEXT="attacks">
+<node CREATED="1451885134998" ID="ID_1559876424" MODIFIED="1451885200642" TEXT="Trust model">
+<node CREATED="1451885201677" ID="ID_281842659" MODIFIED="1451885543518" TEXT="What if we did a straight up, 1 trust per block height model?">
+<node CREATED="1451885245766" ID="ID_862011788" MODIFIED="1451885267314" TEXT="It would make grinding attacks easier for &quot;from the past&quot; attacks"/>
+</node>
+</node>
+<node CREATED="1451883561238" ID="ID_1082751791" MODIFIED="1451883682490" TEXT="Spend pool attack vector">
+<node CREATED="1451883598062" ID="ID_378862911" MODIFIED="1451883645688">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      The spend pool is voted into an account the attackers control (in a forked chain)
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Then the attackers simply out mint the rest of the network
+    </p>
+  </body>
+</html></richcontent>
+</node>
+<node CREATED="1451883683398" ID="ID_1025804259" MODIFIED="1451883778225" TEXT="What if we add the spend pool to the &quot;trust&quot; the block receives when minting takes place?">
+<node CREATED="1451883786638" ID="ID_791053614" MODIFIED="1451883812281" TEXT="Then the attackers could just increase the spend pool, since those coins would be used over and over again for every mint"/>
+</node>
+<node CREATED="1451883965573" ID="ID_1044010689" MODIFIED="1451883975514" TEXT="What if we prevented the spendpool from getting too big?">
+<node CREATED="1451883988358" ID="ID_12103271" MODIFIED="1451884012129" TEXT="If we limit it to 5% of the coins, it won&apos;t help the attackers that much"/>
+<node CREATED="1451884036133" ID="ID_149964417" MODIFIED="1451884053729" TEXT="This won&apos;t work because the attackers could take the pool, wait for it to grow again, and then take it again, etc."/>
+</node>
+<node CREATED="1451884317294" ID="ID_1191879560" MODIFIED="1451884327370" TEXT="What if we based trust on something else?">
+<node CREATED="1451884328678" ID="ID_1030724618" MODIFIED="1451884360978" TEXT="Age of coins">
+<node CREATED="1451884500734" ID="ID_623000239" MODIFIED="1451884516394" TEXT="We could keep a running total of coinage and use it for trust"/>
+<node CREATED="1451884519717" ID="ID_1700225304" MODIFIED="1451884533242" TEXT="Newly generated coins, such as those from the pool would have zero trust"/>
+<node CREATED="1451884533734" ID="ID_556628728" MODIFIED="1451884551417" TEXT="The hardcoded checkpoints would take care of the rest"/>
+<node CREATED="1451884610526" ID="ID_1309446891" MODIFIED="1451884616218" TEXT="cons">
+<node CREATED="1451884617270" ID="ID_307044057" MODIFIED="1451884638290" TEXT="The economy would be more complex, some coins worth more than others, because they are less likely to be forked"/>
+<node CREATED="1451884714078" ID="ID_336977979" MODIFIED="1451885436617" TEXT="Large minters could fork two, three, or four chains">
+<node CREATED="1451884730589" ID="ID_40477156" MODIFIED="1451884747962" TEXT="If they know their trust is higher than the current end point, they can write it over"/>
+<node CREATED="1451884786926" ID="ID_792608612" MODIFIED="1451884792202" TEXT="But this can happen anyway"/>
+<node CREATED="1451885284286" ID="ID_1848369152" MODIFIED="1451885297994" TEXT="And they would hurt the coin doing this, which would hurt themselves">
+<node CREATED="1451885329758" ID="ID_701116657" MODIFIED="1451885346202" TEXT="Although if they had some really old coins, this may still be beneficial to them"/>
+</node>
+</node>
+<node CREATED="1451886033982" ID="ID_687850798" MODIFIED="1451886056473" TEXT="And anyway, if the number of &quot;pool&quot; tainted coins approaches 100%, eventually an attacker would win">
+<node CREATED="1451886058374" ID="ID_831721106" MODIFIED="1451886105058" TEXT="This would be offset by checkpoints, of course, but we have no way of knowing how frequently they would come"/>
+<node CREATED="1451886120574" ID="ID_1323581713" MODIFIED="1451886129474" TEXT="So really it&apos;s pool tainted since last checkpoint"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1451884857734" ID="ID_612219674" MODIFIED="1451884871402" TEXT="Could we limit the pool growth enough that this wouldn&apos;t be a problem?">
+<node CREATED="1451884873182" ID="ID_698886726" MODIFIED="1451884896066" TEXT="The coins grow at a certain rate, X per block"/>
+<node CREATED="1451884897782" ID="ID_1333222621" MODIFIED="1451884958562" TEXT="If we limit the growth of the pool to a % of X that is lower than the expected minting rate, then controlling the pool, by itself, couldn&apos;t take over the block chain"/>
+<node CREATED="1451884987438" ID="ID_1350431488" MODIFIED="1451885006474" TEXT="txn fees could still be given to the pool, since these aren&apos;t in control of the attackers">
+<node CREATED="1451885043702" ID="ID_1237227775" MODIFIED="1451885131721" TEXT="Although a hard maximum would be necessary still, to prevent the pool from getting too large, and giving the attackers an advantage"/>
+</node>
+<node CREATED="1451885603486" ID="ID_996136571" MODIFIED="1451885619602" TEXT="It seems like the central pool would grow too slowly, then">
+<node CREATED="1451885635405" ID="ID_1008521411" MODIFIED="1451885650418" TEXT="Let&apos;s say the inflation rate is 10%"/>
+<node CREATED="1451885652134" ID="ID_645937787" MODIFIED="1451885673802" TEXT="The pool would have to be around 10% of this which is 1% a year"/>
+<node CREATED="1451885677630" ID="ID_264350453" MODIFIED="1451885694090" TEXT="So for a $40 million coin">
+<node CREATED="1451885696214" ID="ID_82230735" MODIFIED="1451885706850" TEXT="$400K a year support"/>
+</node>
+</node>
+<node CREATED="1451885747406" ID="ID_1134814088" MODIFIED="1451885766506" TEXT="What if the central pool would grow so that at most, 10% of coins would be &quot;pool&quot; coins">
+<node CREATED="1451885768726" ID="ID_514962826" MODIFIED="1451885910018" TEXT="It would still reduce to 1%"/>
+</node>
+<node CREATED="1451885944061" ID="ID_101834683" MODIFIED="1451885975650" TEXT="Yes, if you consider pool tainted coins, they&apos;d have to grow at the same rate as the rest of the network. So if the network grows at 10%, so would the pool tainted coins"/>
+</node>
+</node>
+<node CREATED="1451886177758" ID="ID_1105526273" MODIFIED="1451886272274" TEXT="What about voting and &quot;outside of the network&quot;(ootn) information?">
+<node CREATED="1451886197982" ID="ID_1206906590" MODIFIED="1451886227146" TEXT="When someone votes, they are voting for something they believe to be true, so there is ootn info right there"/>
+<node CREATED="1451886227790" ID="ID_1516000325" MODIFIED="1451886260882" TEXT="The problem is the verification that someone is voting (and not an attacker), is not ootn"/>
+<node CREATED="1451886392982" ID="ID_1851353320" MODIFIED="1451886403937" TEXT="What if a proposal had a checkpoint in it?">
+<node CREATED="1451886421365" ID="ID_861443954" MODIFIED="1451886451754" TEXT="When people download a client, they are vouching for the network that the client uses">
+<node CREATED="1451886474454" ID="ID_1020803052" MODIFIED="1451886494322" TEXT="This means they found reliable information which indicates the network represented by the client is valid"/>
+<node CREATED="1451886506494" ID="ID_151130018" MODIFIED="1451886538698" TEXT="But this only works one way. The network can&apos;t tell how many people believe its valid"/>
+<node CREATED="1451886553317" ID="ID_716077803" MODIFIED="1451886559698" TEXT="Unless there is PoW or something"/>
+</node>
+<node CREATED="1451886589062" ID="ID_73509248" MODIFIED="1451886592906" TEXT="equations">
+<node CREATED="1451886593974" ID="ID_1872390855" MODIFIED="1451886614921" TEXT="The trust of PoW = PoW"/>
+<node CREATED="1451886615285" ID="ID_1526170475" MODIFIED="1451886666394" TEXT="The trust of PoS = (&quot;client download&quot;cd) x PoS">
+<node CREATED="1451886668478" ID="ID_796238246" MODIFIED="1451886684946" TEXT="ie the fact that people downloaded the client is proof of it being valid"/>
+</node>
+<node CREATED="1451886687159" ID="ID_1895772510" MODIFIED="1451886704802" TEXT="For votes, it&apos;s cd x PoS x votes"/>
+</node>
+<node CREATED="1451890944375" ID="ID_1712986647" MODIFIED="1451890959300" TEXT="what about the guy loading the blockchain from the beginning?">
+<node CREATED="1451890961144" ID="ID_72597683" MODIFIED="1451890993084" TEXT="Right, there is no way checkpoints could help him, besides hardcoded ones, that is"/>
+</node>
+</node>
+</node>
+<node CREATED="1451899255689" ID="ID_295450432" MODIFIED="1451899262612" TEXT="attack defense plan">
+<node CREATED="1451899263720" ID="ID_1333645878" MODIFIED="1451899264796" TEXT="terms">
+<node CREATED="1451899266009" ID="ID_1957717101" MODIFIED="1451899267389" TEXT="hcp">
+<node CREATED="1451899268329" ID="ID_753901796" MODIFIED="1451899276564" TEXT="hard, code based checkpoint (for each proposal upgrade)"/>
+</node>
+<node CREATED="1451899988649" ID="ID_527575649" MODIFIED="1451899990020" TEXT="hcpt">
+<node CREATED="1451899992016" ID="ID_673495327" MODIFIED="1451900098598">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      A trust value in coins given to every UTXO
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      For hcp coins, this equals their value * ht%. Others are discussed in plan
+    </p>
+  </body>
+</html></richcontent>
+</node>
+</node>
+<node CREATED="1451900270561" ID="ID_1880514891" MODIFIED="1451900272516" TEXT="hcpt&apos;">
+<node CREATED="1451900273825" ID="ID_403684106" MODIFIED="1451900278861" TEXT="Last hcpt trust value"/>
+</node>
+<node CREATED="1451899640738" ID="ID_1091591607" MODIFIED="1451899729854" TEXT="ht%">
+<node CREATED="1451899643561" ID="ID_1640791381" MODIFIED="1451900186237" TEXT="% Trust given to the coins before the hard coded checkpoint. This corresponds to 100% minus the maximum percent of coins that the system can resist being compromised"/>
+</node>
+<node CREATED="1451900703689" ID="ID_248457975" MODIFIED="1451900715877" TEXT="propcp">
+<node CREATED="1451900717082" ID="ID_782982191" MODIFIED="1451900749373" TEXT="Checkpoint 500 blocks back from proposal, embedded within the proposal itself"/>
+</node>
+</node>
+<node CREATED="1451899279169" ID="ID_364660779" MODIFIED="1451899285365" TEXT="assumptions">
+<node CREATED="1451899286785" ID="ID_402200576" MODIFIED="1451899332732" TEXT="Only some of old keys before last hcp are compromised">
+<node CREATED="1451899308161" ID="ID_1462561808" MODIFIED="1451899311533" TEXT="What percent?"/>
+</node>
+<node CREATED="1451899335969" ID="ID_898415151" MODIFIED="1451899439173" TEXT="People that currently own funds will resist doing something to compromise the network proportional to how much they own"/>
+<node CREATED="1451900948665" ID="ID_1660768818" MODIFIED="1451901006021" TEXT="A significant proportion of people will participate in voting">
+<node CREATED="1451901007858" ID="ID_1264600229" MODIFIED="1451901010701" TEXT="What percent?"/>
+</node>
+</node>
+<node CREATED="1451899442338" ID="ID_1193539447" MODIFIED="1451899445836" TEXT="plan">
+<node CREATED="1451899447704" ID="ID_1989261967" MODIFIED="1451900805093" TEXT="proposals contain a checkpoint of several blocks back (the proccp)"/>
+<node CREATED="1451900144656" ID="ID_405192569" MODIFIED="1451900148716" TEXT="hcpt">
+<node CREATED="1451900153538" ID="ID_1431444195" MODIFIED="1451900171181" TEXT="UTXO&apos;s start with an hcpt value of hcp * ht%"/>
+<node CREATED="1451899468265" ID="ID_1720803402" MODIFIED="1451900138940" TEXT="Coins lose hcpt after certain types of transactions">
+<node CREATED="1451899503697" ID="ID_849137985" MODIFIED="1451901302221" TEXT="For a normal transfer, hcpt = (fees/value) * ht% * hcpt&apos;">
+<node CREATED="1451901306753" ID="ID_817219386" MODIFIED="1451901368341" TEXT="This assumes that there is a ht% chance the address from the UTXO will be sold at this point"/>
+<node COLOR="#ff0000" CREATED="1451901428201" ID="ID_238421211" MODIFIED="1451901474922" TEXT="Note that addresses complicate the above. What if the UTXO only contains 10%, contained more, but change was sent back to the same address that spent them?"/>
+</node>
+<node CREATED="1451899526385" ID="ID_1141826290" MODIFIED="1451900293196" TEXT="If coins were taken from the pool, the trust would be based on how many coins voted for the proposal">
+<node CREATED="1451899628722" ID="ID_327471592" MODIFIED="1451900452100">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      This is done proportionally, so that if Y% hcpt coins voted for the proposal, then we take (max(Y% - (1 - ht%),0) * (pool funds spent). For example, if we trust 90% of hcp, and (hcpt of txns voted for proposal)/(hcp coins) = 50%, then the total trust would be 50% - 10% = 40% * (pool funds spent).
+    </p>
+  </body>
+</html></richcontent>
+</node>
+<node CREATED="1451900298865" ID="ID_1463615067" MODIFIED="1451900381261" TEXT="The idea is that an attacker would attempt to maximize their coins by voting for spending a pool to benefit the attacker. Therefore we assume that 100% of the compromised coins voted for the proposal. So any remainder over the compromised amount is used to determine trust"/>
+</node>
+<node CREATED="1451900056953" ID="ID_1473683850" MODIFIED="1451900505853" TEXT="If coins were won by staking, the hcpt gets proportionally split to the newly minted coins and the coins staked"/>
+</node>
+</node>
+<node CREATED="1451900526209" ID="ID_1425560345" MODIFIED="1451901217132" TEXT="Whenever a proposal is checked to see if it won or not, max((1- ht%)*(total hcp coins) - (total hcpt value of voting coins), 0) is added to the trust of the block specified by the propcp."/>
+<node CREATED="1451900830842" ID="ID_379980450" MODIFIED="1451900873764" TEXT="The block also gets the hcpt value of the UTXO creating the block">
+<node CREATED="1451900906394" ID="ID_1916267930" MODIFIED="1451900936733" TEXT="Note that no other UTXO&apos;s the wallet has can be used to verify the block, because that would allow the attacker to use their compromised UTXO&apos;s"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1452154991582" ID="ID_59149091" MODIFIED="1452154993273" POSITION="right" TEXT="plan5">
+<node CREATED="1452154994636" ID="ID_1110823618" MODIFIED="1452155169476" TEXT="network">
+<node CREATED="1452155239196" ID="ID_925475201" MODIFIED="1452155240656" TEXT="terms">
+<node CREATED="1452155241604" ID="ID_1683195681" MODIFIED="1452155242576" TEXT="bh">
+<node CREATED="1452155243892" ID="ID_1291414456" MODIFIED="1452155245416" TEXT="black hat"/>
+</node>
+<node CREATED="1452155246564" ID="ID_1653376953" MODIFIED="1452155247448" TEXT="wh">
+<node CREATED="1452155248428" ID="ID_1777166804" MODIFIED="1452155250592" TEXT="white hat"/>
+</node>
+<node CREATED="1452155374748" ID="ID_970594735" MODIFIED="1452155376440" TEXT="mp">
+<node CREATED="1452155377516" ID="ID_827176806" MODIFIED="1452155384784" TEXT="Max percentage of bh we can defend against"/>
+</node>
+<node CREATED="1452155895332" ID="ID_1085691150" MODIFIED="1452155896296" TEXT="bct">
+<node CREATED="1452155897692" ID="ID_437218230" MODIFIED="1452155970385" TEXT="Block chain trust. Indicates the amount of trust as a coin value of a particular XTO. The bct divided by the total coins is the percent trust that the coins are not controlled by a bh"/>
+</node>
+<node CREATED="1452155971172" ID="ID_1340273512" MODIFIED="1452155972752" TEXT="xto">
+<node CREATED="1452155973860" ID="ID_1231407475" MODIFIED="1452155980120" TEXT="transaction output (spent or unspent)"/>
+</node>
+</node>
+<node CREATED="1452155206052" ID="ID_128310711" MODIFIED="1452155209096" TEXT="assumptions">
+<node CREATED="1452155210284" ID="ID_1718826272" MODIFIED="1452155236904" TEXT="X percent of entities are bh">
+<node CREATED="1452155280484" ID="ID_1073782430" MODIFIED="1452155285608" TEXT="includes">
+<node CREATED="1452155286812" ID="ID_1951345644" MODIFIED="1452155294368" TEXT="People selling old used keys"/>
+<node CREATED="1452155294788" ID="ID_880630759" MODIFIED="1452155304704" TEXT="People trying to destroy network"/>
+<node CREATED="1452155305084" ID="ID_1059923183" MODIFIED="1452155309616" TEXT="People trying to double spend"/>
+</node>
+</node>
+<node CREATED="1452155312276" ID="ID_141521098" MODIFIED="1452155358200" TEXT="A bh will do anything in their power to accomplish their goal with a limited number of funds"/>
+<node CREATED="1452158009844" ID="ID_417629301" MODIFIED="1452159279100" TEXT="10 % of the systems coins may be owned by black hats, which is not the same thing as XTO&apos;s have a 10% change of being a black hat">
+<node CREATED="1452158054161" ID="ID_1164926730" MODIFIED="1452158080712" TEXT="In the later, it would be possible, then, for all entities to be black hats for awhile, and then change to white hats, etc."/>
+</node>
+<node CREATED="1452159276748" ID="ID_337250176" MODIFIED="1452159425712" TEXT="Official clients (or unofficial clients that sign) owning 20% of the non-lost active coins will sign a checkpoint within 30 days"/>
+</node>
+<node CREATED="1452155392164" ID="ID_1082420013" MODIFIED="1452158088124" TEXT="idea1">
+<node CREATED="1452155407748" ID="ID_150458269" MODIFIED="1452155451896" TEXT="everyone in the network sign blocks with their private keys"/>
+<node CREATED="1452155452524" ID="ID_1864900358" MODIFIED="1452156792736" TEXT="uxto&apos;s are associated to a certain amount of bct">
+<node CREATED="1452156807844" ID="ID_239677003" MODIFIED="1452156826208" TEXT="utxo&apos;s sign blocks in their block chain periodically"/>
+<node CREATED="1452156827500" ID="ID_819451604" MODIFIED="1452156836560" TEXT="blocks with higher signatures get boosts of trust"/>
+<node CREATED="1452156837740" ID="ID_1449439990" MODIFIED="1452156869336" TEXT="utxo&apos;s created before high trust blocks have higher trust"/>
+</node>
+<node CREATED="1452157729884" ID="ID_1291192061" MODIFIED="1452157738336" TEXT="black hats will attempt to game the system">
+<node CREATED="1452157739324" ID="ID_1139281646" MODIFIED="1452157777168" TEXT="Any action a black hat makes must not increase their trust"/>
+</node>
+<node CREATED="1452158230280" ID="ID_922000151" MODIFIED="1452158243392" TEXT="checkpoints may be 100% trusted">
+<node CREATED="1452158244484" ID="ID_1898416668" MODIFIED="1452158287184" TEXT="Since bh are a percentage of the public (not a percent chance), then if enough public members sign the checkpoints, and we assume that there are only so many bh&apos;s, then we can trust the checkpoint 100%"/>
+<node CREATED="1452158288668" ID="ID_1992694675" MODIFIED="1452158343584" TEXT="An XTO before a 100% checkpoint cannot be modified, so a black hat can&apos;t use it, and we can 100% believe it"/>
+<node CREATED="1452158355308" ID="ID_965125656" MODIFIED="1452158491352" TEXT="If checkpoint 1 is signed by X nodes, and checkpoint 2 is signed by Y nodes where Y nodes are not descendents of X nodes, then checkpoint 1 gets the trust of X+Y nodes"/>
+</node>
+</node>
+<node CREATED="1452158621420" ID="ID_223082982" MODIFIED="1452159452976" TEXT="solved problems">
+<node CREATED="1452158624060" ID="ID_680866808" MODIFIED="1452158672255">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Coins will be lost, which will never sign any more checkpoints
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Eventually we will not be able to pass the 10% threshold, and no checkpoint will be trusted completely
+    </p>
+  </body>
+</html></richcontent>
+<node CREATED="1452159012900" ID="ID_1248806289" MODIFIED="1452159047932">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      An extreme example, suppose that 99% of coins are lost
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      If we assume that blackhats own 10% of coins at all times, then checkpoints can no longer be trusted
+    </p>
+  </body>
+</html></richcontent>
+</node>
+<node CREATED="1452159104492" ID="ID_1628022608" MODIFIED="1452159147217" TEXT="We need another assumption that a certain percentage of users are actively creating checkpoints over a period of time"/>
+<node CREATED="1452159152548" ID="ID_1071743907" MODIFIED="1452159210360" TEXT="But here is the thing, since past checkpoints can benefit from future signers, we don&apos;t need this to be that big. Maybe something like 20% will have signed a checkpoint within 30 days"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1452320162113" ID="ID_792070198" MODIFIED="1479384408102" POSITION="right" TEXT="plan6">
+<node CREATED="1452320170681" ID="ID_997191426" MODIFIED="1452320191788" TEXT="When transactions of any type are created, they also sign a recent block">
+<node CREATED="1452320194145" ID="ID_458463717" MODIFIED="1452320205653" TEXT="This is very little cost, since transacations have to be signed anyway"/>
+<node CREATED="1452321307201" ID="ID_384284167" MODIFIED="1452321324494" TEXT="How to make blocks get signed enough, without causing too much signing to occur?">
+<node CREATED="1452321052817" ID="ID_1037267865" MODIFIED="1452321138741" TEXT="Take some coins owned by an attacker, they can create a fork and sign block after block with their fake transactions. But because they can&apos;t get over 10% of the network to sign any of their blocks, (and blocks have trust set to (cointrust - 10%), the blocks have no trust, so they don&apos;t increase the trust of the attackers coins"/>
+<node CREATED="1452321141896" ID="ID_840779696" MODIFIED="1452321174109" TEXT="Once a block reaches the 10% boundary, it gains 100% trust, because at that point, a non attacker would have to have signed it (given the 10% bh limit)"/>
+<node CREATED="1452321177505" ID="ID_1610319218" MODIFIED="1452321190075" TEXT="Once that happens, all coins go back to 100% trust"/>
+<node CREATED="1452321267400" ID="ID_1828822711" MODIFIED="1452321288517" TEXT="Trust is valuable, and everyone gets trust when a recent block reached 10% "/>
+<node CREATED="1452321388393" ID="ID_1010261504" MODIFIED="1452321429932" TEXT="What if we pay everyone who signed a block when it reaches 10% (which would happen even if a descendent block was signed, since the trust is inherited)"/>
+<node CREATED="1452321447192" ID="ID_1196212550" MODIFIED="1452321475404" TEXT="It would also be a natural way for people to create blocks, since by adding their signature, they would definitely get paid when the block reaches 10%"/>
+<node CREATED="1452321476232" ID="ID_1406045710" MODIFIED="1452321580741" TEXT="Interestingly, people get paid for trust, not for the amount of coins they held, so it changes things a little"/>
+<node CREATED="1452321617537" ID="ID_1404138770" MODIFIED="1452321630381" TEXT="Pay to sign a block?">
+<node CREATED="1452321631993" ID="ID_496314212" MODIFIED="1452321662708" TEXT="Let&apos;s say we had a fee to sign a block. After all, you are making everyone on the network store it, so that is what the fee is for."/>
+<node CREATED="1452321716489" ID="ID_1985578787" MODIFIED="1452321742588" TEXT="This prevents people from overloading the network with signatures, since they cost them money"/>
+<node CREATED="1452321743095" ID="ID_753558137" MODIFIED="1452321749835" TEXT="But can we vary the fee?">
+<node CREATED="1452321751168" ID="ID_310896066" MODIFIED="1452321776788" TEXT="Of course! By the number of transactions in the block."/>
+</node>
+<node CREATED="1452321781927" ID="ID_460614569" MODIFIED="1452321797523" TEXT="Transactions can be put into blocks that sign old blocks, what about new ones?">
+<node CREATED="1452321800777" ID="ID_1928928488" MODIFIED="1452321826683" TEXT="New blocks are created, with a signing transaction, that has to pay the signing fee"/>
+<node CREATED="1452321831560" ID="ID_663598102" MODIFIED="1452321942012" TEXT="But why would they want to include other transactions in their block?"/>
+</node>
+<node CREATED="1452321955096" ID="ID_1055926260" MODIFIED="1452321986532" TEXT="If there is a fee, then small guys will be prevented from creating signatures, because the fee isn&apos;t worth the reward">
+<node CREATED="1452322041792" ID="ID_1926164739" MODIFIED="1452322051908" TEXT="Let&apos;s say we award with continously compounded interest">
+<node CREATED="1452322057336" ID="ID_1005798550" MODIFIED="1452322160522" TEXT="Then when the user makes a transaction, they will automatically get the interest as long as their block gets over 10% trust (which it eventually should)"/>
+<node CREATED="1452322092888" ID="ID_1830600096" MODIFIED="1452322206732" TEXT="In the UI, we can show their value growing, even when they aren&apos;t even connected to the network">
+<node CREATED="1452322122528" ID="ID_803779058" MODIFIED="1452322143036" TEXT="It would be split into interest earned (which would stay unavailable until the threshold is reached)"/>
+</node>
+<node CREATED="1452322161567" ID="ID_859978799" MODIFIED="1452322196810" TEXT="Then why would anyone sign a block, if they can just wait and sign it later getting the same reward?">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1452322258088" ID="ID_601011828" MODIFIED="1452322273660" TEXT="The little guy honestly provides little benefit, however"/>
+<node CREATED="1452322284552" ID="ID_1563890919" MODIFIED="1452322305836" TEXT="So lets say, when we reach a threshold, everyone without the threshold limit gets a fair share of reward">
+<node CREATED="1452322314097" ID="ID_663708732" MODIFIED="1452322348796" TEXT="Big guys would like to sign every block. Little guys would never sign a block, because the reward is less than the fee"/>
+<node CREATED="1452322365089" ID="ID_1120203283" MODIFIED="1452322368860" TEXT="Pool?">
+<node CREATED="1452322376247" ID="ID_502870544" MODIFIED="1452322389588" TEXT="Cold signing?">
+<node CREATED="1452322391049" ID="ID_1683319457" MODIFIED="1452322402668" TEXT="It could be done with a signing + a master key"/>
+<node CREATED="1452322417537" ID="ID_677076933" MODIFIED="1452322453900" TEXT="The problem is that then giant pools would develop, the bigger the pool, the more the reward, and you can never be sure the cold minter isn&apos;t sharing that key with a bh"/>
+<node CREATED="1452322495872" ID="ID_1856395272" MODIFIED="1452322504868" TEXT="So what is an honest trust value for a cold key?">
+<node CREATED="1452322506768" ID="ID_1546235895" MODIFIED="1452322660604" TEXT="Since you can never know who that key is given to, how secure their network is, I&apos;d say zero. There is no reason to keep it safe"/>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1452322729048" ID="ID_694145087" MODIFIED="1452322745108" TEXT="In order to choose a fee, we need to know the value of the block to the network">
+<node CREATED="1452322756168" ID="ID_1112450705" MODIFIED="1452322786548" TEXT="This depends on how likely it is for a bh to obtain old private keys since the last time a checkpoint block was created"/>
+<node CREATED="1452322797768" ID="ID_1208982127" MODIFIED="1452322843460" TEXT="So we keep a running total of trust of the network. As keys lose trust, the network loses trust, until it gets to zero">
+<node CREATED="1452322845361" ID="ID_1586369976" MODIFIED="1452322866628" TEXT="So reward would be x/(total trust) all the way up to infinity">
+<node CREATED="1452322909913" ID="ID_850519738" MODIFIED="1452322962404" TEXT="This would allow a bh to convince a wh to go bad, though, if the reward for signing one of their bad blocks was high enough. They could only accomplish that, though, if they could thrash other peoples coins, which they can not do"/>
+<node CREATED="1452323067105" ID="ID_1513170905" MODIFIED="1452323167830">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      We need to take into account the trust gained.&#160;If signing a recent block gives a bunch of past blocks checkpoint status, they all shouldn't get a high reward. Also we need to know the trust needed
+    </p>
+  </body>
+</html></richcontent>
+<font NAME="SansSerif" SIZE="12"/>
+<node CREATED="1452323176816" ID="ID_1543670630" MODIFIED="1452323247460" TEXT="What we care about, though is binary. Either there is trust or there isn&apos;t. This is because once we reach the 10% threshold, the block goes to 100% checkpoint status (since by assumption, there can only be so many coins in control of bh&apos;s)">
+<node CREATED="1452323268400" ID="ID_1113630804" MODIFIED="1452323333093" TEXT="But we don&apos;t know how high of a reward is necessary to get the network to sign it over 10%"/>
+</node>
+</node>
+<node CREATED="1452323480656" ID="ID_1506884295" MODIFIED="1452323538234" TEXT="This is a bad idea, it encourages collusion between major players to delay signing and raise the reward level">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+<node CREATED="1452323540447" ID="ID_1164786895" MODIFIED="1452323566907" TEXT="This is impossible to know, because we can&apos;t estimate the reward necessary to get enough people to sign it">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+<node CREATED="1452320267135" ID="ID_1089822760" MODIFIED="1452320272107" TEXT="ideas">
+<node CREATED="1452320273649" ID="ID_746096956" MODIFIED="1452320318483" TEXT="coinage has a relationship to individuality of users">
+<node CREATED="1452320319673" ID="ID_31813394" MODIFIED="1452320357365" TEXT="An attacker can control only so much coinage. No matter what transactions they do with their coins, they are unable to increase it"/>
+<node CREATED="1452320429089" ID="ID_644970568" MODIFIED="1452320455979" TEXT="It seems that, even if a transaction is done against a coin, it doesn&apos;t necessarily mean an attacker has gotten hold of the coins"/>
+<node CREATED="1452320456263" ID="ID_1026875160" MODIFIED="1452320497029" TEXT="It relates to bct, doesn&apos;t it? Because when a transaction is made, it may be the attacker got hold of the old key at that point which reduces the trust, but does not eliminate it"/>
+<node CREATED="1452320502169" ID="ID_440020573" MODIFIED="1452320660413" TEXT="If, a transaction has been made, but is behind a checkpoint (ie, a 100% trusted block) then there are two possiblities:&#xa;&#xa;1. The coins are still live (in that case, the fee to own the private key would be large, ie the price of the coins)&#xa;2. The coins are dead, but the txn can not be changed even if the private key is held&#xa;&#xa;In either case, we can consider the trust at 100%&#xa;"/>
+<node CREATED="1452320662488" ID="ID_1554850068" MODIFIED="1452320872980" TEXT="However there is a subtle difference. isn&apos;t there, between trust and coinage? Coinage is more geared towards preventing stake grinding, but otherwise, as an attacker can&apos;t acquire more coinage, they also can&apos;t acquire more trust"/>
+<node CREATED="1452320894297" ID="ID_1799965982" MODIFIED="1452320938499" TEXT="This relationship applies to coin trust as well. High coin trust indicates that only one user is really the owner, regardless of whether a chain is forked or not">
+<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+</node>
+</node>
+<node CREATED="1452828015269" ID="ID_310941719" MODIFIED="1452828026494" TEXT="users can sign blocks at any time">
+<node CREATED="1452828038779" ID="ID_1592023593" MODIFIED="1452828055663" TEXT="This will allow us to pass the proof of stake threshold"/>
+<node CREATED="1452828057243" ID="ID_801181476" MODIFIED="1452828065655" TEXT="We reward users for this"/>
+<node CREATED="1452828066026" ID="ID_1180781986" MODIFIED="1452828107615" TEXT="We only spot check signatures, done randomly. This allows a client not have to examine so many signatures per block in order to trust it">
+<node CREATED="1452828109138" ID="ID_41694392" MODIFIED="1452828130718" TEXT="We can do this because an attacker won&apos;t know which random signatures to check"/>
+</node>
+</node>
+<node CREATED="1454125535040" ID="ID_1543910752" MODIFIED="1454125558403" TEXT="we need something that doesn&apos;t provide a lot of reward, but will compel an ordinary user to perform"/>
 </node>
 </node>
 <node CREATED="1444793484104" ID="ID_281485779" MODIFIED="1444793487132" POSITION="left" TEXT="design">
